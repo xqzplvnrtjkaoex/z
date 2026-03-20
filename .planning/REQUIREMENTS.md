@@ -49,7 +49,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Content Pipeline
 
-- **FILE-01**: Image upload via File service (Scraper → File service)
+- **FILE-01**: Image upload via File service (Scraper -> File service)
 - **FILE-02**: nginx auth_request-based authenticated image serving
 - **FILE-03**: nginx auth_request_set cookie refresh forwarding
 
@@ -99,36 +99,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| GATE-03 | — | Pending |
-| GATE-04 | — | Pending |
-| GATE-05 | — | Pending |
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| AUTH-05 | — | Pending |
-| CATL-01 | — | Pending |
-| CATL-02 | — | Pending |
-| CATL-03 | — | Pending |
-| CATL-04 | — | Pending |
-| CATL-05 | — | Pending |
-| CATL-06 | — | Pending |
-| CATL-07 | — | Pending |
-| CATL-08 | — | Pending |
-| USER-01 | — | Pending |
-| USER-02 | — | Pending |
-| USER-03 | — | Pending |
-| USER-04 | — | Pending |
-| USER-05 | — | Pending |
-| USER-06 | — | Pending |
+| GATE-01 | Phase 1 | Pending |
+| GATE-02 | Phase 1 | Pending |
+| GATE-03 | Phase 2 | Pending |
+| GATE-04 | Phase 2 | Pending |
+| GATE-05 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| CATL-01 | Phase 3 | Pending |
+| CATL-02 | Phase 3 | Pending |
+| CATL-03 | Phase 3 | Pending |
+| CATL-04 | Phase 3 | Pending |
+| CATL-05 | Phase 4 | Pending |
+| CATL-06 | Phase 4 | Pending |
+| CATL-07 | Phase 4 | Pending |
+| CATL-08 | Phase 4 | Pending |
+| USER-01 | Phase 5 | Pending |
+| USER-02 | Phase 5 | Pending |
+| USER-03 | Phase 5 | Pending |
+| USER-04 | Phase 5 | Pending |
+| USER-05 | Phase 5 | Pending |
+| USER-06 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation*
