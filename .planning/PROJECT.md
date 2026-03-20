@@ -18,7 +18,7 @@ Cargo workspace monorepo with 6 binaries:
 |--------|------|---------------|
 | **gateway** | REST entry point, JWT verification, gRPC routing | REST (external) → gRPC (internal) |
 | **auth** | JWT issuance, session management, Passkey | gRPC |
-| **catalog** | Work CRUD, tag queries, publishing | gRPC |
+| **catalog** | Book CRUD, tag queries, publishing | gRPC |
 | **user** | tastes (like/dislike), histories | gRPC |
 | **file** | Dedicated image upload/storage | REST (behind nginx reverse proxy) |
 | **scraper** | External source mirroring (separate server) | REST → Gateway (API Key) |
@@ -59,10 +59,10 @@ Image Read: Client → nginx auth_request → Gateway (auth check) → nginx ser
 
 ### Upload Scenario
 
-1. Scraper periodically checks external source for new works
-2. New work found → upload metadata to Catalog (unpublished, includes hash of work info + tags)
+1. Scraper periodically checks external source for new books
+2. New book found → upload metadata to Catalog (unpublished, includes hash of book info + tags)
 3. Upload images to File service
-4. Scraper requests Catalog to publish the work
+4. Scraper requests Catalog to publish the book
 5. Catalog verifies page count matches actual image count → publish
 
 ### Update/Renewal Scenario
@@ -73,14 +73,14 @@ Image Read: Client → nginx auth_request → Gateway (auth check) → nginx ser
 - 1d~7d: every 2 hours
 - 7d+: every 12 hours
 
-**Same work ID:** Scraper requests info update to Catalog. Done.
+**Same book ID:** Scraper requests info update to Catalog. Done.
 
-**Work ID changed (renewal):**
-- Preserve original work data (no overwriting)
-- Link duplicate works via graph/relation
+**Book ID changed (renewal):**
+- Preserve original book data (no overwriting)
+- Link duplicate books via graph/relation
 - Canonical ID: new ID becomes canonical, old ID redirects
-- Work info page shows renewal history
-- DB-based queue updates work ID references across services (user, etc.)
+- Book info page shows renewal history
+- DB-based queue updates book ID references across services (user, etc.)
 - Image files are not moved
 - Future migration to message broker possible
 
@@ -95,17 +95,17 @@ Image Read: Client → nginx auth_request → Gateway (auth check) → nginx ser
 - [ ] Gateway REST API + gRPC routing
 - [ ] Passkey authentication (webauthn-rs)
 - [ ] JWT + Session hybrid authentication
-- [ ] Catalog work CRUD (including publish workflow)
-- [ ] Query works by single tag
-- [ ] Query works by multiple tags
-- [ ] Query works by ID list
+- [ ] Catalog book CRUD (including publish workflow)
+- [ ] Query books by single tag
+- [ ] Query books by multiple tags
+- [ ] Query books by ID list
 - [ ] Image upload (File service)
 - [ ] nginx auth_request-based image serving
-- [ ] Work info update checking (decreasing frequency)
-- [ ] Work ID renewal handling (graph relation, canonical ID, queue)
+- [ ] Book info update checking (decreasing frequency)
+- [ ] Book ID renewal handling (graph relation, canonical ID, queue)
 - [ ] User tastes (like/dislike)
 - [ ] User histories
-- [ ] Scraper: hitomi.la new work detection and mirroring
+- [ ] Scraper: hitomi.la new book detection and mirroring
 
 ### Out of Scope
 
@@ -118,8 +118,8 @@ Image Read: Client → nginx auth_request → Gateway (auth check) → nginx ser
 
 ## Context
 
-- Higher work numbers on hitomi.la indicate more recent works
-- Work renewal is primarily caused by deduplication on the external source
+- Higher book numbers on hitomi.la indicate more recent books
+- Book renewal is primarily caused by deduplication on the external source
 - Existing image/data already on local filesystem, migration planned just before release
 - No direct FK between separate service DBs → treat as indirect FK (queue-based sync)
 - `hitomi_la` crate available for use
@@ -148,7 +148,7 @@ Image Read: Client → nginx auth_request → Gateway (auth check) → nginx ser
 | Canonical ID + graph relation | Preserve historical data, track renewal history | — Pending |
 | Per-session JWT caching | Prevent unnecessary duplicate token generation on concurrent requests | — Pending |
 | Separate File service | Avoid Gateway load from image traffic | — Pending |
-| Decreasing update check frequency | More recent works have higher change probability | — Pending |
+| Decreasing update check frequency | More recent books have higher change probability | — Pending |
 
 ---
 *Last updated: 2026-03-21 after initialization*
