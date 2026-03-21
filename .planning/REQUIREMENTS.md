@@ -98,8 +98,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GATE-01 | Phase 1 | Pending |
-| GATE-02 | Phase 1 | Pending |
+| GATE-01 | Phase 1 | Complete |
+| GATE-02 | Phase 1 | Complete |
 | GATE-03 | Phase 2 | Pending |
 | GATE-04 | Phase 2 | Pending |
 | GATE-05 | Phase 2 | Pending |

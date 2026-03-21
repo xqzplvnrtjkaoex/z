@@ -12,7 +12,7 @@ Madome delivers a Rust microservice backend that mirrors manga metadata from ext
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Gateway Infrastructure** - Cargo workspace, shared crates, proto definitions, gateway REST-to-gRPC routing
+- [x] **Phase 1: Foundation and Gateway Infrastructure** - Cargo workspace, shared crates, proto definitions, gateway REST-to-gRPC routing (completed 2026-03-21)
 - [ ] **Phase 2: Authentication** - Passkey registration/login, JWT lifecycle, session management, API key auth
 - [ ] **Phase 3: Catalog Core** - Book CRUD operations and publish workflow through gateway
 - [ ] **Phase 4: Catalog Queries** - Tag-based filtering, ID list lookup, paginated browse listing
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Gateway Infrastructure | 1/2 | In progress | - |
+| 1. Foundation and Gateway Infrastructure | 2/2 | Complete   | 2026-03-21 |
 | 2. Authentication | 0/? | Not started | - |
 | 3. Catalog Core | 0/? | Not started | - |
 | 4. Catalog Queries | 0/? | Not started | - |
