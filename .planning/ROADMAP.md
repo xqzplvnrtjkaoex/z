@@ -45,11 +45,13 @@ Plans:
   3. Authenticated requests pass through the gateway without contacting the auth service (stateless JWT verification)
   4. Expired JWT is automatically refreshed (grace period pass-through or session-based reissue) without user action
   5. Scraper can authenticate to the gateway using an API key
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md -- Proto definitions, workspace dependencies, infrastructure (Docker-compose), DB schema and migrations
+- [ ] 02-02-PLAN.md -- Auth service domain modules (WebAuthn, session, JWT, invite, recovery, API key, repositories) and gRPC service
+- [ ] 02-03-PLAN.md -- Gateway JWT middleware, 4-tier route guards, API key auth, auth REST route handlers
+- [ ] 02-04-PLAN.md -- Auth contract tests and gateway E2E integration tests
 
 ### Phase 3: Catalog Core
 **Goal**: Books can be created, updated, deleted, and published through the gateway API
@@ -106,7 +108,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Gateway Infrastructure | 2/2 | Complete   | 2026-03-21 |
-| 2. Authentication | 0/? | Not started | - |
+| 2. Authentication | 0/4 | Not started | - |
 | 3. Catalog Core | 0/? | Not started | - |
 | 4. Catalog Queries | 0/? | Not started | - |
 | 5. User Preferences | 0/? | Not started | - |
