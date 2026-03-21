@@ -40,6 +40,49 @@ Services discover each other via environment variables (no config files):
 
 Convention: gRPC services listen on 50051+ (auth=50051, catalog=50052, user=50053).
 
+`DOCKER_HOST` is set in `.env` (for testcontainers remote Docker). Image builds use local Docker (unset `DOCKER_HOST` in justfile recipe).
+
+## Git Workflow
+
+### Branches
+- `master` — latest stable. No direct push. All changes via PR.
+- `dev` — development branch. Direct push allowed.
+- Phase branches branch from `dev`, merge back to `dev` with `--no-ff`.
+- `dev` → `master` merge at milestone completion via PR with `--no-ff`.
+- Delete phase branch after merge. Tag if needed for reference.
+- Hotfix: branch from `master` → PR to `master` → merge back to `dev`.
+
+### Commit Messages
+[Conventional Commits](https://www.conventionalcommits.org/) with a **descriptive scope**:
+
+```
+feat(auth): implement passkey registration ceremony
+fix(gateway): correct JWT expiry check off-by-one
+docs(planning): capture phase context for authentication
+refactor(catalog): extract tag query builder
+deps: bump sea-orm to 1.2
+deps(auth): add webauthn-rs dependency
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `perf`, `ci`, `build`, `style`, `chore`, `deps`
+
+- Scope should describe the area of change (service, crate, topic, etc.).
+- Use `deps` as a type (not `chore(deps)`) for dependency changes.
+- Breaking changes: append `!` after scope (e.g., `feat(auth)!: remove password login`) or add `BREAKING CHANGE:` footer.
+- Never use phase numbers as scope (e.g., `docs(02)` is wrong).
+
+### CI (GitHub Actions)
+
+Workflows authored in TypeScript via [gaji](https://github.com/dodok8/gaji) (`npx gaji build`). Do not install gaji globally or as a project dependency.
+
+| Trigger | Checks |
+|---------|--------|
+| `dev` push | `cargo fmt --check`, `cargo clippy --workspace`, unit + integration tests |
+| `master` push | Above + service tests + E2E contract tests + `cargo audit` + `cargo doc --no-deps` |
+| Weekly cron | `cargo audit` (dependency vulnerability scan) |
+
+All merge styles are `--no-ff` (preserve full commit history).
+
 ## Development Tooling
 
 - Use `justfile` for dev commands. Do NOT create shell scripts in `scripts/`.
