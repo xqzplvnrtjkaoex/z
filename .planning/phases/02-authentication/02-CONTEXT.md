@@ -31,6 +31,7 @@ Users can register a passkey via invite token, authenticate, and access protecte
 - **D-13:** Discoverable Credential (Resident Key): Required (username-less login)
 - **D-14:** Multiple passkeys per user allowed (multi-device support)
 - **D-15:** Last passkey cannot be deleted (minimum 1 always)
+- **D-67:** AAGUID stored at registration time. Extract from raw attestationObject CBOR (authData[37..53]) using minicbor, store as UUID column in credentials table. webauthn-rs does not expose AAGUID for attestation=none, so direct CBOR parsing required
 
 ### Passkey Flows
 - **D-16:** Registration: 2-step (begin + finish). Invite token verified in begin step
@@ -108,7 +109,7 @@ Users can register a passkey via invite token, authenticate, and access protecte
 ### Claude's Discretion
 - Proto message structures (request/response types for each RPC)
 - Exact Redis key structure and TTL values for JWT cache
-- Credential storage format details (webauthn-rs internal types)
+- Credential storage format details (webauthn-rs internal types, except AAGUID which is a locked decision D-67)
 - Recovery code generation algorithm specifics
 - Migration file organization and ordering
 - Exact index types (btree vs hash) based on query patterns
