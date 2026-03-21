@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "plansDirectory": ".claude/plans",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "teammateMode": "tmux",
+  "model": "opus",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'file=$(jq -r \".tool_input.file_path\"); case \"$file\" in *.js|*.jsx|*.ts|*.tsx) npx prettier --write \"$file\" ;; esac'"
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'file=$(jq -r \".tool_input.file_path\"); case \"$file\" in *.rs) cargo fmt ;; esac'"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "additionalDirectories": [],
+    "allow": [
+      "Read(./*)",
+      "Edit(./*)",
+      "Edit(./.claude/plans/*)",
+
+      "Bash(ls:*)",
+      "Bash(echo:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git remote:*)",
+      "Bash(git tag:*)",
+      "Bash(glab mr:*)",
+      "Bash(glab auth:*)",
+
+      "Bash(cargo test:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo info:*)",
+      "Bash(cargo search:*)",
+      "Bash(cargo metadata:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo outdated:*)",
+
+      "Bash(cargo clean -p madome-proto)",
+
+      "Bash(npm view:*)",
+
+      "Bash(npx gaji:*)",
+
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./secrets/**)"
+    ]
+  }
+}
