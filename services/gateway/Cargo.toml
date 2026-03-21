@@ -3,6 +3,10 @@ name = "gateway"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+name = "gateway"
+path = "src/lib.rs"
+
 [[bin]]
 name = "gateway"
 path = "src/main.rs"
@@ -22,5 +26,8 @@ madome-core = { workspace = true }
 madome-common = { workspace = true }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util", "time"] }
 reqwest = { version = "0.12", features = ["json"] }
+serde_json = { workspace = true }
+madome-proto = { workspace = true }
+tonic = { workspace = true }

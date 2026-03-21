@@ -1,12 +1,9 @@
+use gateway::routes;
+use gateway::state::AppState;
 use madome_proto::auth::auth_service_client::AuthServiceClient;
 use madome_proto::catalog::catalog_service_client::CatalogServiceClient;
 use madome_proto::user::user_service_client::UserServiceClient;
 use tower_http::trace::TraceLayer;
-
-pub mod routes;
-pub mod state;
-
-use state::AppState;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
