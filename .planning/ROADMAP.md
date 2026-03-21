@@ -29,11 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Gateway starts and exposes REST endpoints that accept HTTP requests
   3. Gateway translates a REST request into a gRPC call to an internal service and returns the response
   4. Proto definitions exist for all services (auth, catalog, user) even if service implementations are stubs
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Workspace manifest, proto definitions, shared crates (madome-proto, madome-core, madome-common)
+- [ ] 01-02-PLAN.md -- Service stubs, gateway REST-to-gRPC routing, integration tests
 
 ### Phase 2: Authentication
 **Goal**: Users can register a passkey, authenticate, and access protected endpoints through JWT-verified gateway
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Gateway Infrastructure | 0/? | Not started | - |
+| 1. Foundation and Gateway Infrastructure | 0/2 | Planning complete | - |
 | 2. Authentication | 0/? | Not started | - |
 | 3. Catalog Core | 0/? | Not started | - |
 | 4. Catalog Queries | 0/? | Not started | - |
