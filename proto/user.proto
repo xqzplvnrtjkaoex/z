@@ -1,0 +1,8 @@
+syntax = "proto3";
+package madome.user;
+
+import "google/protobuf/empty.proto";
+
+service UserService {
+  rpc Health(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
