@@ -37,6 +37,13 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 [[package]]
 name = "auth"
 version = "0.1.0"
+dependencies = [
+ "madome-common",
+ "madome-proto",
+ "tokio",
+ "tonic",
+ "tracing",
+]
 
 [[package]]
 name = "axum"
@@ -111,6 +118,13 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 [[package]]
 name = "catalog"
 version = "0.1.0"
+dependencies = [
+ "madome-common",
+ "madome-proto",
+ "tokio",
+ "tonic",
+ "tracing",
+]
 
 [[package]]
 name = "cfg-if"
@@ -808,6 +822,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-hook-registry"
+version = "1.4.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
+dependencies = [
+ "errno",
+ "libc",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -898,6 +922,7 @@ dependencies = [
  "libc",
  "mio",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys",
@@ -1126,6 +1151,13 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 [[package]]
 name = "user"
 version = "0.1.0"
+dependencies = [
+ "madome-common",
+ "madome-proto",
+ "tokio",
+ "tonic",
+ "tracing",
+]
 
 [[package]]
 name = "valuable"

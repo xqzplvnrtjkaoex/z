@@ -3,4 +3,13 @@ name = "catalog"
 version.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "catalog"
+path = "src/main.rs"
+
 [dependencies]
+tokio = { workspace = true }
+tonic = { workspace = true }
+tracing = { workspace = true }
+madome-proto = { workspace = true }
+madome-common = { workspace = true }
