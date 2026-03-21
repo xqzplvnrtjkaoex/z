@@ -3,4 +3,24 @@ name = "gateway"
 version.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "gateway"
+path = "src/main.rs"
+
 [dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tonic = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+madome-proto = { workspace = true }
+madome-core = { workspace = true }
+madome-common = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util"] }
+reqwest = { version = "0.12", features = ["json"] }
