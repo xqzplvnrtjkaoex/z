@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Workspace manifest, proto definitions, shared crates (madome-proto, madome-core, madome-common)
+- [x] 01-01-PLAN.md -- Workspace manifest, proto definitions, shared crates (madome-proto, madome-core, madome-common)
 - [ ] 01-02-PLAN.md -- Service stubs, gateway REST-to-gRPC routing, integration tests
 
 ### Phase 2: Authentication
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Gateway Infrastructure | 0/2 | Planning complete | - |
+| 1. Foundation and Gateway Infrastructure | 1/2 | In progress | - |
 | 2. Authentication | 0/? | Not started | - |
 | 3. Catalog Core | 0/? | Not started | - |
 | 4. Catalog Queries | 0/? | Not started | - |

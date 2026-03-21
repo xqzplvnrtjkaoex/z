@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Gateway
 
-- [ ] **GATE-01**: Gateway exposes REST API with route registration for all services
-- [ ] **GATE-02**: Gateway routes REST requests to internal services via gRPC
+- [x] **GATE-01**: Gateway exposes REST API with route registration for all services
+- [x] **GATE-02**: Gateway routes REST requests to internal services via gRPC
 - [ ] **GATE-03**: Gateway verifies JWT access token (stateless pass-through when valid)
 - [ ] **GATE-04**: Gateway refreshes JWT on expiry (grace period + session fallback)
 - [ ] **GATE-05**: Gateway authenticates Scraper via API Key
@@ -61,9 +61,8 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Renewal
 
-- **RENW-01**: Book ID renewal handling (graph relation, canonical ID)
-- **RENW-02**: DB-based queue for cross-service reference updates
-- **RENW-03**: Renewal history display via API
+- **RENW-01**: Book renewal handling (canonical_id denormalization, book_relations table, renew API)
+- **RENW-02**: Renewal history display via API (expose renewal chain through catalog API)
 
 ### Search
 
@@ -82,7 +81,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Frontend UI | API-first architecture; frontend is a separate milestone |
 | Automated image censorship | ML infrastructure overhead; only relevant if service goes public |
 | Reporting/moderation | Small trusted community does not need formal moderation initially |
-| Message broker (RabbitMQ, etc.) | DB-based queue sufficient for v1 scale; migration path available |
+| Message broker (RabbitMQ, etc.) | Not needed; renewal resolved in catalog via canonical_id without cross-service sync |
 | OAuth/social login | Passkey-only provides stronger security; small community acceptance |
 | Mobile app | Web API first, mobile later |
 | User-uploaded content | Moderation nightmare; contradicts reliable mirror value proposition |
@@ -128,6 +127,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 24 total
 - Mapped to phases: 24
 - Unmapped: 0
+- v2 renewal: RENW-02 (cross-service queue) removed -- canonical_id approach eliminates the need
 
 ---
 *Requirements defined: 2026-03-21*
