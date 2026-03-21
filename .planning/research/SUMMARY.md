@@ -1,5 +1,7 @@
 # Project Research Summary
 
+> **Terminology note:** This document uses "work" throughout. The project canonical term is **"book"**. See PROJECT.md for current architecture decisions -- some research recommendations (e.g., cross-service sync queue, centralized migration crate) have been superseded.
+
 **Project:** Madome — Manga Mirroring and Aggregation Service
 **Domain:** Rust microservice content mirroring platform (manga aggregation)
 **Researched:** 2026-03-21
@@ -109,7 +111,7 @@ Based on research, the build order is dictated by hard dependencies: auth is req
 
 **Rationale:** Catalog is the second dependency in the content pipeline. The scraper and file service cannot function without work IDs from catalog. Delivering catalog browsing and tag filtering here also produces the first working user-facing API.
 
-**Delivers:** Work CRUD (create, update, get, list), tag storage and multi-tag compound queries, publish workflow with page count verification, paginated browse endpoint, basic text search via PostgreSQL full-text or trigram, gateway routes for all catalog operations.
+**Delivers:** Book CRUD (create, update, get, list), tag storage and multi-tag compound queries, publish workflow with page count verification, paginated browse endpoint, basic text search via PostgreSQL full-text or trigram, gateway routes for all catalog operations.
 
 **Addresses:** Catalog browsing (table stakes), tag-based filtering (table stakes), basic search (table stakes).
 

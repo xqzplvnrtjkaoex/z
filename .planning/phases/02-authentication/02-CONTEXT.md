@@ -97,12 +97,12 @@ Users can register a passkey via invite token, authenticate, and access protecte
 - **D-60:** Gateway is pure REST-to-gRPC translator for all auth operations
 
 ### Infrastructure
-- **D-61:** docker-compose for PostgreSQL + Redis only. Services run via cargo run (Phase 1 pattern preserved)
+- **D-61:** docker-compose for PostgreSQL + Redis (latest stable versions). Services run via cargo run (Phase 1 pattern preserved)
 - **D-62:** DB initialization: auto-migration on Auth service startup (sea-orm). Admin seed included in migration
-- **D-63:** dev-start.sh: extended with `docker-compose up -d` step before service startup
+- **D-63:** justfile: recipes for `docker-compose up -d`, service startup, and common dev commands. No shell scripts in scripts/
 
 ### Testing
-- **D-64:** All tests use testcontainers for PostgreSQL + Redis (no mock DB). Container reuse for speed optimization
+- **D-64:** All tests use testcontainers for PostgreSQL + Redis (no mock DB, `[dev-dependencies]`). Container reuse for speed optimization
 - **D-65:** Test layers: contract tests (per-service gRPC contract) + integration tests (Gateway E2E flow: register -> login -> access protected)
 - **D-66:** WebAuthn testing: webauthn-rs SoftPasskey/mock authenticator for server-side ceremony simulation
 
@@ -165,7 +165,7 @@ Users can register a passkey via invite token, authenticate, and access protecte
 - `services/gateway/src/lib.rs`: Needs JWT verification middleware layer
 - `services/gateway/src/routes/mod.rs`: Needs auth route registration
 - `services/gateway/src/state.rs`: Needs JWT public key and Redis connection
-- `scripts/dev-start.sh`: Needs docker-compose integration
+- `justfile`: Needs docker-compose recipes and service startup commands
 - Root `Cargo.toml`: Needs new dependencies (webauthn-rs, jsonwebtoken, sea-orm, redis)
 
 </code_context>

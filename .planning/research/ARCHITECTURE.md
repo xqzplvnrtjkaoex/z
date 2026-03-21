@@ -1,5 +1,7 @@
 # Architecture Research
 
+> **Terminology note:** This document uses "work" throughout. The project canonical term is **"book"**. See PROJECT.md for current architecture decisions -- some recommendations here (e.g., madome-entity/madome-migration centralized crates, cross-service DB sync queue) have been superseded by per-service schema/migration folders, canonical_id denormalization, and a 3-crate split (proto, core, common).
+
 **Domain:** Rust microservice content mirroring platform (manga aggregation)
 **Researched:** 2026-03-21
 **Confidence:** HIGH (well-established patterns for Rust workspace + tonic + axum + sea-orm)

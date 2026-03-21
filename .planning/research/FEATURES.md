@@ -1,5 +1,7 @@
 # Feature Research
 
+> **Terminology note:** This document uses "work" throughout. The project canonical term is **"book"**. See PROJECT.md for current decisions.
+
 **Domain:** Manga mirroring and content aggregation service
 **Researched:** 2026-03-21
 **Confidence:** MEDIUM (based on training data knowledge of similar platforms: nhentai, e-hentai/exhentai, hitomi.la, MangaDex, Komga, Kavita; no live web search available to verify current state)
@@ -29,7 +31,7 @@ Features that set Madome apart from using hitomi.la directly or other aggregator
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Work renewal tracking (version graph)** | Hitomi.la frequently deletes and re-uploads works under new IDs. Users lose their history/bookmarks. Madome preserves the continuity by linking old and new IDs via a relation graph. No public aggregator does this well. | HIGH | Already designed in PROJECT.md. Canonical ID + graph relation + queue-based cross-service sync. This is genuinely novel for the domain. |
+| **Book renewal tracking (version graph)** | Hitomi.la frequently deletes and re-uploads works under new IDs. Users lose their history/bookmarks. Madome preserves the continuity by linking old and new IDs via a relation graph. No public aggregator does this well. | HIGH | Already designed in PROJECT.md. Canonical ID + graph relation + queue-based cross-service sync. This is genuinely novel for the domain. |
 | **User tastes (like/dislike)** | Most aggregators offer favorites only. A binary like/dislike system enables future recommendation and personal filtering (hide disliked works, surface similar to liked). | MEDIUM | User service already scoped. Simple per-user-per-work preference storage. Value multiplies when combined with filtering. |
 | **Reading history with progress** | Know which works you have read and where you stopped. Hitomi.la has no account system; other aggregators offer basic bookmarks at best. | MEDIUM | User service already scoped. Store last-read page per work per user. Enables "continue reading" and "unread" filtering. |
 | **Reliable availability** | Source sites go down, get blocked by ISPs, or have aggressive rate limiting. A local mirror is always available when the source is not. | LOW | This is inherent to the mirroring architecture. The value is in the operational model, not a feature to build. |
@@ -130,7 +132,7 @@ Features to add once the core content pipeline is stable and the community is ac
 
 - [ ] **User tastes (like/dislike)** -- Trigger: community members request personal curation. Simple binary preference per work.
 - [ ] **Reading history** -- Trigger: users want to track what they have read. Per-user-per-work last-read page.
-- [ ] **Work renewal tracking (full graph relation)** -- Trigger: first observed renewal event on hitomi.la. Canonical ID, old-to-new linking, cross-service queue sync.
+- [ ] **Book renewal tracking (canonical_id denormalization, book_relations)** -- Trigger: first observed renewal event on hitomi.la. Canonical ID, old-to-new linking, cross-service queue sync.
 - [ ] **Taste-based negative filtering** -- Trigger: users have accumulated enough taste data. Exclude disliked works/tags from browse results.
 - [ ] **Scraper failure monitoring/alerting** -- Trigger: first silent scraper failure. Health check endpoint, stale-content detection.
 
