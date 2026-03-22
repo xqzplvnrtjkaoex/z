@@ -21,6 +21,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
+chrono = { workspace = true }
 madome-proto = { workspace = true }
 madome-core = { workspace = true }
 madome-common = { workspace = true }
