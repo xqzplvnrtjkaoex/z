@@ -87,9 +87,16 @@ Recent decisions affecting current work:
 - Phase restructuring: ROADMAP.md updated. Phase directories need renaming (02-authentication -> 03-authentication) and new 02-user-profile directory creation
 - users table moved to User service — auth service uses gRPC client for user data. Cross-service dependency during registration and login flows
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260322-of1 | Update PROJECT.md and ROADMAP.md with pending decisions and phase restructuring | 2026-03-22 | 9e691ba | [260322-of1-update-project-md-and-roadmap-md-with-pe](./quick/260322-of1-update-project-md-and-roadmap-md-with-pe/) |
+
 ## Session Continuity
 
 Last session: 2026-03-22
+Last activity: 2026-03-22 - Completed quick task 260322-of1: Update PROJECT.md and ROADMAP.md with pending decisions and phase restructuring
 Stopped at: PROJECT.md and ROADMAP.md updated with project-wide decisions and phase restructuring
 Resume file: .planning/ROADMAP.md
 Next action: Create User Profile phase directory (02-user-profile), then discuss-phase for Phase 2 User Profile
