@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use sea_orm::sea_query::{Expr, Func};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, DbErr, EntityTrait,
-    QueryFilter, QueryOrder, QuerySelect,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
+    QueryOrder, QuerySelect,
 };
 use uuid::Uuid;
 
@@ -59,18 +59,6 @@ impl From<users::Model> for User {
     }
 }
 
-// --- Helper to classify DB errors ---
-
-fn classify_db_err(err: DbErr) -> RepositoryError {
-    let msg = err.to_string();
-    // PostgreSQL unique violation error code: 23505
-    if msg.contains("duplicate key") || msg.contains("unique constraint") || msg.contains("23505") {
-        RepositoryError::UniqueViolation("handle".to_string())
-    } else {
-        RepositoryError::Database(msg)
-    }
-}
-
 // --- UserRepository implementation ---
 
 use crate::domain::ports::user_repository::UserRepository;
@@ -89,17 +77,13 @@ impl UserRepository for PostgresUserRepository {
 
         let model = users::Entity::insert(active_model)
             .exec_with_returning(&self.db)
-            .await
-            .map_err(classify_db_err)?;
+            .await?;
 
         Ok(model.into())
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, RepositoryError> {
-        let model = users::Entity::find_by_id(id)
-            .one(&self.db)
-            .await
-            .map_err(|e| RepositoryError::Database(e.to_string()))?;
+        let model = users::Entity::find_by_id(id).one(&self.db).await?;
 
         Ok(model.map(Into::into))
     }
@@ -110,8 +94,7 @@ impl UserRepository for PostgresUserRepository {
                 Expr::expr(Func::lower(Expr::col(users::Column::Handle))).eq(handle.to_lowercase()),
             )
             .one(&self.db)
-            .await
-            .map_err(|e| RepositoryError::Database(e.to_string()))?;
+            .await?;
 
         Ok(model.map(Into::into))
     }
@@ -143,11 +126,7 @@ impl UserRepository for PostgresUserRepository {
             );
         }
 
-        let models = query
-            .limit(limit)
-            .all(&self.db)
-            .await
-            .map_err(|e| RepositoryError::Database(e.to_string()))?;
+        let models = query.limit(limit).all(&self.db).await?;
 
         Ok(models.into_iter().map(Into::into).collect())
     }
@@ -163,10 +142,7 @@ impl UserRepository for PostgresUserRepository {
             updated_at: Set(user.updated_at.into()),
         };
 
-        let model = active_model
-            .update(&self.db)
-            .await
-            .map_err(classify_db_err)?;
+        let model = active_model.update(&self.db).await?;
 
         Ok(model.into())
     }

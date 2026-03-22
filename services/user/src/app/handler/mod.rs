@@ -1,9 +1,12 @@
-pub mod create;
-pub mod get;
-pub mod lifecycle;
-pub mod list;
-pub mod update;
+pub mod activate_user;
+pub mod change_role;
+pub mod create_user;
+pub mod deactivate_user;
+pub mod get_user;
+pub mod list_users;
+pub mod update_user;
 
+use madome_common::headers;
 use madome_proto::user::{
     ActivateUserRequest, ChangeRoleRequest, CreateUserRequest, DeactivateUserRequest,
     GetUserByHandleRequest, GetUserRequest, ListUsersRequest, ListUsersResponse, UpdateUserRequest,
@@ -38,7 +41,7 @@ pub(crate) struct CallerContext {
 pub(crate) fn extract_caller_context<T>(request: &Request<T>) -> Result<CallerContext, Status> {
     let caller_id = request
         .metadata()
-        .get("x-caller-id")
+        .get(headers::X_CALLER_ID)
         .ok_or_else(|| Status::unauthenticated("missing x-caller-id"))?
         .to_str()
         .map_err(|_| Status::invalid_argument("invalid x-caller-id header"))?
@@ -47,7 +50,7 @@ pub(crate) fn extract_caller_context<T>(request: &Request<T>) -> Result<CallerCo
 
     let caller_role = request
         .metadata()
-        .get("x-caller-role")
+        .get(headers::X_CALLER_ROLE)
         .ok_or_else(|| Status::unauthenticated("missing x-caller-role"))?
         .to_str()
         .map_err(|_| Status::invalid_argument("invalid x-caller-role header"))?
@@ -64,7 +67,7 @@ pub(crate) fn extract_caller_context<T>(request: &Request<T>) -> Result<CallerCo
 pub(crate) fn try_extract_caller_role<T>(request: &Request<T>) -> Option<UserRole> {
     request
         .metadata()
-        .get("x-caller-role")
+        .get(headers::X_CALLER_ROLE)
         .and_then(|v| v.to_str().ok())
         .and_then(|s| s.parse::<UserRole>().ok())
 }
@@ -116,55 +119,55 @@ impl<C: UserPorts + Send + Sync + 'static> UserService for UserHandler<C> {
         &self,
         request: Request<CreateUserRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        create::handle(&self.ctx, request).await
+        create_user::handle(&self.ctx, request).await
     }
 
     async fn get_user(
         &self,
         request: Request<GetUserRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        get::handle_get(&self.ctx, request).await
+        get_user::handle_get(&self.ctx, request).await
     }
 
     async fn get_user_by_handle(
         &self,
         request: Request<GetUserByHandleRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        get::handle_get_by_handle(&self.ctx, request).await
+        get_user::handle_get_by_handle(&self.ctx, request).await
     }
 
     async fn list_users(
         &self,
         request: Request<ListUsersRequest>,
     ) -> Result<Response<ListUsersResponse>, Status> {
-        list::handle(&self.ctx, request).await
+        list_users::handle(&self.ctx, request).await
     }
 
     async fn update_user(
         &self,
         request: Request<UpdateUserRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        update::handle(&self.ctx, request).await
+        update_user::handle(&self.ctx, request).await
     }
 
     async fn deactivate_user(
         &self,
         request: Request<DeactivateUserRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        lifecycle::handle_deactivate(&self.ctx, request).await
+        deactivate_user::handle(&self.ctx, request).await
     }
 
     async fn activate_user(
         &self,
         request: Request<ActivateUserRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        lifecycle::handle_activate(&self.ctx, request).await
+        activate_user::handle(&self.ctx, request).await
     }
 
     async fn change_role(
         &self,
         request: Request<ChangeRoleRequest>,
     ) -> Result<Response<UserResponse>, Status> {
-        lifecycle::handle_change_role(&self.ctx, request).await
+        change_role::handle(&self.ctx, request).await
     }
 }
