@@ -85,7 +85,6 @@ services/auth/src/
     mod.rs
     types/
       mod.rs
-      user.rs             # User, UserRole
       credential.rs       # Credential, StoredCredential
       session.rs          # Session
       invite.rs           # Invite
@@ -93,11 +92,11 @@ services/auth/src/
       recovery_code.rs    # RecoveryCode
     ports/
       mod.rs              # AuthPorts trait
-      user_repo.rs        # trait UserRepository
       credential_repo.rs  # trait CredentialRepository
       session_store.rs    # trait SessionStore
       passkey_provider.rs # trait PasskeyProvider
       jwt_issuer.rs       # trait JwtIssuer
+      user_service_port.rs # trait UserServicePort (gRPC client to user service)
     error/
       mod.rs
       auth_error.rs       # AuthError enum (business errors)
@@ -247,6 +246,24 @@ All list endpoints use cursor-based pagination.
 | Book, Taste, History record | UUIDv7 | Time-sortable, predictability acceptable |
 | User, Session, API Key | UUIDv4 | Must be unpredictable |
 | request_id | UUIDv7 | Time-sortable for log correlation |
+
+### User Identity
+
+Users table lives in the User service DB:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` (PK) | UUIDv4 | Must be unpredictable |
+| `handle` | VARCHAR, UNIQUE | Case-insensitive, URL-safe identifier (e.g., `syr`) |
+| `name` | VARCHAR | Display name, non-unique |
+| `role` | ENUM | owner / admin / user |
+| `is_active` | BOOLEAN | Deactivation flag |
+| `created_at` | TIMESTAMPTZ | |
+| `updated_at` | TIMESTAMPTZ | |
+
+- `handle` is the user-facing unique identifier (appears in JWT claims, URLs, admin views)
+- `name` is a display-only field with no uniqueness constraint
+- Auth service references `user_id` without FK (cross-service boundary); calls User service via gRPC for user creation and lookup
 
 ### Auth Design
 
@@ -434,6 +451,8 @@ Discovers and uploads new books.
 | trait_variant over async_trait | Zero-cost async traits where possible; async_trait as fallback | -- Pending |
 | Payload naming convention | Usecase data params use "payload" suffix for clarity | -- Pending |
 | madome-test-utils shared crate | Shared test utilities (containers, factories, config) across services | -- Pending |
+| Handle as unique user identifier | URL-safe, case-insensitive handle separate from display name; name is non-unique | -- Pending |
+| Users table in User service | Auth service references user_id without FK; calls User service via gRPC | -- Pending |
 
 ---
-*Last updated: 2026-03-22 — Added project-wide decisions (roles, service-to-service gRPC, compensating transactions, pagination, API conventions), updated Internal Service Architecture (Ports/Config separation, adapter directories, trait_variant, payload naming, testing infrastructure)*
+*Last updated: 2026-03-22 — Added User Identity section (D-57: handle column, name non-unique), updated auth service example (removed User domain type/repo, added UserServicePort), added handle/users-table decisions*

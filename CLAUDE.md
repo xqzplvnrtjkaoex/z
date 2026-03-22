@@ -92,11 +92,12 @@ All merge styles are `--no-ff` (preserve full commit history).
 ## Testing
 
 - TDD strongly preferred: write tests before implementation.
-- Use testcontainers with real PostgreSQL/Redis. Never mock the database.
+- Unit tests MAY mock ports (trait implementations) for isolated business logic testing.
+- Integration tests use testcontainers with real PostgreSQL/Redis.
 - Test layers:
-  1. Unit tests — pure business logic (`#[cfg(test)]`)
-  2. Integration tests — testcontainers with real DB
-  3. Service tests — individual gRPC service with real DB (tonic in-process Channel)
+  1. Unit tests — mock ports, test usecase/domain logic (`#[cfg(test)]`)
+  2. Integration tests — testcontainers with real DB, test adapters
+  3. Service tests — individual gRPC service with tonic in-process Channel
   4. E2E contract tests — through Gateway REST API, scenario-based
 
 ## Crate Skills
@@ -129,8 +130,8 @@ Rust 2024 edition, resolver 3. Cargo workspace with shared crates + service bina
 - `crates/madome-proto` — compiles protos via `tonic-prost-build`, re-exports as `madome_proto::{auth,catalog,user}`
 - `crates/madome-core` — domain error types (`AppError`) with axum `IntoResponse` + tonic `Status` conversion
 - `crates/madome-common` — tracing init, env helpers
-- `services/gateway` — axum REST entry point, holds gRPC clients in `AppState`, translates REST→gRPC
-- `services/{auth,catalog,user}` — tonic gRPC services (each has `service.rs` implementing the proto trait)
+- `services/gateway` — axum REST entry point, holds gRPC clients in `AppState`, translates REST→gRPC. Uses routes/ + middleware/ + state.rs (no 4-layer pattern)
+- `services/{auth,catalog,user}` — tonic gRPC services, each follows 4-layer architecture: `domain/` (types, ports, errors) → `usecase/` (business logic) → `app/` (tonic handler) → `adapter/` (concrete implementations). See `.planning/PROJECT.md` Internal Service Architecture for details
 
 ### Proto Workflow
 
@@ -142,8 +143,9 @@ Proto files live in `proto/` and are compiled by `crates/madome-proto/build.rs`.
 ## Architecture Reference
 
 Detailed architecture, data flows, and design decisions are in `.planning/`:
-- `.planning/PROJECT.md` — domain decisions, service topology, auth/renewal design
-- `.planning/research/ARCHITECTURE.md` — system overview, patterns, DB schema design
+- `.planning/PROJECT.md` — domain decisions, service topology, internal service architecture, auth/renewal design
+- `.planning/research/ARCHITECTURE.md` — system overview, data flows, DB schema design
+- `.planning/research/ARCHITECTURE-PATTERNS.md` — internal service architecture pattern research (Clean/Hexagonal/Pragmatic comparison)
 - `.planning/ROADMAP.md` — phased build plan with dependencies
 
 ## Keeping CLAUDE.md in Sync

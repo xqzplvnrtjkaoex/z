@@ -920,7 +920,7 @@ let redis = ConnectionManager::new(client).await?;
 - `https://docs.rs/axum-extra/0.12.5/axum_extra/extract/cookie/` — CookieJar extractor, Cookie builder
 - `https://www.sea-ql.org/SeaORM/docs/migration/running-migration/` — Migrator::up programmatic startup
 - `crates.io API` — All version numbers verified 2026-03-22
-- `.planning/phases/02-authentication/02-CONTEXT.md` — All D-XX decisions (authoritative project constraints)
+- `.planning/phases/03-authentication/03-CONTEXT.md` — All D-XX decisions (authoritative project constraints)
 - `.planning/research/STACK.md` — Confirmed stack versions (HIGH, verified 2026-03-21)
 - `.planning/PROJECT.md` — Auth design section, JWT flow, duplicate prevention
 

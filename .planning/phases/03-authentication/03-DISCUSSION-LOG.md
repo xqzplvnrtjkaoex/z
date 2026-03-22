@@ -4,7 +4,7 @@
 > Decisions are captured in CONTEXT.md -- this log preserves the alternatives considered.
 
 **Date:** 2026-03-21
-**Phase:** 02-authentication
+**Phase:** 03-authentication
 **Areas discussed:** User onboarding, API Key management, Session lifecycle, Auth error detail, DB schema, Gateway middleware, Docker/infra, Testing, JWT details, API endpoints, Proto definitions, Cookie settings, JWT key rotation
 
 ---
