@@ -3,6 +3,10 @@ name = "user"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+name = "user"
+path = "src/lib.rs"
+
 [[bin]]
 name = "user"
 path = "src/main.rs"
@@ -10,6 +14,23 @@ path = "src/main.rs"
 [dependencies]
 tokio = { workspace = true }
 tonic = { workspace = true }
+prost-types = { workspace = true }
 tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sea-orm = { workspace = true }
+sea-orm-migration = { workspace = true }
+async-trait = { workspace = true }
+validator = { workspace = true }
+trait-variant = { workspace = true }
 madome-proto = { workspace = true }
+madome-core = { workspace = true }
 madome-common = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util", "time"] }
+mockall = { workspace = true }
+testcontainers = { workspace = true }
+testcontainers-modules = { workspace = true }

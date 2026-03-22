@@ -1,0 +1,14 @@
+services:
+  user-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: user
+      POSTGRES_USER: madome
+      POSTGRES_PASSWORD: madome
+    ports:
+      - "5433:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
+volumes:
+  user-db-data:
