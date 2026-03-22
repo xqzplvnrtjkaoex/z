@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-21T14:47:09.256Z"
+stopped_at: PROJECT.md and ROADMAP.md updated with project-wide decisions and phase restructuring
+last_updated: "2026-03-22T08:38:00.000Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
@@ -16,15 +16,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-21)
+See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Reliably mirror books from external sources and allow authenticated users to browse them.
-**Current focus:** Phase 01 — foundation-and-gateway-infrastructure
+**Current focus:** Phase 02 — user-profile (pre-planning)
 
 ## Current Position
 
-Phase: 01 (foundation-and-gateway-infrastructure) — EXECUTING
-Plan: 2 of 2
+Phase: 02 (user-profile) — NOT STARTED
+Plan: 0 of ?
 
 ## Performance Metrics
 
@@ -56,7 +56,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - [Roadmap]: v1 scope covers gateway, auth, catalog, and user services only. File service, scraper, and renewal are v2.
-- [Roadmap]: Phase 3 (Catalog Core) can start in parallel with Phase 2 (Auth) since both only depend on Phase 1.
+- [Roadmap]: Phase 4 (Catalog Core) can start in parallel with Phase 3 (Auth) since both only depend on Phase 1.
 - [Architecture]: URL convention: /v1/ prefix, no /api prefix. Path-based versioning.
 - [Architecture]: 3 shared crates: madome-proto, madome-core (domain types), madome-common (infra).
 - [Architecture]: DB schema/migration per service folder (schema/, src/, migration/ co-located).
@@ -74,16 +74,22 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Create User Profile phase directory and run discuss-phase for new Phase 2
+- Run plan-phase for User Profile (new Phase 2), then plan-phase for Authentication (new Phase 3)
 
 ### Blockers/Concerns
 
 - Research flags Phase 4 (Scraper) for deeper research (hitomi_la crate coverage), but that is v2 scope.
 - nginx auth_request cookie limitation must be addressed when FILE-01/FILE-02 enter scope (v2).
 - Renewal design significantly simplified from original research: canonical_id denormalization replaces cross-service sync queue.
+- ARCHITECTURE-PATTERNS.md was written under incorrect "never mock DB" assumption — CONTEXT.md decisions take precedence. Research will re-run during plan-phase.
+- mockall + trait_variant compatibility unverified — must validate in Plan 01 (fallback: async_trait)
+- Phase restructuring: ROADMAP.md updated. Phase directories need renaming (02-authentication -> 03-authentication) and new 02-user-profile directory creation
+- users table moved to User service — auth service uses gRPC client for user data. Cross-service dependency during registration and login flows
 
 ## Session Continuity
 
-Last session: 2026-03-21T14:47:09.253Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-authentication/02-CONTEXT.md
+Last session: 2026-03-22
+Stopped at: PROJECT.md and ROADMAP.md updated with project-wide decisions and phase restructuring
+Resume file: .planning/ROADMAP.md
+Next action: Create User Profile phase directory (02-user-profile), then discuss-phase for Phase 2 User Profile
