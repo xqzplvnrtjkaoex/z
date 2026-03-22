@@ -1,5 +1,7 @@
 # Pitfalls Research
 
+> **Terminology note:** This document uses "work" throughout. The project canonical term is **"book"**. Pitfalls 3 (cross-service orphaned references) and 6 (DB queue bottleneck) are no longer applicable -- the canonical_id denormalization approach eliminates the cross-service sync queue entirely. See PROJECT.md for current design.
+
 **Domain:** Rust microservice content mirroring/aggregation (manga)
 **Researched:** 2026-03-21
 **Confidence:** MEDIUM-HIGH (nginx auth_request: HIGH via official docs; tonic: HIGH via GitHub issues; sea-orm migrations, scraper reliability, DB queue patterns: MEDIUM via training data + docs.rs; Cargo workspace: MEDIUM via training data)

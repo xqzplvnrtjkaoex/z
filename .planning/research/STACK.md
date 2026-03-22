@@ -1,5 +1,7 @@
 # Technology Stack
 
+> **Note:** Some recommendations here (e.g., madome-entity, madome-migration as centralized crates, UUIDv7 for all PKs) have been superseded. See PROJECT.md for current decisions: per-service schema/migration, 3 shared crates (proto, core, common), UUIDv4 for security-sensitive entities.
+
 **Project:** Madome -- Manga Mirroring & Aggregation Service
 **Researched:** 2026-03-21
 **Overall Confidence:** HIGH (versions verified via crates.io API on research date)

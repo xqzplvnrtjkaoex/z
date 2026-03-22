@@ -40,6 +40,49 @@ Services discover each other via environment variables (no config files):
 
 Convention: gRPC services listen on 50051+ (auth=50051, catalog=50052, user=50053).
 
+`DOCKER_HOST` is set in `.env` (for testcontainers remote Docker). Image builds use local Docker (unset `DOCKER_HOST` in justfile recipe).
+
+## Git Workflow
+
+### Branches
+- `master` — latest stable. No direct push. All changes via PR.
+- `dev` — development branch. Direct push allowed.
+- Phase branches branch from `dev`, merge back to `dev` with `--no-ff`.
+- `dev` → `master` merge at milestone completion via PR with `--no-ff`.
+- Delete phase branch after merge. Tag if needed for reference.
+- Hotfix: branch from `master` → PR to `master` → merge back to `dev`.
+
+### Commit Messages
+[Conventional Commits](https://www.conventionalcommits.org/) with a **descriptive scope**:
+
+```
+feat(auth): implement passkey registration ceremony
+fix(gateway): correct JWT expiry check off-by-one
+docs(planning): capture phase context for authentication
+refactor(catalog): extract tag query builder
+deps: bump sea-orm to 1.2
+deps(auth): add webauthn-rs dependency
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `perf`, `ci`, `build`, `style`, `chore`, `deps`
+
+- Scope should describe the area of change (service, crate, topic, etc.).
+- Use `deps` as a type (not `chore(deps)`) for dependency changes.
+- Breaking changes: append `!` after scope (e.g., `feat(auth)!: remove password login`) or add `BREAKING CHANGE:` footer.
+- Never use phase numbers as scope (e.g., `docs(02)` is wrong).
+
+### CI (GitHub Actions)
+
+Workflows authored in TypeScript via [gaji](https://github.com/dodok8/gaji) (`npx gaji build`). Do not install gaji globally or as a project dependency.
+
+| Trigger | Checks |
+|---------|--------|
+| `dev` push | `cargo fmt --check`, `cargo clippy --workspace`, unit + integration tests |
+| `master` push | Above + service tests + E2E contract tests + `cargo audit` + `cargo doc --no-deps` |
+| Weekly cron | `cargo audit` (dependency vulnerability scan) |
+
+All merge styles are `--no-ff` (preserve full commit history).
+
 ## Development Tooling
 
 - Use `justfile` for dev commands. Do NOT create shell scripts in `scripts/`.
@@ -49,11 +92,12 @@ Convention: gRPC services listen on 50051+ (auth=50051, catalog=50052, user=5005
 ## Testing
 
 - TDD strongly preferred: write tests before implementation.
-- Use testcontainers with real PostgreSQL/Redis. Never mock the database.
+- Unit tests MAY mock ports (trait implementations) for isolated business logic testing.
+- Integration tests use testcontainers with real PostgreSQL/Redis.
 - Test layers:
-  1. Unit tests — pure business logic (`#[cfg(test)]`)
-  2. Integration tests — testcontainers with real DB
-  3. Service tests — individual gRPC service with real DB (tonic in-process Channel)
+  1. Unit tests — mock ports, test usecase/domain logic (`#[cfg(test)]`)
+  2. Integration tests — testcontainers with real DB, test adapters
+  3. Service tests — individual gRPC service with tonic in-process Channel
   4. E2E contract tests — through Gateway REST API, scenario-based
 
 ## Crate Skills
@@ -86,8 +130,8 @@ Rust 2024 edition, resolver 3. Cargo workspace with shared crates + service bina
 - `crates/madome-proto` — compiles protos via `tonic-prost-build`, re-exports as `madome_proto::{auth,catalog,user}`
 - `crates/madome-core` — domain error types (`AppError`) with axum `IntoResponse` + tonic `Status` conversion
 - `crates/madome-common` — tracing init, env helpers
-- `services/gateway` — axum REST entry point, holds gRPC clients in `AppState`, translates REST→gRPC
-- `services/{auth,catalog,user}` — tonic gRPC services (each has `service.rs` implementing the proto trait)
+- `services/gateway` — axum REST entry point, holds gRPC clients in `AppState`, translates REST→gRPC. Uses routes/ + middleware/ + state.rs (no 4-layer pattern)
+- `services/{auth,catalog,user}` — tonic gRPC services, each follows 4-layer architecture: `domain/` (types, ports, errors) → `usecase/` (business logic) → `app/` (tonic handler) → `adapter/` (concrete implementations). See `.planning/PROJECT.md` Internal Service Architecture for details
 
 ### Proto Workflow
 
@@ -99,8 +143,9 @@ Proto files live in `proto/` and are compiled by `crates/madome-proto/build.rs`.
 ## Architecture Reference
 
 Detailed architecture, data flows, and design decisions are in `.planning/`:
-- `.planning/PROJECT.md` — domain decisions, service topology, auth/renewal design
-- `.planning/research/ARCHITECTURE.md` — system overview, patterns, DB schema design
+- `.planning/PROJECT.md` — domain decisions, service topology, internal service architecture, auth/renewal design
+- `.planning/research/ARCHITECTURE.md` — system overview, data flows, DB schema design
+- `.planning/research/ARCHITECTURE-PATTERNS.md` — internal service architecture pattern research (Clean/Hexagonal/Pragmatic comparison)
 - `.planning/ROADMAP.md` — phased build plan with dependencies
 
 ## Keeping CLAUDE.md in Sync
