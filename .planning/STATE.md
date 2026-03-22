@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Branch cleanup complete, ready for Phase 03
-last_updated: "2026-03-23T15:00:00.000Z"
+stopped_at: Documentation conventions established, D-n comments removed
+last_updated: "2026-03-23T18:00:00.000Z"
 last_activity: 2026-03-23
 progress:
   total_phases: 6
@@ -83,7 +83,7 @@ Recent decisions affecting current work:
 - [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant (now replaced by From<DbErr> impl per quick task 260322-vwa)
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
 - [Phase 02-user-profile]: base64 crate added to workspace for opaque cursor encoding in ListUsers pagination
-- [Phase 02-user-profile]: CallerContext extracted from gRPC metadata headers x-caller-id and x-caller-role per D-23
+- [Phase 02-user-profile]: CallerContext extracted from gRPC metadata headers x-caller-id and x-caller-role
 - [Phase 02-user-profile]: Per-test fresh DatabaseConnection (not shared pool) against shared testcontainers container URL: prevents pool exhaustion across independent tokio runtimes in integration tests
 - [Phase 02-user-profile]: Migration user_role enum via raw SQL execute_unprepared: DeriveIden generates 'user_role_enum' from UserRoleEnum, sea-orm entity expects 'user_role'; raw SQL ensures correct name
 
@@ -92,7 +92,10 @@ Recent decisions affecting current work:
 - Plan and execute Authentication (Phase 3)
 - Plan and execute Catalog Core (Phase 4) — can parallelize with Phase 3
 - ~~Research and codify tracing/OpenTelemetry conventions as `.claude/rules/rust-tracing.md`~~ DONE (2026-03-23)
+- ~~Research and codify documentation conventions as `.claude/rules/rust-documentation.md`~~ DONE (2026-03-23)
 - Apply tracing conventions to remaining services (gateway, auth, catalog) as they are built
+- Implement OpenAPI documentation: utoipa feature gate, gen-openapi binary, GitHub Pages deployment
+- Apply `#![warn(missing_docs)]` to shared crates and add missing rustdoc
 
 ### Blockers/Concerns
 
@@ -113,7 +116,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-23
-Last activity: Git branch cleanup — merged Phase 02 to dev (--no-ff), cherry-picked 10 post-phase commits as direct dev commits, deleted gsd/phase-02-user-profile branch
-Stopped at: Branch cleanup complete, dev branch up to date
+Last activity: Documentation conventions — researched (rustdoc, OpenAPI/utoipa, code comments), created .claude/rules/rust-documentation.md, removed 22 D-n prefix comments, updated CLAUDE.md CI checks
+Stopped at: Documentation conventions complete, OpenAPI implementation deferred to separate task
 Resume file: .planning/ROADMAP.md
-Next action: /gsd:plan-phase 3 (authentication)
+Next action: /gsd:plan-phase 3 (authentication) or OpenAPI implementation (quick task)
