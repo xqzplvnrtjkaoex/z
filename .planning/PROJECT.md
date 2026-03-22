@@ -455,4 +455,4 @@ Discovers and uploads new books.
 | Users table in User service | Auth service references user_id without FK; calls User service via gRPC | -- Pending |
 
 ---
-*Last updated: 2026-03-22 — Added User Identity section (D-57: handle column, name non-unique), updated auth service example (removed User domain type/repo, added UserServicePort), added handle/users-table decisions*
+*Last updated: 2026-03-22 — Phase 2 complete: User service fully operational with 8 gRPC RPCs, domain layer, PostgreSQL adapter, gateway REST routes, 73 tests (unit + integration + service)*
