@@ -13,7 +13,7 @@ Madome delivers a Rust microservice backend that mirrors manga metadata from ext
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Gateway Infrastructure** - Cargo workspace, shared crates, proto definitions, gateway REST-to-gRPC routing (completed 2026-03-21)
-- [ ] **Phase 2: User Profile** - User service with profiles, CRUD operations via gRPC
+- [x] **Phase 2: User Profile** - User service with profiles, CRUD operations via gRPC (completed 2026-03-22)
 - [ ] **Phase 3: Authentication** - Passkey registration/login, JWT lifecycle, session management, API key auth
 - [ ] **Phase 4: Catalog Core** - Book CRUD operations and publish workflow through gateway
 - [ ] **Phase 5: Catalog Queries** - Tag-based filtering, ID list lookup, paginated browse listing
@@ -51,7 +51,7 @@ Plans:
 - [x] 02-01-PLAN.md -- Proto definitions, workspace deps, docker-compose, domain layer, sea-orm entity/migration
 - [x] 02-02-PLAN.md -- PostgreSQL adapter layer (PostgresUserRepository, UserContext)
 - [x] 02-03-PLAN.md -- Usecase functions with unit tests, gRPC handler, main.rs composition root
-- [ ] 02-04-PLAN.md -- Gateway REST routes for user operations, integration tests, service tests
+- [x] 02-04-PLAN.md -- Gateway REST routes for user operations, integration tests, service tests
 
 ### Phase 3: Authentication
 **Goal**: Users can register a passkey, authenticate, and access protected endpoints through JWT-verified gateway
@@ -128,7 +128,7 @@ Note: Phase 4 (Catalog Core) can start in parallel with Phase 3 (Authentication)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Gateway Infrastructure | 2/2 | Complete   | 2026-03-21 |
-| 2. User Profile | 3/4 | In Progress|  |
+| 2. User Profile | 4/4 | Complete   | 2026-03-22 |
 | 3. Authentication | 0/4 | Not started | - |
 | 4. Catalog Core | 0/? | Not started | - |
 | 5. Catalog Queries | 0/? | Not started | - |

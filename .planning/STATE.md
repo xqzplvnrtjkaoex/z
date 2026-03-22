@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-user-profile Plan 03 (02-03-PLAN.md)
-last_updated: "2026-03-22T12:39:39.663Z"
+stopped_at: Completed 02-user-profile Plan 04 (02-04-PLAN.md)
+last_updated: "2026-03-22T12:58:57.920Z"
 last_activity: 2026-03-22
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 4 of 4
 | Phase 02-user-profile P01 | 8 | 2 tasks | 22 files |
 | Phase 02-user-profile P02 | 2 | 2 tasks | 5 files |
 | Phase 02-user-profile P03 | 13 | 2 tasks | 24 files |
+| Phase 02-user-profile P04 | 16 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
 - [Phase 02-user-profile]: base64 crate added to workspace for opaque cursor encoding in ListUsers pagination
 - [Phase 02-user-profile]: CallerContext extracted from gRPC metadata headers x-caller-id and x-caller-role per D-23
+- [Phase 02-user-profile]: Per-test fresh DatabaseConnection (not shared pool) against shared testcontainers container URL: prevents pool exhaustion across independent tokio runtimes in integration tests
+- [Phase 02-user-profile]: Migration user_role enum via raw SQL execute_unprepared: DeriveIden generates 'user_role_enum' from UserRoleEnum, sea-orm entity expects 'user_role'; raw SQL ensures correct name
 
 ### Pending Todos
 
@@ -106,8 +109,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-22T12:39:39.661Z
+Last session: 2026-03-22T12:58:57.918Z
 Last activity: 2026-03-22
-Stopped at: Completed 02-user-profile Plan 03 (02-03-PLAN.md)
+Stopped at: Completed 02-user-profile Plan 04 (02-04-PLAN.md)
 Resume file: None
 Next action: /gsd:execute-phase 2
