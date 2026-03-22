@@ -25,7 +25,6 @@ pub async fn update_user(
         .ok_or(UserError::UserNotFound)?;
 
     if let Some(handle) = payload.handle {
-        // D-12: Validate handle
         let handle_input = HandleInput::new(&handle);
         handle_input.validate_handle().map_err(|msg| {
             if msg.contains("reserved") {
@@ -46,7 +45,6 @@ pub async fn update_user(
     }
 
     if let Some(name) = payload.name {
-        // D-12: Validate name
         let name_input = NameInput::new(&name);
         name_input.validate_name().map_err(UserError::InvalidName)?;
         user.name = name;

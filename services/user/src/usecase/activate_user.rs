@@ -18,7 +18,6 @@ pub async fn activate_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: ActivateUserPayload,
 ) -> Result<User, UserError> {
-    // D-20: Self-modification blocked
     if payload.caller_id == payload.target_id {
         return Err(UserError::SelfModification);
     }
@@ -29,7 +28,6 @@ pub async fn activate_user(
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    // D-19: Role hierarchy check (same rule as deactivate)
     if !payload.caller_role.can_manage(target.role) {
         return Err(UserError::InsufficientRole {
             reason: format!(

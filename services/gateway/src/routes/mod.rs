@@ -24,10 +24,10 @@ fn v1_routes() -> Router<AppState> {
 }
 
 fn user_routes() -> Router<AppState> {
-    // Self-service routes (D-43) — will get authenticated tier middleware in Phase 3
+    // Self-service routes — will get authenticated tier middleware in Phase 3
     let me_routes = Router::new().route("/@me", get(users::get_me).patch(users::update_me));
 
-    // Admin routes (D-44) — will get admin+ tier middleware in Phase 3
+    // Admin routes — will get admin+ tier middleware in Phase 3
     let admin_routes = Router::new()
         .route("/", get(users::list_users))
         .route("/{id}", get(users::get_user))

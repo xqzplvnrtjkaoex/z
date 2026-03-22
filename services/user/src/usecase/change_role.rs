@@ -19,12 +19,10 @@ pub async fn change_role(
     ctx: &(impl UserPorts + ?Sized),
     payload: ChangeRolePayload,
 ) -> Result<User, UserError> {
-    // D-21: Owner role cannot be assigned via API
     if payload.new_role == UserRole::Owner {
         return Err(UserError::OwnerRoleRejected);
     }
 
-    // D-20: Self-modification blocked
     if payload.caller_id == payload.target_id {
         return Err(UserError::SelfModification);
     }
@@ -35,7 +33,7 @@ pub async fn change_role(
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    // D-18: Caller must have strictly greater role than target's current role
+    // Caller must have strictly greater role than target's current role
     if !payload.caller_role.can_manage(target.role) {
         return Err(UserError::InsufficientRole {
             reason: format!(
@@ -45,7 +43,7 @@ pub async fn change_role(
         });
     }
 
-    // D-18: Caller must also have strictly greater role than the new role
+    // Caller must also have strictly greater role than the new role
     if !payload.caller_role.can_manage(payload.new_role) {
         return Err(UserError::InsufficientRole {
             reason: format!(
@@ -157,7 +155,7 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = ChangeRolePayload {
             target_id,
-            new_role: UserRole::Owner, // rejected per D-21
+            new_role: UserRole::Owner,
             caller_id,
             caller_role: UserRole::Owner,
         };

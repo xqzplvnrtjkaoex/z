@@ -49,8 +49,7 @@ fn check_name_length(name: &str) -> Result<(), validator::ValidationError> {
     Ok(())
 }
 
-/// Input struct for handle validation per D-06~D-09.
-/// Uses #[derive(Validate)] for declarative struct-level validation per D-12.
+/// Validates a user handle: 4-15 alphanumeric/underscore chars, not reserved.
 #[derive(Debug, Validate)]
 pub struct HandleInput {
     #[validate(length(min = 4, max = 15, message = "handle must be 4-15 characters"))]
@@ -83,10 +82,7 @@ impl HandleInput {
     }
 }
 
-/// Input struct for name validation per D-10~D-11.
-/// Uses #[derive(Validate)] for declarative struct-level validation per D-12.
-/// Note: Uses custom validator for length because D-10 requires chars().count()
-/// (Unicode scalar values), not String::len() (byte length).
+/// Validates a display name: 1-20 Unicode characters (counted by `chars()`, not byte length).
 #[derive(Debug, Validate)]
 pub struct NameInput {
     #[validate(custom(

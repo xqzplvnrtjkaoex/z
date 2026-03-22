@@ -19,12 +19,10 @@ pub async fn create_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: CreateUserPayload,
 ) -> Result<User, UserError> {
-    // D-60: Reject owner role assignment via API
     if payload.role == UserRole::Owner {
         return Err(UserError::OwnerRoleRejected);
     }
 
-    // D-12: Validate handle via HandleInput struct
     let handle_input = HandleInput::new(&payload.handle);
     handle_input.validate_handle().map_err(|msg| {
         if msg.contains("reserved") {
@@ -34,7 +32,6 @@ pub async fn create_user(
         }
     })?;
 
-    // D-12: Validate name via NameInput struct
     let name_input = NameInput::new(&payload.name);
     name_input.validate_name().map_err(UserError::InvalidName)?;
 

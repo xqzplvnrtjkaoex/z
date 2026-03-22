@@ -20,7 +20,7 @@ pub async fn get_user_by_handle(
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    // D-55: Hide inactive users from non-admin callers
+    // Hide inactive users from non-admin callers
     if !user.is_active {
         let is_admin_or_owner = matches!(
             payload.caller_role,

@@ -18,7 +18,6 @@ pub async fn deactivate_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: DeactivateUserPayload,
 ) -> Result<User, UserError> {
-    // D-20: Self-modification blocked
     if payload.caller_id == payload.target_id {
         return Err(UserError::SelfModification);
     }
@@ -29,7 +28,6 @@ pub async fn deactivate_user(
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    // D-19: Role hierarchy check
     if !payload.caller_role.can_manage(target.role) {
         return Err(UserError::InsufficientRole {
             reason: format!(
@@ -48,7 +46,6 @@ pub async fn deactivate_user(
 
     let updated = ctx.user_repo().update(&target).await?;
 
-    // D-58: Structured tracing for audit
     tracing::info!(
         event = "user.deactivated",
         actor_id = %payload.caller_id,

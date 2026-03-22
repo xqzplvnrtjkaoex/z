@@ -31,7 +31,7 @@ impl<C: UserPorts> UserHandler<C> {
     }
 }
 
-/// Caller context extracted from gRPC metadata (D-23).
+/// Caller context extracted from gRPC metadata.
 pub(crate) struct CallerContext {
     pub caller_id: Uuid,
     pub caller_role: UserRole,
