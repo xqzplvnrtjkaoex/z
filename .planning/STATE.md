@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Phase 02 complete, verified, roadmap updated
-last_updated: "2026-03-22T13:15:00.000Z"
+stopped_at: Convention rules created, refactoring complete, tracing rules deferred
+last_updated: "2026-03-22T14:30:00.000Z"
 last_activity: 2026-03-22
 progress:
   total_phases: 6
@@ -91,6 +91,7 @@ Recent decisions affecting current work:
 
 - Plan and execute Authentication (Phase 3)
 - Plan and execute Catalog Core (Phase 4) — can parallelize with Phase 3
+- Research and codify tracing/OpenTelemetry conventions as `.claude/rules/rust-tracing.md` — architecture-level decision, needs research before committing
 
 ### Blockers/Concerns
 
@@ -111,7 +112,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-22
-Last activity: Quick task 260322-vwa — convention refactor (user service + gateway), 76 tests pass
-Stopped at: Quick task 260322-vwa complete
+Last activity: Created .claude/rules/ (rust-conventions.md, rust-request-handling.md), executed quick task 260322-vwa (typed headers, From trait, CallerContext middleware, handler renames), 76 tests pass. Tracing conventions deferred — needs research.
+Stopped at: Convention refactoring complete, tracing rules pending research
 Resume file: .planning/ROADMAP.md
-Next action: /gsd:plan-phase 3 (authentication)
+Next action: /gsd:do tracing conventions research OR /gsd:plan-phase 3 (authentication)
