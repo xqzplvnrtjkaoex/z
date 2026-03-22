@@ -24,6 +24,7 @@ sea-orm = { workspace = true }
 sea-orm-migration = { workspace = true }
 async-trait = { workspace = true }
 validator = { workspace = true }
+regex = { workspace = true }
 trait-variant = { workspace = true }
 madome-proto = { workspace = true }
 madome-core = { workspace = true }
