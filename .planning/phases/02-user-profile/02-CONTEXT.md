@@ -87,6 +87,28 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - **D-49:** No cooldown on handle or name changes -- users can change freely. No `handle_changed_at` column needed
 - **D-50:** Name change follows same policy as handle: immediate, unlimited, no history tracking
 
+### Deactivated User Visibility
+- **D-51:** ListUsers defaults to active users only. Admin can include deactivated users via `?include-inactive=true` query parameter
+- **D-52:** Deactivated user's handle remains locked -- cannot be claimed by other users. Handle is preserved for reactivation
+- **D-53:** GetUser (by ID) always returns the user regardless of is_active status. Response includes is_active field for caller to interpret
+- **D-54:** Deactivated users are blocked at login by auth service (Phase 3): auth calls GetUser, checks is_active, rejects if false
+- **D-55:** GetUserByHandle for deactivated user: admin+ callers can retrieve, regular users get UserNotFound
+- **D-56:** Internal gRPC calls (e.g., Auth -> User service GetUser) always return user data including is_active. Interpretation of is_active is the calling service's responsibility, not User service's
+- **D-57:** ListUsers has only `?include-inactive=true` boolean filter. No complex status enum filter (YAGNI)
+- **D-58:** Deactivation/activation events recorded via structured tracing (`event = "user.deactivated"`, `actor_id`, `target_id`). No audit table. Future: Loki API wrapping for audit query endpoint
+
+### Owner Bootstrap
+- **D-59:** Owner seed deferred to Phase 3. Phase 2 provides CreateUser RPC only, no seed mechanism
+- **D-60:** CreateUser RPC rejects role=owner. Consistent with D-21 (owner is DB-only). Usecase returns error on role=owner
+- **D-61:** Default role for new users created via auth registration: `user`. Admin promotion via ChangeRole by existing owner/admin
+- **D-62:** Phase 2 operates without any owner in the database. Role hierarchy checks use caller context, not global owner existence
+
+### Response Shape
+- **D-63:** All user responses use identical fields: id, handle, name, role, is_active, created_at, updated_at. No field-level visibility difference between callers or endpoints
+- **D-64:** `/v1/users/:id` is admin-only (management). No public user detail endpoint in Phase 2. Future `/v1/users/@handle` for public profiles (deferred)
+- **D-65:** gRPC UserResponse maps directly to REST JSON. Gateway is a pure translator with no field filtering
+- **D-66:** Single `UserResponse` proto message type. No PublicUserResponse split (YAGNI). Add when public profile endpoint is needed
+
 ### Claude's Discretion
 - Proto message structures (request/response types for each RPC)
 - Exact sea-orm entity definitions and migration file structure
@@ -117,7 +139,7 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - `.planning/phases/01-foundation-and-gateway-infrastructure/01-CONTEXT.md` -- REST API format, configuration pattern (env vars), observability (tracing + UUIDv7 request_id), workspace structure
 
 ### Downstream Consumers
-- `.planning/phases/03-authentication/03-CONTEXT.md` -- Auth service depends on User service RPCs (D-118: CreateUser, GetUser). Auth CONTEXT decisions D-05, D-06, D-57, D-112, D-114, D-118 updated to reflect handle introduction
+- `.planning/phases/03-authentication/03-CONTEXT.md` -- Auth service depends on User service RPCs (D-118: CreateUser, GetUser). Auth CONTEXT decisions D-05, D-06, D-57, D-112, D-114, D-118 updated to reflect handle introduction. Phase 3 implements: deactivated user login block (D-54), owner seed via migration (D-59)
 
 ### Research
 - `.planning/research/ARCHITECTURE.md` -- System-level patterns
@@ -168,6 +190,7 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - String length validation uses `chars().count()` (Unicode scalar values), not `String::len()` (byte count)
 - `/v1/users` plural-only convention applies to all future resource endpoints (`/v1/books`, `/v1/auth`, etc.)
 - Handle/name change simplicity (no cooldown, immediate release) follows YAGNI for small community -- `handle_history` table can be added later if needed
+- Structured tracing as audit trail: use consistent event names and structured fields so Loki/Grafana can query them later. This avoids a dedicated audit table while preserving queryability
 
 </specifics>
 
@@ -180,6 +203,8 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - User deletion (permanent) -- v2
 - User search/discovery -- future phase
 - Activity timestamps (last_login, last_active) -- future phase
+- Public profile endpoint `/v1/users/@handle` -- future phase (SNS-like features)
+- Audit query API via Loki HTTP API wrapping -- future phase (structured tracing must be in place first)
 
 </deferred>
 
