@@ -1,3 +1,7 @@
+---
+paths: ["*.rs"]
+---
+
 # Tracing Conventions
 
 ## `#[instrument]` Rules
