@@ -36,6 +36,7 @@ Services discover each other via environment variables (no config files):
 | `CATALOG_GRPC_ADDR` | (required) | gateway |
 | `USER_GRPC_ADDR` | (required) | gateway |
 | `GATEWAY_ADDR` | `0.0.0.0:3000` | gateway |
+| `USER_DATABASE_URL` | (required) | user |
 | `RUST_LOG` | `{service}=debug,madome=debug,info` | all |
 
 Convention: gRPC services listen on 50051+ (auth=50051, catalog=50052, user=50053).

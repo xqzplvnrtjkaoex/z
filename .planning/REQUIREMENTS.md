@@ -34,7 +34,12 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CATL-07**: Query books by ID list
 - [ ] **CATL-08**: Paginated book listing (sorted by recency)
 
-### User
+### User Profile
+
+- [x] **USER-PROFILE-01**: User CRUD via gRPC (create, get, get by handle, list, update)
+- [x] **USER-PROFILE-02**: User lifecycle management (deactivate, activate, role change) with role hierarchy enforcement
+
+### User Preferences
 
 - [ ] **USER-01**: Set taste for a book (like/dislike)
 - [ ] **USER-02**: Remove taste for a book
@@ -98,37 +103,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GATE-01 | Phase 1 | Complete |
-| GATE-02 | Phase 1 | Complete |
-| GATE-03 | Phase 2 | Pending |
-| GATE-04 | Phase 2 | Pending |
-| GATE-05 | Phase 2 | Pending |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| CATL-01 | Phase 3 | Pending |
-| CATL-02 | Phase 3 | Pending |
-| CATL-03 | Phase 3 | Pending |
-| CATL-04 | Phase 3 | Pending |
-| CATL-05 | Phase 4 | Pending |
-| CATL-06 | Phase 4 | Pending |
-| CATL-07 | Phase 4 | Pending |
-| CATL-08 | Phase 4 | Pending |
-| USER-01 | Phase 5 | Pending |
-| USER-02 | Phase 5 | Pending |
-| USER-03 | Phase 5 | Pending |
-| USER-04 | Phase 5 | Pending |
-| USER-05 | Phase 5 | Pending |
-| USER-06 | Phase 5 | Pending |
+| GATE-01 | Phase 1: Foundation | Complete |
+| GATE-02 | Phase 1: Foundation | Complete |
+| USER-PROFILE-01 | Phase 2: User Profile | Complete |
+| USER-PROFILE-02 | Phase 2: User Profile | Complete |
+| GATE-03 | Phase 3: Authentication | Pending |
+| GATE-04 | Phase 3: Authentication | Pending |
+| GATE-05 | Phase 3: Authentication | Pending |
+| AUTH-01 | Phase 3: Authentication | Pending |
+| AUTH-02 | Phase 3: Authentication | Pending |
+| AUTH-03 | Phase 3: Authentication | Pending |
+| AUTH-04 | Phase 3: Authentication | Pending |
+| AUTH-05 | Phase 3: Authentication | Pending |
+| CATL-01 | Phase 4: Catalog Core | Pending |
+| CATL-02 | Phase 4: Catalog Core | Pending |
+| CATL-03 | Phase 4: Catalog Core | Pending |
+| CATL-04 | Phase 4: Catalog Core | Pending |
+| CATL-05 | Phase 5: Catalog Queries | Pending |
+| CATL-06 | Phase 5: Catalog Queries | Pending |
+| CATL-07 | Phase 5: Catalog Queries | Pending |
+| CATL-08 | Phase 5: Catalog Queries | Pending |
+| USER-01 | Phase 6: User Preferences | Pending |
+| USER-02 | Phase 6: User Preferences | Pending |
+| USER-03 | Phase 6: User Preferences | Pending |
+| USER-04 | Phase 6: User Preferences | Pending |
+| USER-05 | Phase 6: User Preferences | Pending |
+| USER-06 | Phase 6: User Preferences | Pending |
 
 **Coverage:**
-- v1 requirements: 24 total
-- Mapped to phases: 24
+- v1 requirements: 26 total
+- Mapped to phases: 26
 - Unmapped: 0
 - v2 renewal: RENW-02 (cross-service queue) removed -- canonical_id approach eliminates the need
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after roadmap creation*
+*Last updated: 2026-03-22 — Added USER-PROFILE requirements, fixed phase number mapping after 6-phase restructure*

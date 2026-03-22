@@ -34,13 +34,13 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - **D-12:** Validation: `validator` crate for declarative struct-level validation
 
 ### Self-Service Mutations
-- **D-13:** Users can change their own name and handle via `PATCH /v1/user/@me` (Gateway route -> User service UpdateUser RPC)
+- **D-13:** Users can change their own name and handle via `PATCH /v1/users/@me` (Gateway route -> User service UpdateUser RPC)
 - **D-14:** Self-service mutations require protected tier (standard JWT). Step-up auth not required
 - **D-15:** Admin cannot change other users' names or handles
 
 ### Role Hierarchy Enforcement
 - **D-16:** Role hierarchy (owner > admin > user) enforced in User service usecase layer, not Gateway
-- **D-17:** Gateway responsibility: route-level tier only (e.g., "admin+ can access /v1/admin/*"). Business rule enforcement is User service domain
+- **D-17:** Gateway responsibility: route-level tier only (e.g., admin+ for `/v1/users/:id` routes, authenticated for `/v1/users/@me` routes). Business rule enforcement is User service domain
 - **D-18:** Role change validation: usecase checks `caller_role > target_current_role AND caller_role > new_role`
 - **D-19:** Deactivation validation: usecase checks `caller_role > target_role`
 - **D-20:** Self-modification blocked: usecase rejects when `caller_id == target_id` (no self role change, no self deactivation)
@@ -52,7 +52,7 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - **D-24:** User service RPCs: CreateUser, GetUser, GetUserByHandle, ListUsers, UpdateUser, DeactivateUser, ActivateUser, ChangeRole
 - **D-25:** Auth service calls: CreateUser (registration, passes name + handle + role), GetUser (by ID, for JWT claims after login)
 - **D-26:** Gateway calls: GetUser (detail), GetUserByHandle (future), ListUsers (paginated), UpdateUser (self-service), DeactivateUser, ActivateUser, ChangeRole
-- **D-27:** Self-service call: Gateway routes `PATCH /v1/user/@me` -> UpdateUser RPC with caller's own user_id
+- **D-27:** Self-service call: Gateway routes `PATCH /v1/users/@me` -> UpdateUser RPC with caller's own user_id
 
 ### Internal Architecture
 - **D-28:** User service follows 4-layer architecture (domain/usecase/app/adapter) per PROJECT.md
@@ -73,6 +73,41 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - **D-39:** Integration tests: testcontainers with real PostgreSQL. Test adapter (repository) correctness
 - **D-40:** Service tests: tonic in-process channel with real adapters + testcontainers
 - **D-41:** Test naming: `should_*` BDD style (per project convention)
+
+### Gateway REST Endpoints
+- **D-42:** All user endpoints under `/v1/users` (plural only, no singular `/v1/user`)
+- **D-43:** Self-service routes: `GET /v1/users/@me` (get own profile), `PATCH /v1/users/@me` (update own name/handle). Requires authenticated tier
+- **D-44:** Admin routes: `GET /v1/users` (list), `GET /v1/users/:id` (detail), `PATCH /v1/users/:id/role` (change role), `POST /v1/users/:id/deactivate`, `POST /v1/users/:id/activate`. Requires admin+ tier
+- **D-45:** Deactivate/activate use action path style (`POST .../deactivate`) not field patch, because they carry separate business logic (role hierarchy checks)
+- **D-46:** Gateway tier separation via axum `nest`: `@me` routes and `:id` routes as separate router groups with different middleware
+- **D-47:** Future escalation: if routing conditions become complex (multi-factor: role + ownership + path), replace nest-based separation with a custom routing handler that inspects `RequestParts` directly
+
+### Handle/Name Change Policy
+- **D-48:** Handle change releases old handle immediately -- other users can claim it right away. No hold period, no `handle_history` table
+- **D-49:** No cooldown on handle or name changes -- users can change freely. No `handle_changed_at` column needed
+- **D-50:** Name change follows same policy as handle: immediate, unlimited, no history tracking
+
+### Deactivated User Visibility
+- **D-51:** ListUsers defaults to active users only. Admin can include deactivated users via `?include-inactive=true` query parameter
+- **D-52:** Deactivated user's handle remains locked -- cannot be claimed by other users. Handle is preserved for reactivation
+- **D-53:** GetUser (by ID) always returns the user regardless of is_active status. Response includes is_active field for caller to interpret
+- **D-54:** Deactivated users are blocked at login by auth service (Phase 3): auth calls GetUser, checks is_active, rejects if false
+- **D-55:** GetUserByHandle for deactivated user: admin+ callers can retrieve, regular users get UserNotFound
+- **D-56:** Internal gRPC calls (e.g., Auth -> User service GetUser) always return user data including is_active. Interpretation of is_active is the calling service's responsibility, not User service's
+- **D-57:** ListUsers has only `?include-inactive=true` boolean filter. No complex status enum filter (YAGNI)
+- **D-58:** Deactivation/activation events recorded via structured tracing (`event = "user.deactivated"`, `actor_id`, `target_id`). No audit table. Future: Loki API wrapping for audit query endpoint
+
+### Owner Bootstrap
+- **D-59:** Owner seed deferred to Phase 3. Phase 2 provides CreateUser RPC only, no seed mechanism
+- **D-60:** CreateUser RPC rejects role=owner. Consistent with D-21 (owner is DB-only). Usecase returns error on role=owner
+- **D-61:** Default role for new users created via auth registration: `user`. Admin promotion via ChangeRole by existing owner/admin
+- **D-62:** Phase 2 operates without any owner in the database. Role hierarchy checks use caller context, not global owner existence
+
+### Response Shape
+- **D-63:** All user responses use identical fields: id, handle, name, role, is_active, created_at, updated_at. No field-level visibility difference between callers or endpoints
+- **D-64:** `/v1/users/:id` is admin-only (management). No public user detail endpoint in Phase 2. Future `/v1/users/@handle` for public profiles (deferred)
+- **D-65:** gRPC UserResponse maps directly to REST JSON. Gateway is a pure translator with no field filtering
+- **D-66:** Single `UserResponse` proto message type. No PublicUserResponse split (YAGNI). Add when public profile endpoint is needed
 
 ### Claude's Discretion
 - Proto message structures (request/response types for each RPC)
@@ -104,7 +139,7 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - `.planning/phases/01-foundation-and-gateway-infrastructure/01-CONTEXT.md` -- REST API format, configuration pattern (env vars), observability (tracing + UUIDv7 request_id), workspace structure
 
 ### Downstream Consumers
-- `.planning/phases/03-authentication/03-CONTEXT.md` -- Auth service depends on User service RPCs (D-118: CreateUser, GetUser). Auth CONTEXT decisions D-05, D-06, D-57, D-112, D-114, D-118 updated to reflect handle introduction
+- `.planning/phases/03-authentication/03-CONTEXT.md` -- Auth service depends on User service RPCs (D-118: CreateUser, GetUser). Auth CONTEXT decisions D-05, D-06, D-57, D-112, D-114, D-118 updated to reflect handle introduction. Phase 3 implements: deactivated user login block (D-54), owner seed via migration (D-59)
 
 ### Research
 - `.planning/research/ARCHITECTURE.md` -- System-level patterns
@@ -153,6 +188,9 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - Role hierarchy enforcement in User service domain ensures business rules are co-located with user data, not scattered across Gateway
 - Owner is effectively immutable at API level -- all owner manipulation is DB-seed only
 - String length validation uses `chars().count()` (Unicode scalar values), not `String::len()` (byte count)
+- `/v1/users` plural-only convention applies to all future resource endpoints (`/v1/books`, `/v1/auth`, etc.)
+- Handle/name change simplicity (no cooldown, immediate release) follows YAGNI for small community -- `handle_history` table can be added later if needed
+- Structured tracing as audit trail: use consistent event names and structured fields so Loki/Grafana can query them later. This avoids a dedicated audit table while preserving queryability
 
 </specifics>
 
@@ -165,10 +203,12 @@ User service manages user records with CRUD operations accessible via gRPC. Incl
 - User deletion (permanent) -- v2
 - User search/discovery -- future phase
 - Activity timestamps (last_login, last_active) -- future phase
+- Public profile endpoint `/v1/users/@handle` -- future phase (SNS-like features)
+- Audit query API via Loki HTTP API wrapping -- future phase (structured tracing must be in place first)
 
 </deferred>
 
 ---
 
 *Phase: 02-user-profile*
-*Context gathered: 2026-03-22*
+*Context gathered: 2026-03-22 (updated: 2026-03-22)*
