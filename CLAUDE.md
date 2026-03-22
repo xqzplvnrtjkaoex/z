@@ -93,6 +93,7 @@ All merge styles are `--no-ff` (preserve full commit history).
 ## Testing
 
 - TDD strongly preferred: write tests before implementation.
+- Verification must be automated. Write test code (unit/integration/service/E2E) that an agent can execute via `cargo test`. If automation is genuinely infeasible, write structured test scenario scripts that an agent can follow step-by-step (e.g., curl commands with expected responses). Never rely on human-only manual testing.
 - Unit tests MAY mock ports (trait implementations) for isolated business logic testing.
 - Integration tests use testcontainers with real PostgreSQL/Redis.
 - Test layers:
