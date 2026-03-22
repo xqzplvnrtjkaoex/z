@@ -6,6 +6,7 @@ use madome_proto::catalog::catalog_service_client::CatalogServiceClient;
 use madome_proto::catalog::catalog_service_server::{CatalogService, CatalogServiceServer};
 use madome_proto::user::user_service_client::UserServiceClient;
 use madome_proto::user::user_service_server::{UserService, UserServiceServer};
+use madome_proto::user::*;
 use std::net::SocketAddr;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
@@ -33,6 +34,54 @@ struct TestUserService;
 impl UserService for TestUserService {
     async fn health(&self, _req: Request<()>) -> Result<Response<()>, Status> {
         Ok(Response::new(()))
+    }
+    async fn create_user(
+        &self,
+        _req: Request<CreateUserRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn get_user(
+        &self,
+        _req: Request<GetUserRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn get_user_by_handle(
+        &self,
+        _req: Request<GetUserByHandleRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn list_users(
+        &self,
+        _req: Request<ListUsersRequest>,
+    ) -> Result<Response<ListUsersResponse>, Status> {
+        unimplemented!()
+    }
+    async fn update_user(
+        &self,
+        _req: Request<UpdateUserRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn deactivate_user(
+        &self,
+        _req: Request<DeactivateUserRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn activate_user(
+        &self,
+        _req: Request<ActivateUserRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
+    }
+    async fn change_role(
+        &self,
+        _req: Request<ChangeRoleRequest>,
+    ) -> Result<Response<UserResponse>, Status> {
+        unimplemented!()
     }
 }
 
