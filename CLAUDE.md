@@ -79,7 +79,7 @@ Workflows authored in TypeScript via [gaji](https://github.com/dodok8/gaji) (`np
 | Trigger | Checks |
 |---------|--------|
 | `dev` push | `cargo fmt --check`, `cargo clippy --workspace`, unit + integration tests |
-| `master` push | Above + service tests + E2E contract tests + `cargo audit` + `cargo doc --no-deps` |
+| `master` push | Above + service tests + E2E contract tests + `cargo audit` + `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps` |
 | Weekly cron | `cargo audit` (dependency vulnerability scan) |
 
 All merge styles are `--no-ff` (preserve full commit history).
