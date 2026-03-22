@@ -13,6 +13,7 @@ pub struct ActivateUserPayload {
     pub caller_role: UserRole,
 }
 
+#[tracing::instrument(skip_all, fields(target_id = %payload.target_id, actor_id = %payload.caller_id), err)]
 pub async fn activate_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: ActivateUserPayload,

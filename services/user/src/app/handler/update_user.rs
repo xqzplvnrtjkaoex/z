@@ -6,6 +6,7 @@ use crate::app::handler::user_to_response;
 use crate::domain::ports::UserPorts;
 use crate::usecase::update_user::{UpdateUserPayload, update_user};
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "UpdateUser"))]
 pub async fn handle<C: UserPorts>(
     ctx: &C,
     request: Request<UpdateUserRequest>,

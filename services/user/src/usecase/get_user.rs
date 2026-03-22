@@ -5,6 +5,7 @@ use crate::domain::ports::UserPorts;
 use crate::domain::ports::user_repository::UserRepository;
 use crate::domain::types::user::User;
 
+#[tracing::instrument(skip_all, fields(user_id = %id), err)]
 pub async fn get_user(ctx: &(impl UserPorts + ?Sized), id: Uuid) -> Result<User, UserError> {
     // D-53: Always return user regardless of is_active
     ctx.user_repo()

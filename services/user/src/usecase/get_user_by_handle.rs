@@ -9,6 +9,7 @@ pub struct GetUserByHandlePayload {
     pub caller_role: Option<UserRole>,
 }
 
+#[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
 pub async fn get_user_by_handle(
     ctx: &(impl UserPorts + ?Sized),
     payload: GetUserByHandlePayload,

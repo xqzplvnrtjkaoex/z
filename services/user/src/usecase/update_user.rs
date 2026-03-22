@@ -13,6 +13,7 @@ pub struct UpdateUserPayload {
     pub name: Option<String>,
 }
 
+#[tracing::instrument(skip_all, fields(user_id = %payload.id), err)]
 pub async fn update_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: UpdateUserPayload,

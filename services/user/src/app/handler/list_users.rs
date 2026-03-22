@@ -5,6 +5,7 @@ use crate::app::handler::user_to_response;
 use crate::domain::ports::UserPorts;
 use crate::usecase::list_users::{ListUsersPayload, list_users};
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ListUsers"))]
 pub async fn handle<C: UserPorts>(
     ctx: &C,
     request: Request<ListUsersRequest>,

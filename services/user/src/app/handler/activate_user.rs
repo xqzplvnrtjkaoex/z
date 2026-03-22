@@ -6,6 +6,7 @@ use crate::app::handler::{extract_caller_context, user_to_response};
 use crate::domain::ports::UserPorts;
 use crate::usecase::activate_user::{ActivateUserPayload, activate_user};
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ActivateUser"))]
 pub async fn handle<C: UserPorts>(
     ctx: &C,
     request: Request<ActivateUserRequest>,

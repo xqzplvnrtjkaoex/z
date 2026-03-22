@@ -6,6 +6,7 @@ use crate::app::handler::{extract_caller_context, proto_role_to_domain, user_to_
 use crate::domain::ports::UserPorts;
 use crate::usecase::change_role::{ChangeRolePayload, change_role};
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ChangeRole"))]
 pub async fn handle<C: UserPorts>(
     ctx: &C,
     request: Request<ChangeRoleRequest>,

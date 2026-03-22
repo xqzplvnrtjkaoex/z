@@ -13,6 +13,7 @@ pub struct ListUsersPayload {
     pub include_inactive: bool,
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn list_users(
     ctx: &(impl UserPorts + ?Sized),
     payload: ListUsersPayload,

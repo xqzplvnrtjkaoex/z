@@ -14,6 +14,7 @@ pub struct CreateUserPayload {
     pub role: UserRole,
 }
 
+#[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
 pub async fn create_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: CreateUserPayload,

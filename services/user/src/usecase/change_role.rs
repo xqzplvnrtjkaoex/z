@@ -14,6 +14,7 @@ pub struct ChangeRolePayload {
     pub caller_role: UserRole,
 }
 
+#[tracing::instrument(skip_all, fields(target_id = %payload.target_id, actor_id = %payload.caller_id), err)]
 pub async fn change_role(
     ctx: &(impl UserPorts + ?Sized),
     payload: ChangeRolePayload,

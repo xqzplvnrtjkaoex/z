@@ -7,6 +7,7 @@ use crate::domain::ports::UserPorts;
 use crate::usecase::get_user::get_user;
 use crate::usecase::get_user_by_handle::{GetUserByHandlePayload, get_user_by_handle};
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "GetUser"))]
 pub async fn handle_get<C: UserPorts>(
     ctx: &C,
     request: Request<GetUserRequest>,
@@ -23,6 +24,7 @@ pub async fn handle_get<C: UserPorts>(
     Ok(Response::new(user_to_response(&user)))
 }
 
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "GetUserByHandle"))]
 pub async fn handle_get_by_handle<C: UserPorts>(
     ctx: &C,
     request: Request<GetUserByHandleRequest>,
