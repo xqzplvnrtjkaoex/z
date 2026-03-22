@@ -80,7 +80,7 @@ Recent decisions affecting current work:
 - [Phase 02-user-profile]: trait_variant + mockall: #[cfg_attr(test, mockall::automock)] must appear BEFORE #[trait_variant::make] - validated working in Plan 01
 - [Phase 02-user-profile]: Handle validation uses custom check_handle_chars function (not #[validate(regex)] attribute) for clean LazyLock<Regex> integration
 - [Phase 02-user-profile]: Func::lower() from sea_query used for case-insensitive handle filter (type-safe vs Expr::cust raw SQL)
-- [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant
+- [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant (now replaced by From<DbErr> impl per quick task 260322-vwa)
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
 - [Phase 02-user-profile]: base64 crate added to workspace for opaque cursor encoding in ListUsers pagination
 - [Phase 02-user-profile]: CallerContext extracted from gRPC metadata headers x-caller-id and x-caller-role per D-23
@@ -106,11 +106,12 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260322-of1 | Update PROJECT.md and ROADMAP.md with pending decisions and phase restructuring | 2026-03-22 | 9e691ba | [260322-of1-update-project-md-and-roadmap-md-with-pe](./quick/260322-of1-update-project-md-and-roadmap-md-with-pe/) |
+| 260322-vwa | Refactor user service and gateway: typed header constants, From<DbErr>, CallerContext middleware, handler file renames | 2026-03-22 | 17e1012 | [260322-vwa-refactor-user-service-and-gateway-typed-](./quick/260322-vwa-refactor-user-service-and-gateway-typed-/) |
 
 ## Session Continuity
 
 Last session: 2026-03-22
-Last activity: Phase 02 execution — 4 plans across 3 waves, 73 tests, verification passed 22/22
-Stopped at: Phase 02 complete, verified, roadmap updated
+Last activity: Quick task 260322-vwa — convention refactor (user service + gateway), 76 tests pass
+Stopped at: Quick task 260322-vwa complete
 Resume file: .planning/ROADMAP.md
 Next action: /gsd:plan-phase 3 (authentication)
