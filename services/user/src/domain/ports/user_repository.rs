@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::domain::error::repository_error::RepositoryError;
 use crate::domain::types::user::User;
 
-#[cfg_attr(test, mockall::automock)]
+#[cfg_attr(test, mockall::automock(target = UserRepository))]
 #[trait_variant::make(UserRepository: Send)]
 pub trait LocalUserRepository {
     async fn save(&self, user: &User) -> Result<User, RepositoryError>;
@@ -27,11 +27,12 @@ mod tests {
 
     use crate::domain::types::role::UserRole;
 
-    // Test that MockLocalUserRepository compiles and can set expectations
-    // This validates trait_variant + mockall compatibility (Test 13)
+    // Test that MockUserRepository compiles and can set expectations.
+    // This validates that #[automock(target = UserRepository)] generates
+    // a mock that implements the Send variant.
     #[tokio::test]
-    async fn should_compile_and_use_mock_local_user_repository() {
-        let mut mock = MockLocalUserRepository::new();
+    async fn should_compile_and_use_mock_user_repository() {
+        let mut mock = MockUserRepository::new();
         let test_id = Uuid::new_v4();
         let now = Utc::now();
 
@@ -49,7 +50,7 @@ mod tests {
         mock.expect_find_by_id()
             .returning(move |_| Ok(Some(expected_clone.clone())));
 
-        let result = mock.find_by_id(test_id).await;
+        let result = UserRepository::find_by_id(&mock, test_id).await;
         assert!(result.is_ok());
         let user = result.unwrap().unwrap();
         assert_eq!(user.id, test_id);
