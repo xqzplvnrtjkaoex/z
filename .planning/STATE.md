@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Convention rules created, refactoring complete, tracing rules deferred
-last_updated: "2026-03-22T14:30:00.000Z"
-last_activity: 2026-03-22
+stopped_at: Tracing conventions researched, codified, and applied to user service
+last_updated: "2026-03-23T12:00:00.000Z"
+last_activity: 2026-03-23
 progress:
   total_phases: 6
   completed_phases: 2
@@ -91,7 +91,8 @@ Recent decisions affecting current work:
 
 - Plan and execute Authentication (Phase 3)
 - Plan and execute Catalog Core (Phase 4) — can parallelize with Phase 3
-- Research and codify tracing/OpenTelemetry conventions as `.claude/rules/rust-tracing.md` — architecture-level decision, needs research before committing
+- ~~Research and codify tracing/OpenTelemetry conventions as `.claude/rules/rust-tracing.md`~~ DONE (2026-03-23)
+- Apply tracing conventions to remaining services (gateway, auth, catalog) as they are built
 
 ### Blockers/Concerns
 
@@ -111,8 +112,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-22
-Last activity: Created .claude/rules/ (rust-conventions.md, rust-request-handling.md), executed quick task 260322-vwa (typed headers, From trait, CallerContext middleware, handler renames), 76 tests pass. Tracing conventions deferred — needs research.
-Stopped at: Convention refactoring complete, tracing rules pending research
+Last session: 2026-03-23
+Last activity: Tracing convention deep research (2 subagent research docs), created .claude/rules/rust-tracing.md, refactored init_tracing() to Registry pattern (OTel-ready), applied #[instrument] to all user service usecase (8) and gRPC handler (8) functions. 76 tests pass, clippy clean.
+Stopped at: Tracing conventions complete for user service
 Resume file: .planning/ROADMAP.md
-Next action: /gsd:do tracing conventions research OR /gsd:plan-phase 3 (authentication)
+Next action: /gsd:plan-phase 3 (authentication)
