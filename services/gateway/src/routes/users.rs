@@ -1,7 +1,7 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
-    http::{HeaderMap, HeaderValue},
+    extract::{Extension, Path, Query, State},
+    http::header,
     response::IntoResponse,
 };
 use madome_core::error::AppError;
@@ -11,6 +11,7 @@ use madome_proto::user::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::middleware::CallerContext;
 use crate::state::AppState;
 
 // --- Response types ---
@@ -77,30 +78,7 @@ pub struct ChangeRoleBody {
     pub role: String,
 }
 
-// --- Caller context injection ---
-
-fn inject_caller_context(
-    headers: &HeaderMap,
-    metadata: &mut tonic::metadata::MetadataMap,
-) -> Result<(), AppError> {
-    if let Some(caller_id) = headers.get("x-caller-id") {
-        let value = caller_id
-            .to_str()
-            .map_err(|_| AppError::BadRequest("invalid x-caller-id header".to_string()))?
-            .parse::<tonic::metadata::MetadataValue<tonic::metadata::Ascii>>()
-            .map_err(|_| AppError::BadRequest("invalid x-caller-id value".to_string()))?;
-        metadata.insert("x-caller-id", value);
-    }
-    if let Some(caller_role) = headers.get("x-caller-role") {
-        let value = caller_role
-            .to_str()
-            .map_err(|_| AppError::BadRequest("invalid x-caller-role header".to_string()))?
-            .parse::<tonic::metadata::MetadataValue<tonic::metadata::Ascii>>()
-            .map_err(|_| AppError::BadRequest("invalid x-caller-role value".to_string()))?;
-        metadata.insert("x-caller-role", value);
-    }
-    Ok(())
-}
+// --- Helpers ---
 
 fn role_str_to_proto(role: &str) -> Result<i32, AppError> {
     match role.to_lowercase().as_str() {
@@ -115,17 +93,12 @@ fn role_str_to_proto(role: &str) -> Result<i32, AppError> {
 
 pub async fn get_me(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
 ) -> Result<impl IntoResponse, AppError> {
-    let caller_id = headers
-        .get("x-caller-id")
-        .ok_or_else(|| AppError::Unauthorized("missing x-caller-id".to_string()))?
-        .to_str()
-        .map_err(|_| AppError::BadRequest("invalid x-caller-id".to_string()))?
-        .to_string();
-
-    let mut request = tonic::Request::new(GetUserRequest { id: caller_id });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    let mut request = tonic::Request::new(GetUserRequest {
+        id: caller_ctx.caller_id.clone(),
+    });
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -140,22 +113,15 @@ pub async fn get_me(
 
 pub async fn update_me(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Json(body): Json<UpdateMeBody>,
 ) -> Result<impl IntoResponse, AppError> {
-    let caller_id = headers
-        .get("x-caller-id")
-        .ok_or_else(|| AppError::Unauthorized("missing x-caller-id".to_string()))?
-        .to_str()
-        .map_err(|_| AppError::BadRequest("invalid x-caller-id".to_string()))?
-        .to_string();
-
     let mut request = tonic::Request::new(UpdateUserRequest {
-        id: caller_id,
+        id: caller_ctx.caller_id.clone(),
         handle: body.handle,
         name: body.name,
     });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -172,7 +138,7 @@ pub async fn update_me(
 
 pub async fn list_users(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Query(query): Query<ListUsersQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     let limit = query.limit.unwrap_or(25);
@@ -183,7 +149,7 @@ pub async fn list_users(
         cursor: query.cursor,
         include_inactive,
     });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -197,12 +163,13 @@ pub async fn list_users(
 
     let mut resp = axum::response::Response::builder()
         .status(axum::http::StatusCode::OK)
-        .header("content-type", "application/json");
+        .header(header::CONTENT_TYPE, "application/json");
 
     if let Some(cursor) = inner.next_cursor {
         resp = resp.header(
-            "x-next-cursor",
-            HeaderValue::from_str(&cursor).unwrap_or_else(|_| HeaderValue::from_static("")),
+            madome_common::headers::X_NEXT_CURSOR,
+            axum::http::HeaderValue::from_str(&cursor)
+                .unwrap_or_else(|_| axum::http::HeaderValue::from_static("")),
         );
     }
 
@@ -214,11 +181,11 @@ pub async fn list_users(
 
 pub async fn get_user(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(GetUserRequest { id });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -233,14 +200,14 @@ pub async fn get_user(
 
 pub async fn change_role(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Path(id): Path<String>,
     Json(body): Json<ChangeRoleBody>,
 ) -> Result<impl IntoResponse, AppError> {
     let new_role = role_str_to_proto(&body.role)?;
 
     let mut request = tonic::Request::new(ChangeRoleRequest { id, new_role });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -255,11 +222,11 @@ pub async fn change_role(
 
 pub async fn deactivate_user(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(DeactivateUserRequest { id });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client
@@ -274,11 +241,11 @@ pub async fn deactivate_user(
 
 pub async fn activate_user(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(caller_ctx): Extension<CallerContext>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(ActivateUserRequest { id });
-    inject_caller_context(&headers, request.metadata_mut())?;
+    caller_ctx.inject_into(&mut request);
 
     let response = state
         .user_client

@@ -1,10 +1,11 @@
 use axum::Json;
 use axum::extract::State;
+use madome_common::headers;
+use madome_core::error::AppError;
 use serde::Serialize;
 use uuid::Uuid;
 
 use crate::state::AppState;
-use madome_core::error::AppError;
 
 #[derive(Serialize)]
 pub struct GatewayHealthResponse {
@@ -59,7 +60,7 @@ async fn call_auth_health(
     let mut request = tonic::Request::new(());
     request
         .metadata_mut()
-        .insert("x-request-id", request_id.parse().unwrap());
+        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",
@@ -75,7 +76,7 @@ async fn call_catalog_health(
     let mut request = tonic::Request::new(());
     request
         .metadata_mut()
-        .insert("x-request-id", request_id.parse().unwrap());
+        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",
@@ -91,7 +92,7 @@ async fn call_user_health(
     let mut request = tonic::Request::new(());
     request
         .metadata_mut()
-        .insert("x-request-id", request_id.parse().unwrap());
+        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",

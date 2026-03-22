@@ -1,8 +1,11 @@
-use crate::state::AppState;
+use axum::middleware as axum_mw;
 use axum::{
     Router,
     routing::{get, patch, post},
 };
+
+use crate::middleware::caller_context;
+use crate::state::AppState;
 
 pub mod health;
 pub mod users;
@@ -32,5 +35,8 @@ fn user_routes() -> Router<AppState> {
         .route("/{id}/deactivate", post(users::deactivate_user))
         .route("/{id}/activate", post(users::activate_user));
 
-    Router::new().merge(me_routes).merge(admin_routes)
+    Router::new()
+        .merge(me_routes)
+        .merge(admin_routes)
+        .layer(axum_mw::from_fn(caller_context::extract_caller_context))
 }
