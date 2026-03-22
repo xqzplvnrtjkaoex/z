@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 2 planned (4 plans, 3 waves), ready for execute-phase
-last_updated: "2026-03-22T12:08:35.000Z"
+stopped_at: Completed 02-user-profile Plan 01 (02-01-PLAN.md)
+last_updated: "2026-03-22T12:21:36.613Z"
+last_activity: 2026-03-22
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 2
+  total_plans: 10
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Reliably mirror books from external sources and allow authenticated users to browse them.
-**Current focus:** Phase 02 — user-profile (planned, ready for execution)
+**Current focus:** Phase 02 — user-profile
 
 ## Current Position
 
-Phase: 02 (user-profile) — PLANNED
-Plan: 0 of 4
+Phase: 02 (user-profile) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -47,6 +48,7 @@ Plan: 0 of 4
 
 *Updated after each plan completion*
 | Phase 01-foundation-and-gateway-infrastructure P02 | 7 | 3 tasks | 28 files |
+| Phase 02-user-profile P01 | 8 | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -71,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 01-02]: Health RPC uses unit type () not prost_types::Empty — tonic-prost 0.14 maps google.protobuf.Empty to Rust () type
 - [Phase 01-02]: Gateway split into lib.rs + main.rs to enable integration test imports from tests/ directory
 - [Phase 01-02]: Lazy gRPC client connections (connect_lazy) used in integration tests to avoid startup ordering requirements
+- [Phase 02-user-profile]: DeriveIden Table variant used as .as_enum(UserRoleEnum::Table) - sea-query API requires variant value not bare enum type
+- [Phase 02-user-profile]: trait_variant + mockall: #[cfg_attr(test, mockall::automock)] must appear BEFORE #[trait_variant::make] - validated working in Plan 01
+- [Phase 02-user-profile]: Handle validation uses custom check_handle_chars function (not #[validate(regex)] attribute) for clean LazyLock<Regex> integration
 
 ### Pending Todos
 
@@ -94,8 +99,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-22
-Last activity: 2026-03-22 - plan-phase completed: researched, planned (4 plans/3 waves), verified (2 warnings fixed in revision loop)
-Stopped at: Phase 2 planned (4 plans, 3 waves), ready for execution
-Resume file: .planning/phases/02-user-profile/02-01-PLAN.md
+Last session: 2026-03-22T12:21:36.610Z
+Last activity: 2026-03-22
+Stopped at: Completed 02-user-profile Plan 01 (02-01-PLAN.md)
+Resume file: None
 Next action: /gsd:execute-phase 2

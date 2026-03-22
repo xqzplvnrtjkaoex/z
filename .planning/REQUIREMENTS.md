@@ -36,8 +36,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### User Profile
 
-- [ ] **USER-PROFILE-01**: User CRUD via gRPC (create, get, get by handle, list, update)
-- [ ] **USER-PROFILE-02**: User lifecycle management (deactivate, activate, role change) with role hierarchy enforcement
+- [x] **USER-PROFILE-01**: User CRUD via gRPC (create, get, get by handle, list, update)
+- [x] **USER-PROFILE-02**: User lifecycle management (deactivate, activate, role change) with role hierarchy enforcement
 
 ### User Preferences
 
@@ -105,8 +105,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | GATE-01 | Phase 1: Foundation | Complete |
 | GATE-02 | Phase 1: Foundation | Complete |
-| USER-PROFILE-01 | Phase 2: User Profile | Pending |
-| USER-PROFILE-02 | Phase 2: User Profile | Pending |
+| USER-PROFILE-01 | Phase 2: User Profile | Complete |
+| USER-PROFILE-02 | Phase 2: User Profile | Complete |
 | GATE-03 | Phase 3: Authentication | Pending |
 | GATE-04 | Phase 3: Authentication | Pending |
 | GATE-05 | Phase 3: Authentication | Pending |
