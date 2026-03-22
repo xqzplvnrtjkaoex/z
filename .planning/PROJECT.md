@@ -24,7 +24,7 @@ Cargo workspace monorepo with 6 binaries and 3 shared crates:
 | **gateway** | REST entry point, JWT verification, gRPC routing | REST (external) -> gRPC (internal) |
 | **auth** | JWT issuance, session management, Passkey | gRPC |
 | **catalog** | Book CRUD, tag queries, publishing, renewal | gRPC |
-| **user** | tastes (like/dislike), histories | gRPC |
+| **user** | user profiles, tastes (like/dislike), histories | gRPC |
 | **file** | Dedicated image upload/storage | REST (behind nginx reverse proxy) |
 | **scraper** | External source mirroring (separate server) | REST -> Gateway (API Key) |
 
@@ -33,9 +33,123 @@ Each service with a database has the following folder structure:
 ```
 service-name/
   schema/      -- sea-orm entity definitions
-  src/         -- service implementation
+  src/         -- service implementation (layered architecture below)
   migration/   -- sea-orm migration files
 ```
+
+### Internal Service Architecture
+
+All services (except gateway) follow a consistent 4-layer architecture with trait-based dependency inversion. Uses `mod.rs` convention for modules.
+
+**Layers:**
+
+| Layer | Folder | Depends On | Responsibility |
+|-------|--------|-----------|----------------|
+| **domain/** | types/, ports/, error/ | Nothing external | Pure types, trait port definitions, domain errors |
+| **usecase/** | per-use-case modules | domain/ only | Business logic orchestration |
+| **app/** | handler/ | domain/ only | tonic gRPC trait impl (thin: validate, delegate, map) |
+| **adapter/** | subdirectories (postgres/, redis/, etc.) + context.rs | domain/ + external crates | Concrete implementations of domain traits |
+| **main.rs** | — | All layers | Composition root: assembles adapters, injects into handler |
+
+**Dependency direction (enforced via module visibility + generics):**
+
+```
+main.rs (assembles all layers — sole place that knows concrete types)
+   |
+app/handler/ ---> domain/ (ports, types, error)
+   |                ^
+usecase/*    ------/
+   |                ^
+adapter/*   ------/
+```
+
+**Key patterns:**
+
+- **Ports/Config separation:** Each service defines **two separate traits** in `domain/ports/`:
+  - `{Service}Ports` — provides `&impl Trait` accessors (RPITIT) for data ports (repositories, external clients)
+  - `{Service}Config` — provides config accessors via `fn config(&self) -> &impl ConfigAccessor` with getter methods (e.g., `ctx.config().jwt_ttl()`)
+  - `{Service}Context` struct in `adapter/context.rs` implements both traits
+  - Compound bound reused via type alias: `type Context = impl {Service}Ports + {Service}Config + ?Sized;`
+- **Generic handler:** `{Service}Handler<C: {Service}Ports>` in `app/handler/` — generic over ports, concrete type resolved only in `main.rs`.
+- **Use case functions:** Free async functions in `usecase/`, receive `&(impl Ports + ?Sized)` as first argument.
+- **Error separation:** `RepositoryError` (data-access facts) in `domain/error/`, `{Service}Error` (business meaning) in `domain/error/`. Usecase maps repository errors to domain errors. Handler maps domain errors to `tonic::Status`.
+- **Domain types + From:** Separate domain types in `domain/types/`. `From<sea_orm::Model> for DomainType` in adapter/ (infra knows domain). `From<DomainType> for ProtoResponse` in app/ (handler knows domain + proto).
+- **Async traits:** Prefer `trait_variant` over `async_trait` for async trait definitions. Use `async_trait` only when `trait_variant` is insufficient.
+- **Usecase parameters:** Data parameters use "payload" suffix (e.g., `RegisterFinishPayload`), not "input".
+
+**Example structure (auth service):**
+
+```
+services/auth/src/
+  domain/
+    mod.rs
+    types/
+      mod.rs
+      user.rs             # User, UserRole
+      credential.rs       # Credential, StoredCredential
+      session.rs          # Session
+      invite.rs           # Invite
+      api_key.rs          # ApiKey
+      recovery_code.rs    # RecoveryCode
+    ports/
+      mod.rs              # AuthPorts trait
+      user_repo.rs        # trait UserRepository
+      credential_repo.rs  # trait CredentialRepository
+      session_store.rs    # trait SessionStore
+      passkey_provider.rs # trait PasskeyProvider
+      jwt_issuer.rs       # trait JwtIssuer
+    error/
+      mod.rs
+      auth_error.rs       # AuthError enum (business errors)
+      repository_error.rs # RepositoryError enum (data-access errors)
+  usecase/
+    mod.rs
+    register/             # begin.rs, finish.rs
+    login/                # begin.rs, finish.rs
+    session/              # create.rs, validate.rs, invalidate.rs
+    recovery/             # begin.rs, finish.rs, regenerate.rs
+    api_key/              # create.rs, verify.rs, revoke.rs
+    passkey_mgmt/         # list.rs, rename.rs, delete.rs
+  app/
+    mod.rs
+    handler/
+      mod.rs              # AuthHandler<C: AuthPorts>
+      register.rs         # register RPC impls
+      login.rs            # login RPC impls
+      ...
+  adapter/
+    mod.rs
+    context.rs            # AuthContext: impl AuthPorts + AuthConfig
+    postgres/
+      mod.rs
+      credential_repo.rs  # impl CredentialRepository
+      invite_repo.rs      # impl InviteRepository
+      api_key_repo.rs     # impl ApiKeyRepository
+      recovery_code_repo.rs # impl RecoveryCodeRepository
+    redis/
+      mod.rs
+      session_store.rs    # impl SessionStore
+    webauthn/
+      mod.rs              # impl PasskeyProvider
+    jwt/
+      mod.rs              # impl JwtIssuer (ES256)
+    user_client/
+      mod.rs              # impl UserServicePort (gRPC client)
+  main.rs
+```
+
+**Gateway exception:** Gateway is a pure REST-to-gRPC translator and does NOT follow the 4-layer pattern. It uses `routes/`, `middleware/`, `state.rs` (established in Phase 1).
+
+**Framework usage:** Only gateway and file service use axum. Auth, catalog, and user services use tonic only.
+
+**Testing:**
+
+- **Unit tests:** Mock ports via `mockall` crate for isolated business logic testing. Verify usecase logic without real infrastructure.
+- **Integration tests:** testcontainers with real PostgreSQL/Redis. Single container per suite via `OnceLock`. Container lifecycle managed in code (not docker-compose). Test through actual adapters.
+- **Service tests:** tonic in-process channel with real adapters + testcontainers.
+- **E2E tests:** Through Gateway REST API, scenario-based.
+- **Shared utilities:** `crates/madome-test-utils/` crate provides shared test infrastructure (container setup, factory functions, test config) across services.
+- **Test crate:** `tests/` directory as separate workspace member (`madome-tests`) for service-level and E2E tests. Structure: `tests/service/auth.rs`, `tests/e2e/auth_flow.rs`.
 
 ### Shared Crates
 
@@ -62,6 +176,60 @@ Catalog -> File Service (gRPC): image count verification for publish workflow
 - **Scraper -> Gateway**: REST + API Key authentication
 - **Image serving**: nginx `auth_request` + `auth_request_set` for cookie refresh forwarding
 - All services run behind nginx reverse proxy
+
+### Role Hierarchy
+
+3-tier role system: **owner > admin > user**
+
+| Rule | Description |
+|------|-------------|
+| Hierarchy enforcement | Can only manage roles strictly below own level |
+| Same-level blocked | Admin cannot manage other admins; only owner can |
+| Self-modification blocked | Cannot change own role or deactivate self |
+| Minimum owner | At least 1 active owner must exist at all times |
+
+### Service-to-Service Communication
+
+Direct gRPC calls between internal services are allowed. Communication is not restricted to Gateway-to-service only.
+
+- **Auth -> User service:** Auth calls User service for user creation (registration) and user lookup (login, JWT claims)
+- **Future services:** Any service may call another directly via gRPC when the use case requires it
+
+Each calling service requires the target service's `{SERVICE}_GRPC_ADDR` environment variable.
+
+### Cross-Service Operations
+
+Gateway orchestrates sequential calls to multiple services with compensating transactions for operations that span service boundaries.
+
+**Level 1 (current):** Compensate-on-failure with error log + error response to client.
+**Level 2 (future):** Outbox + background worker retry for stronger consistency guarantees.
+
+**Example: User Deactivation**
+```
+Gateway -> User(DeactivateUser) -> Auth(InvalidateAllSessions)
+  Auth failure -> compensate via User(ActivateUser)
+  Compensate failure -> error log + error response to client
+```
+
+### Pagination
+
+All list endpoints use cursor-based pagination.
+
+| Aspect | Convention |
+|--------|-----------|
+| Cursor format | Opaque URL-safe value |
+| Server -> client | `X-Next-Cursor` response header (omitted when no more pages) |
+| Client -> server | `?cursor=` query parameter |
+| Response body | Flat array (no wrapper object) |
+| Page size | `?limit=N` (default 25, max 100) |
+| Sort | `?sort=field-order` kebab-case (e.g., `?sort=created-at-desc`) |
+
+### API Conventions
+
+| Context | Convention | Example |
+|---------|-----------|---------|
+| Query string parameters | kebab-case | `?sort=created-at-desc`, `?limit=25` |
+| Request/response body fields | snake_case | `{ "user_id": "...", "recovery_codes": [...] }` |
 
 ### ID Design
 
@@ -252,6 +420,20 @@ Discovers and uploads new books.
 | Per-session JWT caching | Prevent unnecessary duplicate token generation on concurrent requests | -- Pending |
 | Separate File service | Avoid Gateway load from image traffic | -- Pending |
 | Decreasing update check frequency | More recent books have higher change probability | -- Pending |
+| 4-layer service architecture (domain/usecase/app/adapter) | Compile-time dependency direction, trait-based ports, testable business logic | -- Pending |
+| Ports trait with RPITIT (`&impl Trait`) | Zero-cost DI without generic parameter explosion | -- Pending |
+| Per-service domain errors + RepositoryError | Business meaning separation; repo reports facts, usecase interprets | -- Pending |
+| `mod.rs` module convention | Consistent for deep nesting (3-4 levels) | -- Pending |
+| 3-tier role hierarchy (owner/admin/user) | Hierarchy-based access control; manage only lower roles | -- Pending |
+| Service-to-service direct gRPC | Services call each other directly, not restricted to Gateway-only routing | -- Pending |
+| Compensating transactions (Level 1) | Sequential cross-service calls with compensate-on-failure; correctness over complexity | -- Pending |
+| Cursor-based pagination | Opaque cursor via X-Next-Cursor header; scalable for large datasets | -- Pending |
+| API conventions (kebab-case query, snake_case body) | Consistent casing rules across all endpoints | -- Pending |
+| Ports/Config trait separation | Separate data access ports from configuration; both on {Service}Context | -- Pending |
+| Adapter directory structure | Subdirectories from start (postgres/, redis/, etc.); scales without refactoring | -- Pending |
+| trait_variant over async_trait | Zero-cost async traits where possible; async_trait as fallback | -- Pending |
+| Payload naming convention | Usecase data params use "payload" suffix for clarity | -- Pending |
+| madome-test-utils shared crate | Shared test utilities (containers, factories, config) across services | -- Pending |
 
 ---
-*Last updated: 2026-03-21 — Phase 01 complete: foundation workspace, gateway REST-to-gRPC routing, shared crates*
+*Last updated: 2026-03-22 — Added project-wide decisions (roles, service-to-service gRPC, compensating transactions, pagination, API conventions), updated Internal Service Architecture (Ports/Config separation, adapter directories, trait_variant, payload naming, testing infrastructure)*
