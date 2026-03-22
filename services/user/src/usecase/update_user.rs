@@ -35,10 +35,10 @@ pub async fn update_user(
         })?;
 
         // Check handle uniqueness: if another user already has this handle
-        if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await? {
-            if existing.id != user.id {
-                return Err(UserError::HandleTaken);
-            }
+        if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await?
+            && existing.id != user.id
+        {
+            return Err(UserError::HandleTaken);
         }
 
         user.handle = handle;
