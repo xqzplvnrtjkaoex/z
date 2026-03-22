@@ -7,13 +7,12 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         // 1. Create the PostgreSQL enum type first (Pitfall 2)
+        // UserRoleType::Table generates "user_role_type" from DeriveIden, so we
+        // override the name using a raw SQL statement to ensure the type is named
+        // "user_role" as expected by the sea-orm entity's #[sea_orm(enum_name = "user_role")].
         manager
-            .create_type(
-                extension::postgres::Type::create()
-                    .as_enum(UserRoleEnum::Table)
-                    .values([UserRoleEnum::Owner, UserRoleEnum::Admin, UserRoleEnum::User])
-                    .to_owned(),
-            )
+            .get_connection()
+            .execute_unprepared("CREATE TYPE \"user_role\" AS ENUM ('owner', 'admin', 'user')")
             .await?;
 
         // 2. Create users table referencing the enum type
@@ -27,7 +26,7 @@ impl MigrationTrait for Migration {
                     .col(string_len(Users::Name, 80)) // 20 chars * ~4 bytes max UTF-8
                     .col(
                         ColumnDef::new(Users::Role)
-                            .custom(UserRoleEnum::Table)
+                            .custom(Alias::new("user_role"))
                             .not_null()
                             .default("user"),
                     )
@@ -56,11 +55,8 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_type(
-                extension::postgres::Type::drop()
-                    .name(UserRoleEnum::Table)
-                    .to_owned(),
-            )
+            .get_connection()
+            .execute_unprepared("DROP TYPE IF EXISTS \"user_role\"")
             .await?;
 
         Ok(())
@@ -77,14 +73,4 @@ enum Users {
     IsActive,
     CreatedAt,
     UpdatedAt,
-}
-
-// Separate DeriveIden enum for the PostgreSQL enum type
-// to avoid name collision with the Users::Table variant (Research Anti-Pattern note)
-#[derive(DeriveIden)]
-enum UserRoleEnum {
-    Table,
-    Owner,
-    Admin,
-    User,
 }

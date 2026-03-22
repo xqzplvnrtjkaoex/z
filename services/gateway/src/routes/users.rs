@@ -208,9 +208,8 @@ pub async fn list_users(
 
     let body = serde_json::to_string(&users).map_err(|e| AppError::Internal(e.to_string()))?;
 
-    Ok(resp
-        .body(axum::body::Body::from(body))
-        .map_err(|e| AppError::Internal(e.to_string()))?)
+    resp.body(axum::body::Body::from(body))
+        .map_err(|e| AppError::Internal(e.to_string()))
 }
 
 pub async fn get_user(
