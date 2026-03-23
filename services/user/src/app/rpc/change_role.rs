@@ -3,8 +3,8 @@ use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
-    app::rpc::{extract_caller_context, proto_role_to_domain, user_to_response},
-    domain::ports::UserPorts,
+    app::rpc::{ProtoRole, extract_caller_context},
+    domain::{ports::UserPorts, types::role::UserRole},
     usecase::change_role::{ChangeRolePayload, change_role},
 };
 
@@ -21,7 +21,7 @@ pub async fn execute<C: UserPorts>(
         .parse::<Uuid>()
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
-    let new_role = proto_role_to_domain(req.new_role)?;
+    let new_role = UserRole::try_from(ProtoRole(req.new_role))?;
 
     let payload = ChangeRolePayload {
         target_id,
@@ -32,5 +32,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = change_role(ctx, payload).await?;
 
-    Ok(Response::new(user_to_response(&user)))
+    Ok(Response::new(UserResponse::from(&user)))
 }

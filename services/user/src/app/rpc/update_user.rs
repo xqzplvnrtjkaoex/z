@@ -3,7 +3,6 @@ use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
-    app::rpc::user_to_response,
     domain::ports::UserPorts,
     usecase::update_user::{UpdateUserPayload, update_user},
 };
@@ -28,5 +27,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = update_user(ctx, payload).await?;
 
-    Ok(Response::new(user_to_response(&user)))
+    Ok(Response::new(UserResponse::from(&user)))
 }

@@ -2,7 +2,7 @@ use madome_proto::user::{GetUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::{app::rpc::user_to_response, domain::ports::UserPorts, usecase::get_user::get_user};
+use crate::{domain::ports::UserPorts, usecase::get_user::get_user};
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "GetUser"))]
 pub async fn execute<C: UserPorts>(
@@ -18,5 +18,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = get_user(ctx, id).await?;
 
-    Ok(Response::new(user_to_response(&user)))
+    Ok(Response::new(UserResponse::from(&user)))
 }

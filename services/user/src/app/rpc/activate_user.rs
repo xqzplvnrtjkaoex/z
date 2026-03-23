@@ -3,7 +3,7 @@ use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
-    app::rpc::{extract_caller_context, user_to_response},
+    app::rpc::extract_caller_context,
     domain::ports::UserPorts,
     usecase::activate_user::{ActivateUserPayload, activate_user},
 };
@@ -29,5 +29,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = activate_user(ctx, payload).await?;
 
-    Ok(Response::new(user_to_response(&user)))
+    Ok(Response::new(UserResponse::from(&user)))
 }

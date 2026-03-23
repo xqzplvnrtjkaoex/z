@@ -1,8 +1,8 @@
+use itertools::Itertools;
 use madome_proto::user::{ListUsersRequest, ListUsersResponse, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    app::rpc::user_to_response,
     domain::ports::UserPorts,
     usecase::list_users::{ListUsersPayload, list_users},
 };
@@ -22,7 +22,7 @@ pub async fn execute<C: UserPorts>(
 
     let (users, next_cursor) = list_users(ctx, payload).await?;
 
-    let user_responses: Vec<UserResponse> = users.iter().map(user_to_response).collect();
+    let user_responses: Vec<UserResponse> = users.iter().map_into().collect();
 
     Ok(Response::new(ListUsersResponse {
         users: user_responses,

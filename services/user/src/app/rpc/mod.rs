@@ -56,39 +56,50 @@ pub(crate) fn try_extract_caller_role<T>(request: &Request<T>) -> Option<UserRol
         .and_then(|s| s.parse::<UserRole>().ok())
 }
 
-/// Convert domain User to proto UserResponse.
-pub(crate) fn user_to_response(user: &User) -> UserResponse {
-    UserResponse {
-        id: user.id.to_string(),
-        handle: user.handle.clone(),
-        name: user.name.clone(),
-        role: domain_role_to_proto(user.role) as i32,
-        is_active: user.is_active,
-        created_at: Some(Timestamp {
-            seconds: user.created_at.timestamp(),
-            nanos: user.created_at.timestamp_subsec_nanos() as i32,
-        }),
-        updated_at: Some(Timestamp {
-            seconds: user.updated_at.timestamp(),
-            nanos: user.updated_at.timestamp_subsec_nanos() as i32,
-        }),
+impl From<UserRole> for Role {
+    fn from(role: UserRole) -> Self {
+        match role {
+            UserRole::User => Role::User,
+            UserRole::Admin => Role::Admin,
+            UserRole::Owner => Role::Owner,
+        }
     }
 }
 
-fn domain_role_to_proto(role: UserRole) -> Role {
-    match role {
-        UserRole::User => Role::User,
-        UserRole::Admin => Role::Admin,
-        UserRole::Owner => Role::Owner,
+impl From<&User> for UserResponse {
+    fn from(user: &User) -> Self {
+        UserResponse {
+            id: user.id.to_string(),
+            handle: user.handle.clone(),
+            name: user.name.clone(),
+            role: Role::from(user.role) as i32,
+            is_active: user.is_active,
+            created_at: Some(Timestamp {
+                seconds: user.created_at.timestamp(),
+                nanos: user.created_at.timestamp_subsec_nanos() as i32,
+            }),
+            updated_at: Some(Timestamp {
+                seconds: user.updated_at.timestamp(),
+                nanos: user.updated_at.timestamp_subsec_nanos() as i32,
+            }),
+        }
     }
 }
 
-/// Convert proto Role int to domain UserRole.
-pub(crate) fn proto_role_to_domain(role: i32) -> Result<UserRole, Status> {
-    match Role::try_from(role) {
-        Ok(Role::User) => Ok(UserRole::User),
-        Ok(Role::Admin) => Ok(UserRole::Admin),
-        Ok(Role::Owner) => Ok(UserRole::Owner),
-        Ok(Role::Unspecified) | Err(_) => Err(Status::invalid_argument("invalid role value")),
+/// Newtype for proto role `i32` values to enable `TryFrom` conversion to domain `UserRole`.
+pub(crate) struct ProtoRole(pub i32);
+
+impl TryFrom<ProtoRole> for UserRole {
+    type Error = Status;
+
+    fn try_from(value: ProtoRole) -> Result<Self, Self::Error> {
+        match Role::try_from(value.0) {
+            Ok(Role::User) => Ok(UserRole::User),
+            Ok(Role::Admin) => Ok(UserRole::Admin),
+            Ok(Role::Owner) => Ok(UserRole::Owner),
+            Ok(Role::Unspecified) | Err(_) => {
+                Err(Status::invalid_argument("invalid role value"))
+            }
+        }
     }
 }

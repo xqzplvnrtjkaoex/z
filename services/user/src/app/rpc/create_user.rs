@@ -2,8 +2,8 @@ use madome_proto::user::{CreateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    app::rpc::{proto_role_to_domain, user_to_response},
-    domain::ports::UserPorts,
+    app::rpc::ProtoRole,
+    domain::{ports::UserPorts, types::role::UserRole},
     usecase::create_user::{CreateUserPayload, create_user},
 };
 
@@ -14,7 +14,7 @@ pub async fn execute<C: UserPorts>(
 ) -> Result<Response<UserResponse>, Status> {
     let req = request.into_inner();
 
-    let role = proto_role_to_domain(req.role)?;
+    let role = UserRole::try_from(ProtoRole(req.role))?;
 
     let payload = CreateUserPayload {
         handle: req.handle,
@@ -24,5 +24,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = create_user(ctx, payload).await?;
 
-    Ok(Response::new(user_to_response(&user)))
+    Ok(Response::new(UserResponse::from(&user)))
 }

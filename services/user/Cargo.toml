@@ -27,6 +27,7 @@ validator = { workspace = true }
 regex = { workspace = true }
 trait-variant = { workspace = true }
 base64 = { workspace = true }
+itertools = { workspace = true }
 madome-proto = { workspace = true }
 madome-common = { workspace = true }
 
