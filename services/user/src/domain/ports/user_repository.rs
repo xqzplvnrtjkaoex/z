@@ -1,8 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::error::repository_error::RepositoryError;
-use crate::domain::types::user::User;
+use crate::domain::{error::repository_error::RepositoryError, types::user::User};
 
 #[cfg_attr(test, mockall::automock(target = UserRepository))]
 #[trait_variant::make(UserRepository: Send)]
@@ -21,10 +20,10 @@ pub trait LocalUserRepository {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::Utc;
     use uuid::Uuid;
 
+    use super::*;
     use crate::domain::types::role::UserRole;
 
     // Test that MockUserRepository compiles and can set expectations.

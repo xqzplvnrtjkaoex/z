@@ -1,11 +1,14 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::domain::error::user_error::UserError;
-use crate::domain::ports::UserPorts;
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::types::user::User;
-use crate::domain::types::validation::{HandleInput, NameInput};
+use crate::domain::{
+    error::user_error::UserError,
+    ports::{UserPorts, user_repository::UserRepository},
+    types::{
+        user::User,
+        validation::{HandleInput, NameInput},
+    },
+};
 
 pub struct UpdateUserPayload {
     pub id: Uuid,
@@ -56,11 +59,16 @@ pub async fn update_user(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::domain::ports::UserPorts;
-    use crate::domain::ports::user_repository::{MockUserRepository, UserRepository};
-    use crate::domain::types::role::UserRole;
     use chrono::Utc;
+
+    use super::*;
+    use crate::domain::{
+        ports::{
+            UserPorts,
+            user_repository::{MockUserRepository, UserRepository},
+        },
+        types::role::UserRole,
+    };
 
     struct TestContext {
         user_repo: MockUserRepository,

@@ -1,22 +1,20 @@
-use std::net::SocketAddr;
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
 
+use madome_proto::user::{
+    ActivateUserRequest, ChangeRoleRequest, CreateUserRequest, DeactivateUserRequest,
+    GetUserRequest, ListUsersRequest, Role, user_service_client::UserServiceClient,
+    user_service_server::UserServiceServer,
+};
 use sea_orm::{Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
 use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use tokio::sync::OnceCell;
 use tonic::transport::{Endpoint, Server};
-
-use madome_proto::user::user_service_client::UserServiceClient;
-use madome_proto::user::user_service_server::UserServiceServer;
-use madome_proto::user::{
-    ActivateUserRequest, ChangeRoleRequest, CreateUserRequest, DeactivateUserRequest,
-    GetUserRequest, ListUsersRequest, Role,
+use user::{
+    adapter::{context::UserContext, postgres::user_repository::PostgresUserRepository},
+    app::UserHandler,
 };
-use user::adapter::context::UserContext;
-use user::adapter::postgres::user_repository::PostgresUserRepository;
-use user::app::UserHandler;
 
 /// Stores the container (to keep it alive) and the connection URL.
 struct TestContainer {

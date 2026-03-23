@@ -13,8 +13,7 @@ use prost_types::Timestamp;
 use tonic::{Request, Status};
 use uuid::Uuid;
 
-use crate::domain::types::role::UserRole;
-use crate::domain::types::user::User;
+use crate::domain::types::{role::UserRole, user::User};
 
 /// Caller context extracted from gRPC metadata.
 pub(crate) struct CallerContext {

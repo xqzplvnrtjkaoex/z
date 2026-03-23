@@ -1,11 +1,11 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::domain::error::user_error::UserError;
-use crate::domain::ports::UserPorts;
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::types::role::UserRole;
-use crate::domain::types::user::User;
+use crate::domain::{
+    error::user_error::UserError,
+    ports::{UserPorts, user_repository::UserRepository},
+    types::{role::UserRole, user::User},
+};
 
 pub struct ChangeRolePayload {
     pub target_id: Uuid,
@@ -72,10 +72,13 @@ pub async fn change_role(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::domain::ports::UserPorts;
-    use crate::domain::ports::user_repository::{MockUserRepository, UserRepository};
     use chrono::Utc;
+
+    use super::*;
+    use crate::domain::ports::{
+        UserPorts,
+        user_repository::{MockUserRepository, UserRepository},
+    };
 
     struct TestContext {
         user_repo: MockUserRepository,

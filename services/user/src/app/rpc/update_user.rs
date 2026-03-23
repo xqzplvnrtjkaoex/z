@@ -2,9 +2,11 @@ use madome_proto::user::{UpdateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::app::rpc::user_to_response;
-use crate::domain::ports::UserPorts;
-use crate::usecase::update_user::{UpdateUserPayload, update_user};
+use crate::{
+    app::rpc::user_to_response,
+    domain::ports::UserPorts,
+    usecase::update_user::{UpdateUserPayload, update_user},
+};
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "UpdateUser"))]
 pub async fn execute<C: UserPorts>(

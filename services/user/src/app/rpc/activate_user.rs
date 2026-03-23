@@ -2,9 +2,11 @@ use madome_proto::user::{ActivateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::app::rpc::{extract_caller_context, user_to_response};
-use crate::domain::ports::UserPorts;
-use crate::usecase::activate_user::{ActivateUserPayload, activate_user};
+use crate::{
+    app::rpc::{extract_caller_context, user_to_response},
+    domain::ports::UserPorts,
+    usecase::activate_user::{ActivateUserPayload, activate_user},
+};
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ActivateUser"))]
 pub async fn execute<C: UserPorts>(

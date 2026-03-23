@@ -1,15 +1,22 @@
-use gateway::routes::create_router;
-use gateway::state::AppState;
-use madome_proto::auth::auth_service_client::AuthServiceClient;
-use madome_proto::auth::auth_service_server::{AuthService, AuthServiceServer};
-use madome_proto::catalog::catalog_service_client::CatalogServiceClient;
-use madome_proto::catalog::catalog_service_server::{CatalogService, CatalogServiceServer};
-use madome_proto::user::user_service_client::UserServiceClient;
-use madome_proto::user::user_service_server::{UserService, UserServiceServer};
-use madome_proto::user::*;
 use std::net::SocketAddr;
-use tonic::transport::Server;
-use tonic::{Request, Response, Status};
+
+use gateway::{routes::create_router, state::AppState};
+use madome_proto::{
+    auth::{
+        auth_service_client::AuthServiceClient,
+        auth_service_server::{AuthService, AuthServiceServer},
+    },
+    catalog::{
+        catalog_service_client::CatalogServiceClient,
+        catalog_service_server::{CatalogService, CatalogServiceServer},
+    },
+    user::{
+        user_service_client::UserServiceClient,
+        user_service_server::{UserService, UserServiceServer},
+        *,
+    },
+};
+use tonic::{Request, Response, Status, transport::Server};
 
 // Test stub implementations
 

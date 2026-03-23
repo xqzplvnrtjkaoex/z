@@ -1,7 +1,5 @@
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::ports::{UserConfig, UserPorts};
-
 use super::postgres::user_repository::PostgresUserRepository;
+use crate::domain::ports::{UserConfig, UserPorts, user_repository::UserRepository};
 
 pub struct UserContext {
     user_repo: PostgresUserRepository,

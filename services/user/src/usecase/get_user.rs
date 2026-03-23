@@ -1,9 +1,10 @@
 use uuid::Uuid;
 
-use crate::domain::error::user_error::UserError;
-use crate::domain::ports::UserPorts;
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::types::user::User;
+use crate::domain::{
+    error::user_error::UserError,
+    ports::{UserPorts, user_repository::UserRepository},
+    types::user::User,
+};
 
 #[tracing::instrument(skip_all, fields(user_id = %id), err)]
 pub async fn get_user(ctx: &(impl UserPorts + ?Sized), id: Uuid) -> Result<User, UserError> {
@@ -15,11 +16,16 @@ pub async fn get_user(ctx: &(impl UserPorts + ?Sized), id: Uuid) -> Result<User,
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::domain::ports::UserPorts;
-    use crate::domain::ports::user_repository::{MockUserRepository, UserRepository};
-    use crate::domain::types::role::UserRole;
     use chrono::Utc;
+
+    use super::*;
+    use crate::domain::{
+        ports::{
+            UserPorts,
+            user_repository::{MockUserRepository, UserRepository},
+        },
+        types::role::UserRole,
+    };
 
     struct TestContext {
         user_repo: MockUserRepository,

@@ -1,12 +1,15 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::domain::error::user_error::UserError;
-use crate::domain::ports::UserPorts;
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::types::role::UserRole;
-use crate::domain::types::user::User;
-use crate::domain::types::validation::{HandleInput, NameInput};
+use crate::domain::{
+    error::user_error::UserError,
+    ports::{UserPorts, user_repository::UserRepository},
+    types::{
+        role::UserRole,
+        user::User,
+        validation::{HandleInput, NameInput},
+    },
+};
 
 pub struct CreateUserPayload {
     pub handle: String,
@@ -60,9 +63,13 @@ pub async fn create_user(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::error::repository_error::RepositoryError;
-    use crate::domain::ports::UserPorts;
-    use crate::domain::ports::user_repository::{MockUserRepository, UserRepository};
+    use crate::domain::{
+        error::repository_error::RepositoryError,
+        ports::{
+            UserPorts,
+            user_repository::{MockUserRepository, UserRepository},
+        },
+    };
 
     struct TestContext {
         user_repo: MockUserRepository,

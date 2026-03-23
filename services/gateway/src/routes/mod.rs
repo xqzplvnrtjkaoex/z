@@ -3,8 +3,7 @@ use axum::{
     routing::{get, patch, post},
 };
 
-use crate::middleware::caller_context;
-use crate::state::AppState;
+use crate::{middleware::caller_context, state::AppState};
 
 pub mod health;
 pub mod users;

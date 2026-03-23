@@ -2,9 +2,11 @@ use madome_proto::user::{ChangeRoleRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::app::rpc::{extract_caller_context, proto_role_to_domain, user_to_response};
-use crate::domain::ports::UserPorts;
-use crate::usecase::change_role::{ChangeRolePayload, change_role};
+use crate::{
+    app::rpc::{extract_caller_context, proto_role_to_domain, user_to_response},
+    domain::ports::UserPorts,
+    usecase::change_role::{ChangeRolePayload, change_role},
+};
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ChangeRole"))]
 pub async fn execute<C: UserPorts>(

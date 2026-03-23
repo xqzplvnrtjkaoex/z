@@ -4,13 +4,15 @@ use sea_orm_migration::MigratorTrait;
 use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use tokio::sync::OnceCell;
+use user::{
+    adapter::postgres::user_repository::PostgresUserRepository,
+    domain::{
+        error::repository_error::RepositoryError,
+        ports::user_repository::UserRepository,
+        types::{role::UserRole, user::User},
+    },
+};
 use uuid::Uuid;
-
-use user::adapter::postgres::user_repository::PostgresUserRepository;
-use user::domain::error::repository_error::RepositoryError;
-use user::domain::ports::user_repository::UserRepository;
-use user::domain::types::role::UserRole;
-use user::domain::types::user::User;
 
 /// Stores the container (to keep it alive) and the connection URL so
 /// each test can open its own connection pool against the same container.

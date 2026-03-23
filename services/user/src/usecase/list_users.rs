@@ -2,10 +2,11 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD as BASE64};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::error::user_error::UserError;
-use crate::domain::ports::UserPorts;
-use crate::domain::ports::user_repository::UserRepository;
-use crate::domain::types::user::User;
+use crate::domain::{
+    error::user_error::UserError,
+    ports::{UserPorts, user_repository::UserRepository},
+    types::user::User,
+};
 
 pub struct ListUsersPayload {
     pub limit: u64,
@@ -70,11 +71,16 @@ pub async fn list_users(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::domain::ports::UserPorts;
-    use crate::domain::ports::user_repository::{MockUserRepository, UserRepository};
-    use crate::domain::types::role::UserRole;
     use chrono::Utc;
+
+    use super::*;
+    use crate::domain::{
+        ports::{
+            UserPorts,
+            user_repository::{MockUserRepository, UserRepository},
+        },
+        types::role::UserRole,
+    };
 
     struct TestContext {
         user_repo: MockUserRepository,

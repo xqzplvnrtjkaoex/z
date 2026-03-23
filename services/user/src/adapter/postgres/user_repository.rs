@@ -1,15 +1,19 @@
 use chrono::{DateTime, Utc};
-use sea_orm::sea_query::{Expr, Func};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    ActiveModelTrait,
+    ActiveValue::Set,
+    ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect,
+    sea_query::{Expr, Func},
 };
 use uuid::Uuid;
 
-use crate::domain::error::repository_error::RepositoryError;
-use crate::domain::types::role::UserRole as DomainUserRole;
-use crate::domain::types::user::User;
-use crate::schema::users;
+use crate::{
+    domain::{
+        error::repository_error::RepositoryError,
+        types::{role::UserRole as DomainUserRole, user::User},
+    },
+    schema::users,
+};
 
 pub struct PostgresUserRepository {
     db: DatabaseConnection,

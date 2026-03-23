@@ -76,8 +76,9 @@ impl From<UserError> for tonic::Status {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tonic::Code;
+
+    use super::*;
 
     #[test]
     fn should_map_user_not_found_to_not_found_status() {
