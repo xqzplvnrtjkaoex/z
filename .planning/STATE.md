@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Documentation conventions established, D-n comments removed
-last_updated: "2026-03-23T18:00:00.000Z"
+stopped_at: Gateway module restructuring and rules update — uncommitted changes pending
+last_updated: "2026-03-23T21:00:00.000Z"
 last_activity: 2026-03-23
 progress:
   total_phases: 6
@@ -116,7 +116,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-23
-Last activity: Documentation conventions — researched (rustdoc, OpenAPI/utoipa, code comments), created .claude/rules/rust-documentation.md, removed 22 D-n prefix comments, updated CLAUDE.md CI checks
-Stopped at: Documentation conventions complete, OpenAPI implementation deferred to separate task
-Resume file: .planning/ROADMAP.md
-Next action: /gsd:plan-phase 3 (authentication) or OpenAPI implementation (quick task)
+Last activity: Gateway restructuring — split monolithic routes/users.rs into model/payload/util modules + per-handler files, updated rules (request-handling, conventions) with serialization conventions (enum kebab-case, serde_qs, URL_SAFE_NO_PAD, RFC 3339 ms)
+Stopped at: All code changes done and build/test passing, but NOT YET COMMITTED. Need to commit rules + gateway restructuring.
+Resume file: services/gateway/src/routes/users/mod.rs
+Next action: Commit pending changes (rules docs + gateway restructuring), then /gsd:plan-phase 3 (authentication)
