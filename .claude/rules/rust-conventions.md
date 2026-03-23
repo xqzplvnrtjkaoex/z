@@ -11,10 +11,25 @@ Prefer typed constants over raw string literals for any protocol-level or well-k
 - MUST: When the framework or library already provides a typed constant (e.g., `header::CONTENT_TYPE`, `header::SET_COOKIE`), always use it.
 - SHOULD: When no typed constant exists, define your own (`const` or `HeaderName::from_static(...)`) rather than repeating string literals across call sites. Exceptions are acceptable for one-off or context-local usage.
 
-## Error Conversion via `From` Trait
+## Import Style
 
-Implement `From<SourceError> for TargetError` instead of writing standalone conversion functions.
-This enables the `?` operator for clean propagation — no `.map_err(helper)?` pattern.
+Do not alias modules when the original name is clear. Merge into grouped `use` statements.
+
+```rust
+// Good
+use axum::{Router, middleware, routing::get};
+middleware::from_fn(...)
+
+// Bad — unnecessary alias
+use axum::middleware as axum_mw;
+axum_mw::from_fn(...)
+```
+
+## Type Conversion via Standard Traits
+
+Prefer `From`/`TryFrom`/`FromStr` implementations over custom conversion methods or standalone functions. This applies to all type conversions, not just errors — the `?` operator and `.into()` handle propagation idiomatically.
+
+Exception: when the source and target types are the same but the transformation is value-level (e.g., `to_snake_case()`, `to_kebab_case()`), or when the method name must explicitly convey the specific operation, use a named method instead.
 
 ## Cursor Encoding
 
