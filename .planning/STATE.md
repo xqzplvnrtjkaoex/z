@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: list_users idiomatic refactor, conventions updated
-last_updated: "2026-03-24T01:00:00.000Z"
+stopped_at: domain/input refactor complete, discussed AppError design (keep as-is)
+last_updated: "2026-03-24T03:00:00.000Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 6
@@ -83,7 +83,7 @@ Recent decisions affecting current work:
 - [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant (now replaced by From<DbErr> impl per quick task 260322-vwa)
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
 - [Phase 02-user-profile]: base64 crate added to workspace for opaque cursor encoding in ListUsers pagination
-- [Phase 02-user-profile]: CallerContext extracted from gRPC metadata headers x-caller-id and x-caller-role (planned rename to CallerIdentity in madome-common with CallerRole enum)
+- [Phase 02-user-profile]: CallerIdentity in madome-common with CallerRole enum; mandatory auth (no anonymous access); from_metadata for gRPC, extract_caller_identity middleware for Gateway
 - [Phase 02-user-profile]: Per-test fresh DatabaseConnection (not shared pool) against shared testcontainers container URL: prevents pool exhaustion across independent tokio runtimes in integration tests
 - [Phase 02-user-profile]: Migration user_role enum via raw SQL execute_unprepared: DeriveIden generates 'user_role_enum' from UserRoleEnum, sea-orm entity expects 'user_role'; raw SQL ensures correct name
 
@@ -97,6 +97,7 @@ Recent decisions affecting current work:
 - Implement OpenAPI documentation: utoipa feature gate, gen-openapi binary, GitHub Pages deployment
 - Apply `#![warn(missing_docs)]` to shared crates (madome-proto, madome-common) and add missing rustdoc
 - ~~Complete CallerIdentity refactor~~ DONE (2026-03-23)
+- ~~Proto UUID: string → bytes migration~~ DONE (2026-03-23)
 
 ### Blockers/Concerns
 
@@ -117,8 +118,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-23
-Last activity: Completed CallerIdentity refactor — removed try_role_from_metadata, updated get_user_by_handle to mandatory CallerIdentity, added auth policy to PROJECT.md. Build + 58 unit tests + clippy pass.
-Stopped at: CallerIdentity refactor committed. Ready for Phase 03 authentication.
+Last session: 2026-03-24
+Last activity: (1) Discussed gateway AppError design — concluded YAGNI, keep HTTP-status-based enum as-is. (2) Refactored domain/types/validation.rs → domain/input/{handle_input,name_input}.rs for per-type file isolation and test separation. Updated rust-documentation.md rule.
+Stopped at: Input refactor committed (1ff014e). Ready for Phase 03 authentication.
 Resume file: .planning/STATE.md
 Next action: /gsd:plan-phase 3 (authentication)
