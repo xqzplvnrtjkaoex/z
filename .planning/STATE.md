@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: madome-core removed, AppError moved to gateway, nightly rustfmt configured
-last_updated: "2026-03-24T00:00:00.000Z"
+stopped_at: list_users idiomatic refactor, conventions updated
+last_updated: "2026-03-24T01:00:00.000Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 6
@@ -112,11 +112,12 @@ Recent decisions affecting current work:
 |---|-------------|------|--------|-----------|
 | 260322-of1 | Update PROJECT.md and ROADMAP.md with pending decisions and phase restructuring | 2026-03-22 | 9e691ba | [260322-of1-update-project-md-and-roadmap-md-with-pe](./quick/260322-of1-update-project-md-and-roadmap-md-with-pe/) |
 | 260322-vwa | Refactor user service and gateway: typed header constants, From<DbErr>, CallerContext middleware, handler file renames | 2026-03-22 | 17e1012 | [260322-vwa-refactor-user-service-and-gateway-typed-](./quick/260322-vwa-refactor-user-service-and-gateway-typed-/) |
+| 260323-pwj | Replace standalone conversion fns with From/TryFrom impls in user rpc layer | 2026-03-23 | 4f002ff | [260323-pwj-user-to-response-function-violates-namin](./quick/260323-pwj-user-to-response-function-violates-namin/) |
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Last activity: Removed madome-core crate (YAGNI — AppError was gateway-only, domain types stay per-service). Moved AppError to gateway/src/error.rs. Simplified .map_err(AppError::from)? to ?. Added rustfmt.toml with nightly import grouping (group_imports, imports_granularity). Updated conventions, PROJECT.md, CLAUDE.md.
-Stopped at: 2 commits on dev (refactor + style). Clean working tree.
+Last session: 2026-03-23
+Last activity: Replaced standalone rpc conversion fns (user_to_response, domain_role_to_proto, proto_role_to_domain) with From/TryFrom trait impls in user service. Added ProtoRole newtype for orphan rule compliance. Updated all 8 caller files.
+Stopped at: Quick task 260323-pwj complete (4f002ff). Clean working tree.
 Resume file: .planning/STATE.md
 Next action: /gsd:plan-phase 3 (authentication)
