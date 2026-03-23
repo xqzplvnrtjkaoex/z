@@ -1056,12 +1056,12 @@ dependencies = [
  "axum",
  "chrono",
  "madome-common",
- "madome-core",
  "madome-proto",
  "reqwest",
  "serde",
  "serde_json",
  "serde_qs",
+ "thiserror",
  "tokio",
  "tonic",
  "tower",
@@ -1690,17 +1690,6 @@ version = "0.1.0"
 dependencies = [
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "madome-core"
-version = "0.1.0"
-dependencies = [
- "axum",
- "serde",
- "serde_json",
- "thiserror",
- "tonic",
 ]
 
 [[package]]
@@ -4089,7 +4078,6 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "madome-common",
- "madome-core",
  "madome-proto",
  "mockall",
  "prost-types",

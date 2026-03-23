@@ -3,14 +3,13 @@ use axum::{
     http::header,
     response::IntoResponse,
 };
-use madome_core::error::AppError;
 use madome_proto::user::ListUsersRequest;
 use serde_qs::axum::QsQuery;
 
-use crate::middleware::CallerContext;
-use crate::model::User;
-use crate::payload::user::ListUsersQuery;
-use crate::state::AppState;
+use crate::{
+    error::AppError, middleware::CallerContext, model::User, payload::user::ListUsersQuery,
+    state::AppState,
+};
 
 pub async fn list_users(
     State(state): State<AppState>,
@@ -27,12 +26,7 @@ pub async fn list_users(
     });
     caller_ctx.inject_into(&mut request);
 
-    let response = state
-        .user_client
-        .clone()
-        .list_users(request)
-        .await
-        .map_err(AppError::from)?;
+    let response = state.user_client.clone().list_users(request).await?;
 
     let inner = response.into_inner();
     let users: Vec<User> = inner.users.into_iter().map(User::from).collect();

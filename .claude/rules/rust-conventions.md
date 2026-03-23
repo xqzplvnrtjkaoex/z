@@ -29,6 +29,16 @@ axum_mw::from_fn(...)
 
 Prefer `From`/`TryFrom`/`FromStr` implementations over custom conversion methods or standalone functions. This applies to all type conversions, not just errors — the `?` operator and `.into()` handle propagation idiomatically.
 
+When a `From` impl exists, use `?` directly instead of `.map_err(Foo::from)?`:
+
+```rust
+// Good — ? invokes From<tonic::Status> for AppError automatically
+let response = client.get_user(request).await?;
+
+// Bad — redundant, From impl already exists
+let response = client.get_user(request).await.map_err(AppError::from)?;
+```
+
 Exception: when the source and target types are the same but the transformation is value-level (e.g., `to_snake_case()`, `to_kebab_case()`), or when the method name must explicitly convey the specific operation, use a named method instead.
 
 ## Cursor Encoding

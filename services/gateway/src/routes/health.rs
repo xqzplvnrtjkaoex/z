@@ -1,11 +1,9 @@
-use axum::Json;
-use axum::extract::State;
+use axum::{Json, extract::State};
 use madome_common::headers;
-use madome_core::error::AppError;
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::state::AppState;
+use crate::{error::AppError, state::AppState};
 
 #[derive(Serialize)]
 pub struct GatewayHealthResponse {

@@ -3,12 +3,9 @@ use axum::{
     extract::{Extension, Path, State},
     response::IntoResponse,
 };
-use madome_core::error::AppError;
 use madome_proto::user::GetUserRequest;
 
-use crate::middleware::CallerContext;
-use crate::model::User;
-use crate::state::AppState;
+use crate::{error::AppError, middleware::CallerContext, model::User, state::AppState};
 
 pub async fn get_user(
     State(state): State<AppState>,
@@ -18,12 +15,7 @@ pub async fn get_user(
     let mut request = tonic::Request::new(GetUserRequest { id });
     caller_ctx.inject_into(&mut request);
 
-    let response = state
-        .user_client
-        .clone()
-        .get_user(request)
-        .await
-        .map_err(AppError::from)?;
+    let response = state.user_client.clone().get_user(request).await?;
 
     let user: User = response.into_inner().into();
     Ok(Json(user))

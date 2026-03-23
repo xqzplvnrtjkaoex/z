@@ -20,6 +20,7 @@ cargo test                               # Run all tests
 cargo test -p gateway                    # Run tests for a single crate
 cargo test -p gateway -- gateway_own     # Run a single test by name substring
 cargo test -p gateway --test health_integration  # Run a specific integration test file
+cargo +nightly fmt --all                 # Format (nightly for rustfmt.toml unstable options)
 cargo clippy --workspace                 # Lint all crates
 ```
 
@@ -78,7 +79,7 @@ Workflows authored in TypeScript via [gaji](https://github.com/dodok8/gaji) (`np
 
 | Trigger | Checks |
 |---------|--------|
-| `dev` push | `cargo fmt --check`, `cargo clippy --workspace`, unit + integration tests |
+| `dev` push | `cargo +nightly fmt --all --check`, `cargo clippy --workspace`, unit + integration tests |
 | `master` push | Above + service tests + E2E contract tests + `cargo audit` + `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps` |
 | Weekly cron | `cargo audit` (dependency vulnerability scan) |
 
@@ -130,7 +131,6 @@ Rust 2024 edition, resolver 3. Cargo workspace with shared crates + service bina
 
 - `proto/` — `.proto` source files (single source of truth for all gRPC contracts)
 - `crates/madome-proto` — compiles protos via `tonic-prost-build`, re-exports as `madome_proto::{auth,catalog,user}`
-- `crates/madome-core` — domain error types (`AppError`) with axum `IntoResponse` + tonic `Status` conversion
 - `crates/madome-common` — tracing init, env helpers
 - `services/gateway` — axum REST entry point, holds gRPC clients in `AppState`, translates REST→gRPC. Uses routes/ + middleware/ + state.rs (no 4-layer pattern)
 - `services/{auth,catalog,user}` — tonic gRPC services, each follows 4-layer architecture: `domain/` (types, ports, errors) → `usecase/` (business logic) → `app/` (tonic handler) → `adapter/` (concrete implementations). See `.planning/PROJECT.md` Internal Service Architecture for details

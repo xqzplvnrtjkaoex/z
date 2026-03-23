@@ -28,7 +28,6 @@ regex = { workspace = true }
 trait-variant = { workspace = true }
 base64 = { workspace = true }
 madome-proto = { workspace = true }
-madome-core = { workspace = true }
 madome-common = { workspace = true }
 
 [dev-dependencies]

@@ -17,7 +17,7 @@ Reliably mirror books from external sources and allow authenticated users to bro
 
 ### Service Topology
 
-Cargo workspace monorepo with 6 binaries and 3 shared crates:
+Cargo workspace monorepo with 6 binaries and 2 shared crates:
 
 | Binary | Role | Communication |
 |--------|------|---------------|
@@ -155,10 +155,9 @@ services/auth/src/
 | Crate | Role | Contents |
 |-------|------|----------|
 | **madome-proto** | Protobuf definitions | `.proto` files, tonic generated code |
-| **madome-core** | Domain types | BookId, UserId, error trait, shared domain primitives |
 | **madome-common** | Shared infrastructure | OpenTelemetry setup, config loading, shared middleware |
 
-Principle: prevent god crate growth. If `madome-core` grows beyond domain types, split further.
+Domain types live in each service's `domain/` layer, not in a shared crate. Proto definitions serve as the cross-service contract.
 
 ### Communication Flow
 
@@ -424,7 +423,7 @@ Discovers and uploads new books.
 | API Gateway pattern | Centralized JWT verification, prevent direct service exposure | Validated (Phase 01) |
 | nginx auth_request + auth_request_set | Image serving auth + cookie refresh forwarding | -- Pending |
 | Path-based API versioning (/v1/) | Simple, explicit, no /api prefix needed for API-only service | -- Pending |
-| 3 shared crates (proto, core, common) | Prevent god crate; split by responsibility | Validated (Phase 01) |
+| 2 shared crates (proto, common) | Proto for cross-service contract, common for infra utilities. Domain types stay in each service | Validated (Phase 02) |
 | DB schema/migration per service | Each service owns its data; independent migration | -- Pending |
 | Internal PK + external_id separation | Decouple from source platform; stable references across renewal | -- Pending |
 | canonical_id denormalization | O(1) read for renewal chain resolution; Union-Find pattern | -- Pending |

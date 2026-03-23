@@ -20,11 +20,11 @@ tonic = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_qs = { workspace = true }
+thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 madome-proto = { workspace = true }
-madome-core = { workspace = true }
 madome-common = { workspace = true }
 
 [dev-dependencies]

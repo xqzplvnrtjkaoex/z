@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Gateway module restructuring and rules update — uncommitted changes pending
-last_updated: "2026-03-23T21:00:00.000Z"
+stopped_at: User service app layer restructuring and convention updates complete
+last_updated: "2026-03-23T22:00:00.000Z"
 last_activity: 2026-03-23
 progress:
   total_phases: 6
@@ -17,7 +17,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-22)
+See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Reliably mirror books from external sources and allow authenticated users to browse them.
 **Current focus:** Phase 02 complete — next: Phase 03 authentication
@@ -63,7 +63,7 @@ Recent decisions affecting current work:
 - [Roadmap]: v1 scope covers gateway, auth, catalog, and user services only. File service, scraper, and renewal are v2.
 - [Roadmap]: Phase 4 (Catalog Core) can start in parallel with Phase 3 (Auth) since both only depend on Phase 1.
 - [Architecture]: URL convention: /v1/ prefix, no /api prefix. Path-based versioning.
-- [Architecture]: 3 shared crates: madome-proto, madome-core (domain types), madome-common (infra).
+- [Architecture]: 2 shared crates: madome-proto (cross-service contract), madome-common (infra). Domain types live in each service.
 - [Architecture]: DB schema/migration per service folder (schema/, src/, migration/ co-located).
 - [Architecture]: Internal PK (UUID) + external_id column separation. UUIDv7 for predictable, UUIDv4 for security-sensitive.
 - [Architecture]: Renewal via canonical_id denormalization (Union-Find pattern). No cross-service sync queue needed.
@@ -72,7 +72,7 @@ Recent decisions affecting current work:
 - [Architecture]: OpenTelemetry + tracing. request_id as UUIDv7.
 - [01-01]: Stub service Cargo.toml files created for workspace loading; replaced in Plan 02.
 - [01-01]: protoc installed via homebrew (system dependency for tonic-prost-build).
-- [01-01]: DeadlineExceeded maps to Unavailable with "timeout: " prefix in AppError gRPC mapping.
+- [01-01]: DeadlineExceeded maps to Unavailable with "timeout: " prefix in gateway's gRPC-to-REST error mapping.
 - [Phase 01-02]: Health RPC uses unit type () not prost_types::Empty — tonic-prost 0.14 maps google.protobuf.Empty to Rust () type
 - [Phase 01-02]: Gateway split into lib.rs + main.rs to enable integration test imports from tests/ directory
 - [Phase 01-02]: Lazy gRPC client connections (connect_lazy) used in integration tests to avoid startup ordering requirements
@@ -116,7 +116,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-23
-Last activity: Gateway restructuring — split monolithic routes/users.rs into model/payload/util modules + per-handler files, updated rules (request-handling, conventions) with serialization conventions (enum kebab-case, serde_qs, URL_SAFE_NO_PAD, RFC 3339 ms)
-Stopped at: All code changes done and build/test passing, but NOT YET COMMITTED. Need to commit rules + gateway restructuring.
-Resume file: services/gateway/src/routes/users/mod.rs
-Next action: Commit pending changes (rules docs + gateway restructuring), then /gsd:plan-phase 3 (authentication)
+Last activity: Convention refactoring — From trait for error conversion, import alias removal, handler/ renamed to rpc/, handle renamed to execute, UserHandler moved to app/mod.rs, get_user split into two files. Updated all rules docs (conventions, tracing, request-handling) and PROJECT.md.
+Stopped at: All refactoring committed (3 commits on dev). Clean working tree.
+Resume file: .planning/STATE.md
+Next action: /gsd:plan-phase 3 (authentication)

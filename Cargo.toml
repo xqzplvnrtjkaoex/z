@@ -2,7 +2,6 @@
 resolver = "3"
 members = [
     "crates/madome-proto",
-    "crates/madome-core",
     "crates/madome-common",
     "services/gateway",
     "services/auth",
@@ -100,5 +99,4 @@ testcontainers-modules = { version = "0.15", features = ["postgres"] }
 
 # Internal crates
 madome-proto = { path = "crates/madome-proto" }
-madome-core = { path = "crates/madome-core" }
 madome-common = { path = "crates/madome-common" }

@@ -3,13 +3,12 @@ use axum::{
     extract::{Extension, State},
     response::IntoResponse,
 };
-use madome_core::error::AppError;
 use madome_proto::user::UpdateUserRequest;
 
-use crate::middleware::CallerContext;
-use crate::model::User;
-use crate::payload::user::UpdateUserBody;
-use crate::state::AppState;
+use crate::{
+    error::AppError, middleware::CallerContext, model::User, payload::user::UpdateUserBody,
+    state::AppState,
+};
 
 pub async fn update_me(
     State(state): State<AppState>,
@@ -23,12 +22,7 @@ pub async fn update_me(
     });
     caller_ctx.inject_into(&mut request);
 
-    let response = state
-        .user_client
-        .clone()
-        .update_user(request)
-        .await
-        .map_err(AppError::from)?;
+    let response = state.user_client.clone().update_user(request).await?;
 
     let user: User = response.into_inner().into();
     Ok(Json(user))

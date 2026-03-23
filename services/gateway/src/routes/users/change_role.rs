@@ -3,13 +3,12 @@ use axum::{
     extract::{Extension, Path, State},
     response::IntoResponse,
 };
-use madome_core::error::AppError;
 use madome_proto::user::ChangeRoleRequest;
 
-use crate::middleware::CallerContext;
-use crate::model::User;
-use crate::payload::user::ChangeRoleBody;
-use crate::state::AppState;
+use crate::{
+    error::AppError, middleware::CallerContext, model::User, payload::user::ChangeRoleBody,
+    state::AppState,
+};
 
 pub async fn change_role(
     State(state): State<AppState>,
@@ -22,12 +21,7 @@ pub async fn change_role(
     let mut request = tonic::Request::new(ChangeRoleRequest { id, new_role });
     caller_ctx.inject_into(&mut request);
 
-    let response = state
-        .user_client
-        .clone()
-        .change_role(request)
-        .await
-        .map_err(AppError::from)?;
+    let response = state.user_client.clone().change_role(request).await?;
 
     let user: User = response.into_inner().into();
     Ok(Json(user))

@@ -1,7 +1,6 @@
-use axum::extract::Request;
-use axum::middleware::Next;
-use axum::response::Response;
-use madome_core::error::AppError;
+use axum::{extract::Request, middleware::Next, response::Response};
+
+use crate::error::AppError;
 
 /// Validated caller identity extracted from HTTP request headers.
 #[derive(Clone, Debug)]
