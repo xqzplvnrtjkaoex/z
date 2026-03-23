@@ -19,6 +19,7 @@ tower-http = { workspace = true }
 tonic = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_qs = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
@@ -27,7 +28,14 @@ madome-core = { workspace = true }
 madome-common = { workspace = true }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util", "time"] }
+tokio = { workspace = true, features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "signal",
+    "test-util",
+    "time",
+] }
 reqwest = { version = "0.12", features = ["json"] }
 serde_json = { workspace = true }
 madome-proto = { workspace = true }

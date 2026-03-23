@@ -15,3 +15,11 @@ Prefer typed constants over raw string literals for any protocol-level or well-k
 
 Implement `From<SourceError> for TargetError` instead of writing standalone conversion functions.
 This enables the `?` operator for clean propagation — no `.map_err(helper)?` pattern.
+
+## Cursor Encoding
+
+Use `base64::engine::general_purpose::URL_SAFE_NO_PAD` for cursor/pagination tokens. Standard base64 contains `+`, `/`, `=` which require URL-encoding in query strings.
+
+## DateTime Serialization
+
+REST API timestamps use RFC 3339 with millisecond precision: `2026-03-23T12:00:00.000Z`. Use a custom serde serializer (`to_rfc3339_ms`) rather than relying on default `DateTime<Utc>` serialization.
