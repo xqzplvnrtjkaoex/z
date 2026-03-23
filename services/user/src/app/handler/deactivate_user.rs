@@ -25,9 +25,7 @@ pub async fn handle<C: UserPorts>(
         caller_role: caller_ctx.caller_role,
     };
 
-    let user = deactivate_user(ctx, payload)
-        .await
-        .map_err(|e| e.into_status())?;
+    let user = deactivate_user(ctx, payload).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }

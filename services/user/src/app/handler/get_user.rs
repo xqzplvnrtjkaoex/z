@@ -19,7 +19,7 @@ pub async fn handle_get<C: UserPorts>(
         .parse::<Uuid>()
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
-    let user = get_user(ctx, id).await.map_err(|e| e.into_status())?;
+    let user = get_user(ctx, id).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }
@@ -37,9 +37,7 @@ pub async fn handle_get_by_handle<C: UserPorts>(
         caller_role,
     };
 
-    let user = get_user_by_handle(ctx, payload)
-        .await
-        .map_err(|e| e.into_status())?;
+    let user = get_user_by_handle(ctx, payload).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }

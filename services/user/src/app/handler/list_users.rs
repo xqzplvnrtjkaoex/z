@@ -18,9 +18,7 @@ pub async fn handle<C: UserPorts>(
         include_inactive: req.include_inactive,
     };
 
-    let (users, next_cursor) = list_users(ctx, payload)
-        .await
-        .map_err(|e| e.into_status())?;
+    let (users, next_cursor) = list_users(ctx, payload).await?;
 
     let user_responses: Vec<UserResponse> = users.iter().map(user_to_response).collect();
 

@@ -1,6 +1,5 @@
-use axum::middleware as axum_mw;
 use axum::{
-    Router,
+    Router, middleware,
     routing::{get, patch, post},
 };
 
@@ -38,5 +37,5 @@ fn user_routes() -> Router<AppState> {
     Router::new()
         .merge(me_routes)
         .merge(admin_routes)
-        .layer(axum_mw::from_fn(caller_context::extract_caller_context))
+        .layer(middleware::from_fn(caller_context::extract_caller_context))
 }

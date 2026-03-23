@@ -20,9 +20,7 @@ pub async fn handle<C: UserPorts>(
         role,
     };
 
-    let user = create_user(ctx, payload)
-        .await
-        .map_err(|e| e.into_status())?;
+    let user = create_user(ctx, payload).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }
