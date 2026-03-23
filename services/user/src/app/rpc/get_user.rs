@@ -18,5 +18,5 @@ pub async fn execute<C: UserPorts>(
 
     let user = get_user(ctx, id).await?;
 
-    Ok(Response::new(UserResponse::from(&user)))
+    Ok(Response::new(user.into()))
 }

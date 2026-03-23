@@ -117,7 +117,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-23
-Last activity: Replaced standalone rpc conversion fns (user_to_response, domain_role_to_proto, proto_role_to_domain) with From/TryFrom trait impls in user service. Added ProtoRole newtype for orphan rule compliance. Updated all 8 caller files.
-Stopped at: Quick task 260323-pwj complete (4f002ff). Clean working tree.
+Last activity: Replaced standalone rpc conversion fns with From/TryFrom impls; refined From<&User> to From<User> for idiomatic user.into() at call sites.
+Stopped at: Quick task 260323-pwj refinement complete. Clean working tree.
 Resume file: .planning/STATE.md
 Next action: /gsd:plan-phase 3 (authentication)

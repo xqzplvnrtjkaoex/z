@@ -22,7 +22,7 @@ pub async fn execute<C: UserPorts>(
 
     let (users, next_cursor) = list_users(ctx, payload).await?;
 
-    let user_responses: Vec<UserResponse> = users.iter().map_into().collect();
+    let user_responses: Vec<UserResponse> = users.into_iter().map_into().collect();
 
     Ok(Response::new(ListUsersResponse {
         users: user_responses,

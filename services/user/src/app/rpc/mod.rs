@@ -66,12 +66,12 @@ impl From<UserRole> for Role {
     }
 }
 
-impl From<&User> for UserResponse {
-    fn from(user: &User) -> Self {
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
         UserResponse {
             id: user.id.to_string(),
-            handle: user.handle.clone(),
-            name: user.name.clone(),
+            handle: user.handle,
+            name: user.name,
             role: Role::from(user.role) as i32,
             is_active: user.is_active,
             created_at: Some(Timestamp {
@@ -97,9 +97,7 @@ impl TryFrom<ProtoRole> for UserRole {
             Ok(Role::User) => Ok(UserRole::User),
             Ok(Role::Admin) => Ok(UserRole::Admin),
             Ok(Role::Owner) => Ok(UserRole::Owner),
-            Ok(Role::Unspecified) | Err(_) => {
-                Err(Status::invalid_argument("invalid role value"))
-            }
+            Ok(Role::Unspecified) | Err(_) => Err(Status::invalid_argument("invalid role value")),
         }
     }
 }
