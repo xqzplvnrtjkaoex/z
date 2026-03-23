@@ -14,7 +14,7 @@ pub async fn update_me(
     Json(body): Json<UpdateUserBody>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(UpdateUserRequest {
-        id: identity.caller_id.to_string(),
+        id: identity.caller_id.as_bytes().to_vec(),
         handle: body.handle,
         name: body.name,
     });

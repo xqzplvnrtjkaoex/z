@@ -5,18 +5,22 @@ use axum::{
 };
 use madome_common::caller::CallerIdentity;
 use madome_proto::user::ChangeRoleRequest;
+use uuid::Uuid;
 
 use crate::{error::AppError, model::User, payload::user::ChangeRoleBody, state::AppState};
 
 pub async fn change_role(
     State(state): State<AppState>,
     Extension(identity): Extension<CallerIdentity>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
     Json(body): Json<ChangeRoleBody>,
 ) -> Result<impl IntoResponse, AppError> {
     let new_role: i32 = body.role.into();
 
-    let mut request = tonic::Request::new(ChangeRoleRequest { id, new_role });
+    let mut request = tonic::Request::new(ChangeRoleRequest {
+        id: id.as_bytes().to_vec(),
+        new_role,
+    });
     identity.inject_into(&mut request);
 
     let response = state.user_client.clone().change_role(request).await?;

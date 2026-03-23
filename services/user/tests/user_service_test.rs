@@ -117,7 +117,7 @@ async fn should_create_and_get_user_via_grpc() {
     assert_eq!(user.name, "Service Test");
     assert_eq!(user.role, Role::User as i32);
     assert!(user.is_active);
-    assert!(!user.id.is_empty());
+    assert_eq!(user.id.len(), 16, "UUID bytes should be 16 bytes");
 
     // Get by ID
     let get_response = client
@@ -286,7 +286,7 @@ async fn should_return_not_found_for_nonexistent_user_via_grpc() {
 
     let result = client
         .get_user(GetUserRequest {
-            id: uuid::Uuid::new_v4().to_string(),
+            id: uuid::Uuid::new_v4().as_bytes().to_vec(),
         })
         .await;
 

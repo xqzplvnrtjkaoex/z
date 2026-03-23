@@ -17,9 +17,7 @@ pub async fn execute<C: UserPorts>(
     let identity = CallerIdentity::from_metadata(&request)?;
     let req = request.into_inner();
 
-    let target_id = req
-        .id
-        .parse::<Uuid>()
+    let target_id = Uuid::from_slice(&req.id)
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
     let new_role = UserRole::try_from(ProtoRole(req.new_role))?;

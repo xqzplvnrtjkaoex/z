@@ -14,9 +14,7 @@ pub async fn execute<C: UserPorts>(
 ) -> Result<Response<UserResponse>, Status> {
     let req = request.into_inner();
 
-    let id = req
-        .id
-        .parse::<Uuid>()
+    let id = Uuid::from_slice(&req.id)
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
     let payload = UpdateUserPayload {

@@ -61,7 +61,7 @@ impl From<UserResponse> for User {
             .and_then(|t| DateTime::from_timestamp(t.seconds, t.nanos as u32))
             .unwrap_or_default();
         Self {
-            id: r.id.parse().unwrap_or_default(),
+            id: Uuid::from_slice(&r.id).unwrap_or_default(),
             handle: r.handle,
             name: r.name,
             role,

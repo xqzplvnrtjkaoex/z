@@ -63,6 +63,14 @@ let users: Vec<User> = inner.users.into_iter().map_into().collect();
 let users: Vec<User> = inner.users.into_iter().map(User::from).collect();
 ```
 
+## Proto UUID Conversion
+
+Proto `bytes` UUID fields map to `Vec<u8>` via prost.
+
+- **Proto → Uuid**: `Uuid::from_slice(&req.id)`
+- **Uuid → Proto**: `id.as_bytes().to_vec()`
+- **Gateway path params**: `Path<Uuid>` — axum deserializes directly, no manual parsing
+
 ## Cursor Encoding
 
 Use `base64::engine::general_purpose::URL_SAFE_NO_PAD` for cursor/pagination tokens. Standard base64 contains `+`, `/`, `=` which require URL-encoding in query strings.

@@ -24,7 +24,7 @@ enum Role {
 }
 
 message UserResponse {
-  string id = 1;
+  bytes id = 1;
   string handle = 2;
   string name = 3;
   Role role = 4;
@@ -40,7 +40,7 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-  string id = 1;
+  bytes id = 1;
 }
 
 message GetUserByHandleRequest {
@@ -59,20 +59,20 @@ message ListUsersResponse {
 }
 
 message UpdateUserRequest {
-  string id = 1;
+  bytes id = 1;
   optional string handle = 2;
   optional string name = 3;
 }
 
 message DeactivateUserRequest {
-  string id = 1;
+  bytes id = 1;
 }
 
 message ActivateUserRequest {
-  string id = 1;
+  bytes id = 1;
 }
 
 message ChangeRoleRequest {
-  string id = 1;
+  bytes id = 1;
   Role new_role = 2;
 }

@@ -26,7 +26,7 @@ impl From<UserRole> for Role {
 impl From<User> for UserResponse {
     fn from(user: User) -> Self {
         UserResponse {
-            id: user.id.to_string(),
+            id: user.id.as_bytes().to_vec(),
             handle: user.handle,
             name: user.name,
             role: Role::from(user.role) as i32,

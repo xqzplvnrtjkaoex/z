@@ -465,7 +465,8 @@ Discovers and uploads new books.
 | madome-test-utils shared crate | Shared test utilities (containers, factories, config) across services | -- Pending |
 | Handle as unique user identifier | URL-safe, case-insensitive handle separate from display name; name is non-unique | -- Pending |
 | Users table in User service | Auth service references user_id without FK; calls User service via gRPC | -- Pending |
-| CallerIdentity in madome-common | Shared caller identity type with own CallerRole enum (not proto Role); avoids invalid Unspecified state; exhaustive match on variant additions | -- Pending |
+| CallerIdentity in madome-common | Shared caller identity type with own CallerRole enum (not proto Role); avoids invalid Unspecified state; exhaustive match on variant additions | Validated (Phase 02) |
+| Proto `bytes` for UUID fields | 16 bytes vs 36; no format ambiguity; Gateway uses `Path<Uuid>` for direct deserialization | Validated (Phase 02) |
 
 ---
 *Last updated: 2026-03-22 — Phase 2 complete: User service fully operational with 8 gRPC RPCs, domain layer, PostgreSQL adapter, gateway REST routes, 73 tests (unit + integration + service)*

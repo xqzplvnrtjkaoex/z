@@ -13,7 +13,7 @@ pub async fn get_me(
     Extension(identity): Extension<CallerIdentity>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(GetUserRequest {
-        id: identity.caller_id.to_string(),
+        id: identity.caller_id.as_bytes().to_vec(),
     });
     identity.inject_into(&mut request);
 
