@@ -39,6 +39,18 @@ let response = client.get_user(request).await?;
 let response = client.get_user(request).await.map_err(AppError::from)?;
 ```
 
+Prefer `From<T>` (by value) over `From<&T>` when the source is not used after conversion. This enables concise `.into()` calls and avoids unnecessary clones:
+
+```rust
+// Good — owned value, concise call site
+impl From<User> for UserResponse { ... }
+let resp = user.into();
+
+// Avoid — forces verbose call site or awkward (&user).into()
+impl From<&User> for UserResponse { ... }
+let resp = UserResponse::from(&user);
+```
+
 Exception: when the source and target types are the same but the transformation is value-level (e.g., `to_snake_case()`, `to_kebab_case()`), or when the method name must explicitly convey the specific operation, use a named method instead.
 
 When iterating and converting via `From`, prefer `itertools::Itertools::map_into()` over `.map(T::from)`:
