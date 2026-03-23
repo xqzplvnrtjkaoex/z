@@ -3,12 +3,9 @@ use uuid::Uuid;
 
 use crate::domain::{
     error::user_error::UserError,
+    input::{handle_input::HandleInput, name_input::NameInput},
     ports::{UserPorts, user_repository::UserRepository},
-    types::{
-        role::UserRole,
-        user::User,
-        validation::{HandleInput, NameInput},
-    },
+    types::{role::UserRole, user::User},
 };
 
 pub struct CreateUserPayload {

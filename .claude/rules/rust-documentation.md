@@ -56,7 +56,7 @@ if err_msg.contains("duplicate key") || err_msg.contains("23505") { ... }
 | Layer | `///` rustdoc | Guideline |
 |-------|--------------|-----------|
 | **domain ports** (traits) | YES | Contract boundary. Include `# Errors` section |
-| **domain validation** (`HandleInput`) | YES | State validation rules (constraints are business logic) |
+| **domain input** (`HandleInput`) | YES | State validation rules (constraints are business logic) |
 | **domain types** (`User`, `UserRole`) | Selective | Only non-obvious semantics (e.g. `can_manage` hierarchy rule) |
 | **domain errors** | NO | `#[error("...")]` is sufficient |
 | **usecase functions** | Selective | Only when behavior is surprising or combines non-obvious rules |
