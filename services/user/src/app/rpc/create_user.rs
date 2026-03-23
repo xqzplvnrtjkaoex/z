@@ -1,12 +1,12 @@
 use madome_proto::user::{CreateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 
-use crate::app::handler::{proto_role_to_domain, user_to_response};
+use crate::app::rpc::{proto_role_to_domain, user_to_response};
 use crate::domain::ports::UserPorts;
 use crate::usecase::create_user::{CreateUserPayload, create_user};
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "CreateUser"))]
-pub async fn handle<C: UserPorts>(
+pub async fn execute<C: UserPorts>(
     ctx: &C,
     request: Request<CreateUserRequest>,
 ) -> Result<Response<UserResponse>, Status> {

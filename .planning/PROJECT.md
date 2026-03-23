@@ -56,7 +56,7 @@ All services (except gateway) follow a consistent 4-layer architecture with trai
 ```
 main.rs (assembles all layers — sole place that knows concrete types)
    |
-app/handler/ ---> domain/ (ports, types, error)
+app/rpc/     ---> domain/ (ports, types, error)
    |                ^
 usecase/*    ------/
    |                ^
@@ -70,7 +70,7 @@ adapter/*   ------/
   - `{Service}Config` — provides config accessors via `fn config(&self) -> &impl ConfigAccessor` with getter methods (e.g., `ctx.config().jwt_ttl()`)
   - `{Service}Context` struct in `adapter/context.rs` implements both traits
   - Compound bound reused via type alias: `type Context = impl {Service}Ports + {Service}Config + ?Sized;`
-- **Generic handler:** `{Service}Handler<C: {Service}Ports>` in `app/handler/` — generic over ports, concrete type resolved only in `main.rs`.
+- **Generic handler:** `{Service}Handler<C: {Service}Ports>` in `app/rpc/` — generic over ports, concrete type resolved only in `main.rs`. Each RPC function is named `execute` in its own file.
 - **Use case functions:** Free async functions in `usecase/`, receive `&(impl Ports + ?Sized)` as first argument.
 - **Error separation:** `RepositoryError` (data-access facts) in `domain/error/`, `{Service}Error` (business meaning) in `domain/error/`. Usecase maps repository errors to domain errors. Handler maps domain errors to `tonic::Status`.
 - **Domain types + From:** Separate domain types in `domain/types/`. `From<sea_orm::Model> for DomainType` in adapter/ (infra knows domain). `From<DomainType> for ProtoResponse` in app/ (handler knows domain + proto).

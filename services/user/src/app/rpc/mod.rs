@@ -3,33 +3,18 @@ pub mod change_role;
 pub mod create_user;
 pub mod deactivate_user;
 pub mod get_user;
+pub mod get_user_by_handle;
 pub mod list_users;
 pub mod update_user;
 
 use madome_common::headers;
-use madome_proto::user::{
-    ActivateUserRequest, ChangeRoleRequest, CreateUserRequest, DeactivateUserRequest,
-    GetUserByHandleRequest, GetUserRequest, ListUsersRequest, ListUsersResponse, UpdateUserRequest,
-    UserResponse, user_service_server::UserService,
-};
+use madome_proto::user::{Role, UserResponse};
 use prost_types::Timestamp;
-use tonic::{Request, Response, Status};
+use tonic::{Request, Status};
 use uuid::Uuid;
 
-use crate::domain::ports::UserPorts;
 use crate::domain::types::role::UserRole;
 use crate::domain::types::user::User;
-use madome_proto::user::Role;
-
-pub struct UserHandler<C: UserPorts> {
-    pub(crate) ctx: C,
-}
-
-impl<C: UserPorts> UserHandler<C> {
-    pub fn new(ctx: C) -> Self {
-        Self { ctx }
-    }
-}
 
 /// Caller context extracted from gRPC metadata.
 pub(crate) struct CallerContext {
@@ -106,68 +91,5 @@ pub(crate) fn proto_role_to_domain(role: i32) -> Result<UserRole, Status> {
         Ok(Role::Admin) => Ok(UserRole::Admin),
         Ok(Role::Owner) => Ok(UserRole::Owner),
         Ok(Role::Unspecified) | Err(_) => Err(Status::invalid_argument("invalid role value")),
-    }
-}
-
-#[tonic::async_trait]
-impl<C: UserPorts + Send + Sync + 'static> UserService for UserHandler<C> {
-    async fn health(&self, _request: Request<()>) -> Result<Response<()>, Status> {
-        Ok(Response::new(()))
-    }
-
-    async fn create_user(
-        &self,
-        request: Request<CreateUserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        create_user::handle(&self.ctx, request).await
-    }
-
-    async fn get_user(
-        &self,
-        request: Request<GetUserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        get_user::handle_get(&self.ctx, request).await
-    }
-
-    async fn get_user_by_handle(
-        &self,
-        request: Request<GetUserByHandleRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        get_user::handle_get_by_handle(&self.ctx, request).await
-    }
-
-    async fn list_users(
-        &self,
-        request: Request<ListUsersRequest>,
-    ) -> Result<Response<ListUsersResponse>, Status> {
-        list_users::handle(&self.ctx, request).await
-    }
-
-    async fn update_user(
-        &self,
-        request: Request<UpdateUserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        update_user::handle(&self.ctx, request).await
-    }
-
-    async fn deactivate_user(
-        &self,
-        request: Request<DeactivateUserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        deactivate_user::handle(&self.ctx, request).await
-    }
-
-    async fn activate_user(
-        &self,
-        request: Request<ActivateUserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        activate_user::handle(&self.ctx, request).await
-    }
-
-    async fn change_role(
-        &self,
-        request: Request<ChangeRoleRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        change_role::handle(&self.ctx, request).await
     }
 }

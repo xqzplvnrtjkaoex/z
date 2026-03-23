@@ -16,7 +16,7 @@ use madome_proto::user::{
 };
 use user::adapter::context::UserContext;
 use user::adapter::postgres::user_repository::PostgresUserRepository;
-use user::app::handler::UserHandler;
+use user::app::UserHandler;
 
 /// Stores the container (to keep it alive) and the connection URL.
 struct TestContainer {

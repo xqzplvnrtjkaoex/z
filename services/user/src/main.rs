@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let user_repo = user::adapter::postgres::user_repository::PostgresUserRepository::new(db);
     let ctx = user::adapter::context::UserContext::new(user_repo);
-    let handler = user::app::handler::UserHandler::new(ctx);
+    let handler = user::app::UserHandler::new(ctx);
 
     tracing::info!(%addr, "user service starting");
 

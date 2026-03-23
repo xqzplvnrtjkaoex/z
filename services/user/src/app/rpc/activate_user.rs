@@ -1,15 +1,15 @@
-use madome_proto::user::{DeactivateUserRequest, UserResponse};
+use madome_proto::user::{ActivateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::app::handler::{extract_caller_context, user_to_response};
+use crate::app::rpc::{extract_caller_context, user_to_response};
 use crate::domain::ports::UserPorts;
-use crate::usecase::deactivate_user::{DeactivateUserPayload, deactivate_user};
+use crate::usecase::activate_user::{ActivateUserPayload, activate_user};
 
-#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "DeactivateUser"))]
-pub async fn handle<C: UserPorts>(
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ActivateUser"))]
+pub async fn execute<C: UserPorts>(
     ctx: &C,
-    request: Request<DeactivateUserRequest>,
+    request: Request<ActivateUserRequest>,
 ) -> Result<Response<UserResponse>, Status> {
     let caller_ctx = extract_caller_context(&request)?;
     let req = request.into_inner();
@@ -19,13 +19,13 @@ pub async fn handle<C: UserPorts>(
         .parse::<Uuid>()
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
-    let payload = DeactivateUserPayload {
+    let payload = ActivateUserPayload {
         target_id,
         caller_id: caller_ctx.caller_id,
         caller_role: caller_ctx.caller_role,
     };
 
-    let user = deactivate_user(ctx, payload).await?;
+    let user = activate_user(ctx, payload).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }

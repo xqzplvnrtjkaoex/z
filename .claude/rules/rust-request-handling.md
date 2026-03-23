@@ -1,5 +1,5 @@
 ---
-paths: ["**/handler/**/*.rs", "**/routes/**/*.rs", "**/model/**/*.rs", "**/payload/**/*.rs"]
+paths: ["**/rpc/**/*.rs", "**/routes/**/*.rs", "**/model/**/*.rs", "**/payload/**/*.rs"]
 ---
 
 # Request Handling Conventions
@@ -10,13 +10,32 @@ Each handler lives in its own file. Name files by the full domain action includi
 `create_user.rs`, `get_user.rs`, `activate_user.rs` — not `create.rs`, `get.rs`, `lifecycle.rs`.
 Never group multiple handlers into a single file.
 
-## Handler Naming
+## Handler Function Naming
 
-Gateway handler names match the underlying gRPC RPC action. Don't force CRUD verbs where the domain action has a specific name:
+Names match the proto RPC action. Don't force CRUD verbs where the domain action has a specific name:
 - `change_role` (matches `ChangeRole` RPC) — not `update_role`
 - `activate_user` (matches `ActivateUser` RPC) — not `update_user_status`
 
 Related types (payload structs, etc.) must use the same verb: `ChangeRoleBody`, not `UpdateUserRoleBody`.
+
+| Layer | Function name | Example |
+|-------|---------------|---------|
+| **gRPC `app/rpc/`** | `execute` (module name provides context) | `create_user::execute(...)` |
+| **Gateway `routes/`** | Same as file name (axum needs a named function) | `get_me::get_me(...)` |
+
+## gRPC Service Structure
+
+`{Service}Handler` lives in `app/mod.rs` — it implements the tonic service trait and delegates each RPC to `app/rpc/{action}::execute(...)`. gRPC-specific helpers (metadata extraction, proto conversion) live in `app/rpc/mod.rs`.
+
+```
+app/
+  mod.rs          ← UserHandler + UserService impl
+  rpc/
+    mod.rs        ← gRPC helpers (CallerContext, proto conversion)
+    create_user.rs
+    get_user.rs
+    ...
+```
 
 ## Cross-Cutting Concerns as Middleware
 

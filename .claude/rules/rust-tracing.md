@@ -11,7 +11,7 @@ paths: ["*.rs"]
 | Layer | Instrument? | Why |
 |-------|-------------|-----|
 | **usecase/** | YES | Business logic entry point — unit of work worth tracking |
-| **app/handler/** | YES | gRPC handler entry — request-scoped span wrapping usecase |
+| **app/rpc/** | YES | gRPC handler entry — request-scoped span wrapping usecase |
 | **adapter/** | NO (default) | Observable through parent span. Exception: complex multi-step transactions |
 | **domain/** | NEVER | Pure types, no I/O |
 | **gateway routes/** | NO | `TraceLayer` already creates HTTP span |
@@ -29,9 +29,9 @@ pub async fn deactivate_user(
     payload: DeactivateUserPayload,
 ) -> Result<User, UserError> { ... }
 
-// gRPC handler (all named `handle` — disambiguate with `rpc` field)
+// gRPC handler (all named `execute` — disambiguate with `rpc` field)
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "DeactivateUser"))]
-pub async fn handle<C: UserPorts>(
+pub async fn execute<C: UserPorts>(
     ctx: &C,
     request: Request<DeactivateUserRequest>,
 ) -> Result<Response<UserResponse>, Status> { ... }

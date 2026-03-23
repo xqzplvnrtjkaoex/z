@@ -1,15 +1,15 @@
-use madome_proto::user::{ActivateUserRequest, UserResponse};
+use madome_proto::user::{ChangeRoleRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::app::handler::{extract_caller_context, user_to_response};
+use crate::app::rpc::{extract_caller_context, proto_role_to_domain, user_to_response};
 use crate::domain::ports::UserPorts;
-use crate::usecase::activate_user::{ActivateUserPayload, activate_user};
+use crate::usecase::change_role::{ChangeRolePayload, change_role};
 
-#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ActivateUser"))]
-pub async fn handle<C: UserPorts>(
+#[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ChangeRole"))]
+pub async fn execute<C: UserPorts>(
     ctx: &C,
-    request: Request<ActivateUserRequest>,
+    request: Request<ChangeRoleRequest>,
 ) -> Result<Response<UserResponse>, Status> {
     let caller_ctx = extract_caller_context(&request)?;
     let req = request.into_inner();
@@ -19,13 +19,16 @@ pub async fn handle<C: UserPorts>(
         .parse::<Uuid>()
         .map_err(|_| Status::invalid_argument("invalid user id format"))?;
 
-    let payload = ActivateUserPayload {
+    let new_role = proto_role_to_domain(req.new_role)?;
+
+    let payload = ChangeRolePayload {
         target_id,
+        new_role,
         caller_id: caller_ctx.caller_id,
         caller_role: caller_ctx.caller_role,
     };
 
-    let user = activate_user(ctx, payload).await?;
+    let user = change_role(ctx, payload).await?;
 
     Ok(Response::new(user_to_response(&user)))
 }
