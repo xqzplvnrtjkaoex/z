@@ -75,6 +75,20 @@ Enum variants use `kebab-case` universally so `model/` enums can be reused in bo
 
 Do NOT share structs across contexts with different `rename_all` strategies (e.g., `#[serde(flatten)]` a `snake_case` struct into a `kebab-case` query type) — serde has no override mechanism.
 
+### Gateway Response Building
+
+Use axum's tuple response `(AppendHeaders, Json)` instead of manual `Response::builder()` + `serde_json::to_string`. Manual building is verbose and loses axum's built-in Content-Type handling.
+
+```rust
+// Good
+Ok((AppendHeaders([(X_NEXT_CURSOR, next_cursor)]), Json(users)))
+
+// Bad
+let mut resp = Response::builder().header(CONTENT_TYPE, "application/json");
+let body = serde_json::to_string(&users)?;
+resp.body(Body::from(body))
+```
+
 ### Query String Parsing
 
 Use `serde_qs::axum::QsQuery` instead of axum's `Query` extractor. `serde_qs` supports nested/complex query strings that axum's built-in extractor cannot handle.

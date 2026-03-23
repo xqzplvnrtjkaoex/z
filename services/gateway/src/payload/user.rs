@@ -5,9 +5,23 @@ use crate::model;
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ListUsersQuery {
-    pub limit: Option<usize>,
-    pub cursor: Option<String>,
-    pub include_inactive: Option<bool>,
+    limit: Option<usize>,
+    cursor: Option<String>,
+    include_inactive: Option<bool>,
+}
+
+impl ListUsersQuery {
+    pub fn limit(&self) -> i32 {
+        self.limit.unwrap_or(25) as i32
+    }
+
+    pub fn cursor(&mut self) -> Option<String> {
+        self.cursor.take()
+    }
+
+    pub fn include_inactive(&self) -> bool {
+        self.include_inactive.unwrap_or(false)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

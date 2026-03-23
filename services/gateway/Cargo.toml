@@ -26,6 +26,7 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 madome-proto = { workspace = true }
 madome-common = { workspace = true }
+itertools = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = [

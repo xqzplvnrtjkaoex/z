@@ -41,6 +41,16 @@ let response = client.get_user(request).await.map_err(AppError::from)?;
 
 Exception: when the source and target types are the same but the transformation is value-level (e.g., `to_snake_case()`, `to_kebab_case()`), or when the method name must explicitly convey the specific operation, use a named method instead.
 
+When iterating and converting via `From`, prefer `itertools::Itertools::map_into()` over `.map(T::from)`:
+
+```rust
+// Good
+let users: Vec<User> = inner.users.into_iter().map_into().collect();
+
+// Bad — verbose, From impl is enough
+let users: Vec<User> = inner.users.into_iter().map(User::from).collect();
+```
+
 ## Cursor Encoding
 
 Use `base64::engine::general_purpose::URL_SAFE_NO_PAD` for cursor/pagination tokens. Standard base64 contains `+`, `/`, `=` which require URL-encoding in query strings.
