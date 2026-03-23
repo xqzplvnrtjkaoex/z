@@ -155,9 +155,18 @@ services/auth/src/
 | Crate | Role | Contents |
 |-------|------|----------|
 | **madome-proto** | Protobuf definitions | `.proto` files, tonic generated code |
-| **madome-common** | Shared infrastructure | OpenTelemetry setup, config loading, shared middleware |
+| **madome-common** | Shared infrastructure | Tracing init, env helpers, header constants, `CallerIdentity` + `CallerRole` |
 
 Domain types live in each service's `domain/` layer, not in a shared crate. Proto definitions serve as the cross-service contract.
+
+**CallerIdentity:** Shared struct in `madome-common` representing validated caller identity (who is making this request). Used by both Gateway (extracted from HTTP headers) and gRPC services (extracted from gRPC metadata, injected by Gateway).
+
+| Field | Type | Source |
+|-------|------|--------|
+| `caller_id` | `Uuid` | `x-caller-id` header/metadata |
+| `caller_role` | `CallerRole` | `x-caller-role` header/metadata |
+
+`CallerRole` is a standalone enum (`User`, `Admin`, `Owner`) in `madome-common` — not proto `Role` (which includes `Unspecified`). Each service converts `CallerRole` to its domain role type via `From` impl. Adding a variant to `CallerRole` produces compile errors at all `match` sites, enforcing exhaustive handling.
 
 ### Communication Flow
 
@@ -174,6 +183,10 @@ Catalog -> File Service (gRPC): image count verification for publish workflow
 - **Scraper -> Gateway**: REST + API Key authentication
 - **Image serving**: nginx `auth_request` + `auth_request_set` for cookie refresh forwarding
 - All services run behind nginx reverse proxy
+
+### Authentication Policy
+
+Private service — all endpoints require authentication. There is no anonymous access. Gateway middleware extracts `CallerIdentity` from every request; handlers reject requests missing identity via `Extension<CallerIdentity>`. gRPC services use `CallerIdentity::from_metadata` (mandatory extraction, returns `Unauthenticated` on missing headers).
 
 ### Role Hierarchy
 
@@ -452,6 +465,7 @@ Discovers and uploads new books.
 | madome-test-utils shared crate | Shared test utilities (containers, factories, config) across services | -- Pending |
 | Handle as unique user identifier | URL-safe, case-insensitive handle separate from display name; name is non-unique | -- Pending |
 | Users table in User service | Auth service references user_id without FK; calls User service via gRPC | -- Pending |
+| CallerIdentity in madome-common | Shared caller identity type with own CallerRole enum (not proto Role); avoids invalid Unspecified state; exhaustive match on variant additions | -- Pending |
 
 ---
 *Last updated: 2026-03-22 — Phase 2 complete: User service fully operational with 8 gRPC RPCs, domain layer, PostgreSQL adapter, gateway REST routes, 73 tests (unit + integration + service)*

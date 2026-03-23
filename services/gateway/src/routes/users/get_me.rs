@@ -3,18 +3,19 @@ use axum::{
     extract::{Extension, State},
     response::IntoResponse,
 };
+use madome_common::caller::CallerIdentity;
 use madome_proto::user::GetUserRequest;
 
-use crate::{error::AppError, middleware::CallerContext, model::User, state::AppState};
+use crate::{error::AppError, model::User, state::AppState};
 
 pub async fn get_me(
     State(state): State<AppState>,
-    Extension(caller_ctx): Extension<CallerContext>,
+    Extension(identity): Extension<CallerIdentity>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut request = tonic::Request::new(GetUserRequest {
-        id: caller_ctx.caller_id.clone(),
+        id: identity.caller_id.to_string(),
     });
-    caller_ctx.inject_into(&mut request);
+    identity.inject_into(&mut request);
 
     let response = state.user_client.clone().get_user(request).await?;
 

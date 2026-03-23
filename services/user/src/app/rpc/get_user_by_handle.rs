@@ -1,8 +1,8 @@
+use madome_common::caller::CallerIdentity;
 use madome_proto::user::{GetUserByHandleRequest, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    app::rpc::try_extract_caller_role,
     domain::ports::UserPorts,
     usecase::get_user_by_handle::{GetUserByHandlePayload, get_user_by_handle},
 };
@@ -12,12 +12,12 @@ pub async fn execute<C: UserPorts>(
     ctx: &C,
     request: Request<GetUserByHandleRequest>,
 ) -> Result<Response<UserResponse>, Status> {
-    let caller_role = try_extract_caller_role(&request);
+    let identity = CallerIdentity::from_metadata(&request)?;
     let req = request.into_inner();
 
     let payload = GetUserByHandlePayload {
         handle: req.handle,
-        caller_role,
+        caller_role: identity.caller_role.into(),
     };
 
     let user = get_user_by_handle(ctx, payload).await?;

@@ -3,7 +3,7 @@ use axum::{
     routing::{get, patch, post},
 };
 
-use crate::{middleware::caller_context, state::AppState};
+use crate::{middleware::caller_identity, state::AppState};
 
 pub mod health;
 pub mod users;
@@ -36,5 +36,7 @@ fn user_routes() -> Router<AppState> {
     Router::new()
         .merge(me_routes)
         .merge(admin_routes)
-        .layer(middleware::from_fn(caller_context::extract_caller_context))
+        .layer(middleware::from_fn(
+            caller_identity::extract_caller_identity,
+        ))
 }

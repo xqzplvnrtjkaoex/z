@@ -31,7 +31,7 @@ Related types (payload structs, etc.) must use the same verb: `ChangeRoleBody`, 
 app/
   mod.rs          ← UserHandler + UserService impl
   rpc/
-    mod.rs        ← gRPC helpers (CallerContext, proto conversion)
+    mod.rs        ← gRPC helpers (CallerIdentity extraction, proto conversion)
     create_user.rs
     get_user.rs
     ...

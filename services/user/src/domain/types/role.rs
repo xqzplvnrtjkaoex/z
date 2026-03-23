@@ -1,5 +1,7 @@
 use std::fmt;
 
+use madome_common::caller::CallerRole;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UserRole {
     User,
@@ -42,6 +44,16 @@ impl fmt::Display for UserRole {
             UserRole::User => write!(f, "user"),
             UserRole::Admin => write!(f, "admin"),
             UserRole::Owner => write!(f, "owner"),
+        }
+    }
+}
+
+impl From<CallerRole> for UserRole {
+    fn from(role: CallerRole) -> Self {
+        match role {
+            CallerRole::User => UserRole::User,
+            CallerRole::Admin => UserRole::Admin,
+            CallerRole::Owner => UserRole::Owner,
         }
     }
 }

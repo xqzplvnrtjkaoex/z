@@ -1,9 +1,9 @@
+use madome_common::caller::CallerIdentity;
 use madome_proto::user::{ActivateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 use crate::{
-    app::rpc::extract_caller_context,
     domain::ports::UserPorts,
     usecase::activate_user::{ActivateUserPayload, activate_user},
 };
@@ -13,7 +13,7 @@ pub async fn execute<C: UserPorts>(
     ctx: &C,
     request: Request<ActivateUserRequest>,
 ) -> Result<Response<UserResponse>, Status> {
-    let caller_ctx = extract_caller_context(&request)?;
+    let identity = CallerIdentity::from_metadata(&request)?;
     let req = request.into_inner();
 
     let target_id = req
@@ -23,8 +23,8 @@ pub async fn execute<C: UserPorts>(
 
     let payload = ActivateUserPayload {
         target_id,
-        caller_id: caller_ctx.caller_id,
-        caller_role: caller_ctx.caller_role,
+        caller_id: identity.caller_id,
+        caller_role: identity.caller_role.into(),
     };
 
     let user = activate_user(ctx, payload).await?;

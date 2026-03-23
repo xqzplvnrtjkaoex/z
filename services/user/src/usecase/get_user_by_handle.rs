@@ -6,7 +6,7 @@ use crate::domain::{
 
 pub struct GetUserByHandlePayload {
     pub handle: String,
-    pub caller_role: Option<UserRole>,
+    pub caller_role: UserRole,
 }
 
 #[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
@@ -20,15 +20,8 @@ pub async fn get_user_by_handle(
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    // Hide inactive users from non-admin callers
-    if !user.is_active {
-        let is_admin_or_owner = matches!(
-            payload.caller_role,
-            Some(UserRole::Admin) | Some(UserRole::Owner)
-        );
-        if !is_admin_or_owner {
-            return Err(UserError::UserNotFound);
-        }
+    if !user.is_active && !payload.caller_role.can_manage(UserRole::User) {
+        return Err(UserError::UserNotFound);
     }
 
     Ok(user)
@@ -81,7 +74,7 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = GetUserByHandlePayload {
             handle: "testuser".to_string(),
-            caller_role: None,
+            caller_role: UserRole::User,
         };
 
         let result = get_user_by_handle(&ctx, payload).await;
@@ -96,7 +89,7 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = GetUserByHandlePayload {
             handle: "nonexistent".to_string(),
-            caller_role: None,
+            caller_role: UserRole::User,
         };
 
         let result = get_user_by_handle(&ctx, payload).await;
@@ -116,7 +109,7 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = GetUserByHandlePayload {
             handle: "inactive_user".to_string(),
-            caller_role: Some(UserRole::User),
+            caller_role: UserRole::User,
         };
 
         let result = get_user_by_handle(&ctx, payload).await;
@@ -136,30 +129,10 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = GetUserByHandlePayload {
             handle: "inactive_user".to_string(),
-            caller_role: Some(UserRole::Admin),
+            caller_role: UserRole::Admin,
         };
 
         let result = get_user_by_handle(&ctx, payload).await;
         assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn should_hide_inactive_user_when_no_caller_role() {
-        let user = make_user("inactive_user", false);
-        let user_clone = user.clone();
-
-        let mut mock = MockUserRepository::new();
-        mock.expect_find_by_handle()
-            .once()
-            .returning(move |_| Ok(Some(user_clone.clone())));
-
-        let ctx = TestContext { user_repo: mock };
-        let payload = GetUserByHandlePayload {
-            handle: "inactive_user".to_string(),
-            caller_role: None,
-        };
-
-        let result = get_user_by_handle(&ctx, payload).await;
-        assert!(matches!(result, Err(UserError::UserNotFound)));
     }
 }
