@@ -29,6 +29,8 @@ Extended GSD workflow with custom skill (/case) and additional GSD stages for ma
          |
     gsd:verify
          |
+   (gsd:simplify)
+         |
     gsd:ship
 ```
 
@@ -56,6 +58,7 @@ Steps in `(parentheses)` are optional — see each step's "When to skip" note be
 | **gsd:ui-review** | UI audit report | **Visual quality** — 6-pillar audit (a11y, responsiveness, etc.) | Implemented UI |
 | **gsd:validate** | Validation report | **Plan fulfilled** — PLAN.md tasks vs actual implementation | PLAN.md, code |
 | **gsd:verify** | UAT results | **Requirements met** — user acceptance testing against original goals | CONTEXT.md, CASES.md, code |
+| **gsd:simplify** | Cleaned code + commit | **Code quality** — deduplication, efficiency, reuse opportunities | git diff, codebase |
 | **gsd:ship** | PR | **Ready to merge** — PR creation, review, merge preparation | Verified code |
 
 ## When to Use Optional Steps
@@ -69,6 +72,7 @@ Steps in `(parentheses)` are optional — see each step's "When to skip" note be
 | **gsd:debug** | Stuck during execute, same error recurring, unclear root cause | Obvious fixes, simple compile errors |
 | **gsd:ui-review** | Frontend phases after implementation | Backend-only phases |
 | **gsd:validate** | Large phases with many tasks, easy to miss items | Small phases where verify covers everything |
+| **gsd:simplify** | Large implementation phases, significant new code | Small changes, trivial fixes |
 
 ## /case Dual Role
 
@@ -97,6 +101,7 @@ At each step, what artifacts exist:
 | gsd:ui-review | Y | Y | Y | Y | Y | Y |
 | gsd:validate | Y | Y | Y | Y | Y | Y |
 | gsd:verify | Y | Y | Y | Y | Y | Y |
+| gsd:simplify | Y | Y | Y | Y | Y | Y |
 | gsd:ship | Y | Y | Y | Y | Y | Y |
 
 **Key constraint:** No implementation code, proto files, or tests exist until gsd:execute. All preceding steps must work from planning documents only.
@@ -128,6 +133,7 @@ All phase artifacts live in `.planning/phases/{padded_phase}-{name}/`:
 | execute | plan | Implementation reveals plan flaws | Generate fix plans or re-plan |
 | verify | execute | UAT failures | Generate fix plans, re-execute |
 | validate | execute | Plan tasks not fully implemented | Fix missing implementations |
+| simplify | execute | Significant refactoring beyond cleanup scope | Re-execute affected tasks |
 
 **Redo semantics:** All downstream artifacts from the return point forward are regenerated.
 

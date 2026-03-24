@@ -184,7 +184,7 @@ This project extends the GSD workflow with custom skills between standard stages
 
 ```
 discuss -> /case -> (ui-phase) -> (research) -> plan -> (review) -> (assumptions)
-  -> execute -> (ui-review) -> (validate) -> verify -> ship
+  -> execute -> (ui-review) -> (validate) -> verify -> (simplify) -> ship
 ```
 
 - `/case`: behavioral case discovery. Produces `{padded_phase}-CASES.md` with S/F/E case tables.
@@ -193,6 +193,7 @@ discuss -> /case -> (ui-phase) -> (research) -> plan -> (review) -> (assumptions
 - `gsd:review`: cross-AI peer review of PLAN.md before execution.
 - `gsd:assumptions`: surface implicit assumptions in the plan.
 - `gsd:validate`: plan-vs-implementation audit (complements verify's UAT).
+- `gsd:simplify`: code quality review + cleanup (deduplication, efficiency, reuse). Runs 3 parallel review agents, then fixes issues directly.
 - `gsd:debug`: systematic debugging during execute (not a pipeline step, used on demand).
 - Steps in `(parentheses)` are optional. The workflow is iterative — any stage can return to an earlier stage and redo forward.
 
