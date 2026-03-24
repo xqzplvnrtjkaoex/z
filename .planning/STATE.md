@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Phase 3A context update in progress — 2 of 4 gray areas discussed (JWT middleware, Dev env)
+stopped_at: Phase 3A discuss-phase complete — CONTEXT.md updated with 12 new decisions (D-127 to D-138). Ready for planning
 last_updated: "2026-03-24T14:49:43.335Z"
-last_activity: Phase 3 split into 3A (Authentication Core) and 3B (Authentication Operations). Created 03a-CONTEXT.md and 03b-CONTEXT.md from original 03-CONTEXT.md (~126 decisions). ROADMAP and STATE updated. Original 03-authentication/ directory superseded.
+last_activity: Phase 3A discuss-phase complete. Updated CONTEXT.md with middleware transition (verify_jwt), dev env setup, cross-service error handling (fail-fast, 5s timeout), test orchestration decisions. 12 new decisions (D-127 to D-138). Ready for plan-phase.
 progress:
   total_phases: 7
   completed_phases: 2
@@ -78,7 +78,7 @@ Recent decisions affecting current work:
 - [Phase 01-02]: Lazy gRPC client connections (connect_lazy) used in integration tests to avoid startup ordering requirements
 - [Phase 02-user-profile]: DeriveIden Table variant used as .as_enum(UserRoleEnum::Table) - sea-query API requires variant value not bare enum type
 - [Phase 02-user-profile]: trait_variant + mockall: #[cfg_attr(test, mockall::automock)] must appear BEFORE #[trait_variant::make] - validated working in Plan 01
-- [Phase 02-user-profile]: Handle validation uses custom check_handle_chars function (not #[validate(regex)] attribute); LazyLock<Regex> replaced by bytes().all() in quick task 260324-rfl — regex crate fully removed
+- [Phase 02-user-profile]: Handle validation uses #[derive(Validate)] on payload structs with custom validator fns (check_handle_chars, check_reserved_handle) in payload/ module; regex crate fully removed
 - [Phase 02-user-profile]: Func::lower() from sea_query used for case-insensitive handle filter (type-safe vs Expr::cust raw SQL)
 - [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant (now replaced by From<DbErr> impl per quick task 260322-vwa)
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
@@ -120,8 +120,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T14:49:43.331Z
-Last activity: Phase 3 split into 3A (Authentication Core) and 3B (Authentication Operations). Created 03a-CONTEXT.md and 03b-CONTEXT.md from original 03-CONTEXT.md (~126 decisions). ROADMAP and STATE updated. Original 03-authentication/ directory superseded.
-Stopped at: Phase 3A context update in progress — 2 of 4 gray areas discussed (JWT middleware, Dev env)
-Resume file: .planning/phases/03a-authentication-core/03A-CONTEXT.md
-Next action: /gsd:plan-phase 3a (or /gsd:discuss-phase 3a to update context with actual codebase patterns first)
+Last session: 2026-03-25
+Last activity: Phase 3A discuss-phase complete. Updated CONTEXT.md with middleware transition (verify_jwt), dev env setup, cross-service error handling (fail-fast, 5s timeout), test orchestration decisions. 12 new decisions (D-127 to D-138). Ready for plan-phase.
+Stopped at: Phase 3A discuss-phase complete — CONTEXT.md updated with 12 new decisions (D-127 to D-138). Ready for planning
+Resume file: none
+Next action: /gsd:plan-phase 3a
