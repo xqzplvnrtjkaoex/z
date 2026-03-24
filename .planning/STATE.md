@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Code review complete, 11 issues fixed across 16 files
-last_updated: "2026-03-24T16:00:00.000Z"
+stopped_at: WORKFLOW.md expanded with full GSD pipeline, session/milestone/idea management
+last_updated: "2026-03-24T23:00:00.000Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 6
@@ -121,7 +121,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-24
-Last activity: Full codebase code review (/simplify) — fixed 11 issues across 16 files: extracted parse_user_id RPC helper, introduced HandleValidationError typed enum replacing stringly-typed dispatch, tokio::join! for health checks, eq_ignore_ascii_case over to_lowercase(), sea-orm Unchanged for immutable update fields, conditional X-Next-Cursor header, CallerIdentity::inject_into in tests, removed section separator and narrating comments.
-Stopped at: Code review fixes applied. All 58 unit tests pass, clippy clean, fmt clean. Ready for Phase 03 authentication.
-Resume file: .planning/STATE.md
+Last activity: Expanded WORKFLOW.md with full GSD pipeline (13 stages), added session management, milestone lifecycle, and idea management sections. Updated CLAUDE.md pipeline reference to match.
+Stopped at: Workflow documentation complete. Ready for Phase 03 authentication.
+Resume file: .planning/WORKFLOW.md
 Next action: /gsd:discuss-phase 3 or /gsd:plan-phase 3 (authentication)

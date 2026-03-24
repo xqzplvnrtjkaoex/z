@@ -149,13 +149,19 @@ This project extends the GSD workflow with custom skills between standard stages
 ### Pipeline Order
 
 ```
-discuss -> /case -> (ui) -> plan -> /test-gen -> execute -> verify -> ship
+discuss -> /case -> (ui-phase) -> (research) -> plan -> (review) -> (assumptions)
+  -> /test-gen -> execute -> (ui-review) -> (validate) -> verify -> ship
 ```
 
 - `/case`: behavioral case discovery. Produces `{padded_phase}-CASES.md` with S/F/E case tables.
 - `/test-gen`: test skeleton generation (planned, not yet built). Produces failing test files.
-- `ui-phase`: frontend only, inserted after `/case`. Not applicable to current backend scope.
-- The workflow is iterative — any stage can return to an earlier stage and redo forward.
+- `gsd:ui-phase`: frontend only, UI design contract. `gsd:ui-review`: post-implementation visual audit.
+- `gsd:research`: standalone pre-plan research for unfamiliar libraries/protocols.
+- `gsd:review`: cross-AI peer review of PLAN.md before execution.
+- `gsd:assumptions`: surface implicit assumptions in the plan.
+- `gsd:validate`: plan-vs-implementation audit (complements verify's UAT).
+- `gsd:debug`: systematic debugging during execute (not a pipeline step, used on demand).
+- Steps in `(parentheses)` are optional. The workflow is iterative — any stage can return to an earlier stage and redo forward.
 
 ### CASES.md Integration with Plan-Phase
 
@@ -177,7 +183,7 @@ Detailed architecture, data flows, and design decisions are in `.planning/`:
 - `.planning/PROJECT.md` — domain decisions, service topology, internal service architecture, auth/renewal design
 - `.planning/research/ARCHITECTURE.md` — system overview, data flows, DB schema design
 - `.planning/research/ARCHITECTURE-PATTERNS.md` — internal service architecture pattern research (Clean/Hexagonal/Pragmatic comparison)
-- `.planning/WORKFLOW.md` — extended GSD pipeline with custom skills, artifact dependency chain, iterative return paths
+- `.planning/WORKFLOW.md` — extended GSD pipeline with custom skills, session management, milestone lifecycle, idea management
 - `.planning/ROADMAP.md` — phased build plan with dependencies
 
 ## Keeping CLAUDE.md in Sync
