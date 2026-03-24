@@ -85,21 +85,32 @@ let users: Vec<User> = inner.users.into_iter().map(User::from).collect();
 
 ## Input Validation
 
-Structs that accept user-controlled values use `#[derive(validator::Validate)]`. Validation (reject invalid) and normalization (default/clamp) are separate concerns:
+Payload structs have **private fields**, a `pub fn new(...)` constructor, and getter methods. This enforces that callers always use the intended API — the type system prevents direct field access.
 
 - **Validation**: `#[validate(...)]` attributes + `validate()?` call — rejects invalid values
 - **Normalization**: Getter methods — applies defaults or transforms (e.g., 0 → 25)
+- **Ownership transfer**: `into_parts(self)` when all fields are consumed at once, `take_field(&mut self)` for conditional consumption
 
 ```rust
 #[derive(Validate)]
 pub struct ListUsersPayload {
     #[validate(range(max = 100, message = "limit must be at most 100"))]
-    pub limit: u64,
+    limit: u64,
+    cursor: Option<String>,
+    include_inactive: bool,
 }
 
 impl ListUsersPayload {
+    pub fn new(limit: u64, cursor: Option<String>, include_inactive: bool) -> Self {
+        Self { limit, cursor, include_inactive }
+    }
+
     pub fn limit(&self) -> u64 {
         if self.limit == 0 { 25 } else { self.limit }
+    }
+
+    pub fn include_inactive(&self) -> bool {
+        self.include_inactive
     }
 }
 ```
