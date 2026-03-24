@@ -62,11 +62,14 @@ impl std::str::FromStr for UserRole {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "user" => Ok(UserRole::User),
-            "admin" => Ok(UserRole::Admin),
-            "owner" => Ok(UserRole::Owner),
-            _ => Err(format!("invalid role: {s}")),
+        if s.eq_ignore_ascii_case("user") {
+            Ok(UserRole::User)
+        } else if s.eq_ignore_ascii_case("admin") {
+            Ok(UserRole::Admin)
+        } else if s.eq_ignore_ascii_case("owner") {
+            Ok(UserRole::Owner)
+        } else {
+            Err(format!("invalid role: {s}"))
         }
     }
 }

@@ -4085,7 +4085,6 @@ dependencies = [
  "madome-proto",
  "mockall",
  "prost-types",
- "regex",
  "sea-orm",
  "sea-orm-migration",
  "serde",

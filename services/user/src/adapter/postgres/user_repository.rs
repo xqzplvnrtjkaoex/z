@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::Set,
+    ActiveValue::{Set, Unchanged},
     ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect,
     sea_query::{Expr, Func},
 };
@@ -25,8 +25,6 @@ impl PostgresUserRepository {
     }
 }
 
-// --- Role conversions ---
-
 impl From<users::UserRole> for DomainUserRole {
     fn from(role: users::UserRole) -> Self {
         match role {
@@ -47,8 +45,6 @@ impl From<DomainUserRole> for users::UserRole {
     }
 }
 
-// --- Model-to-domain conversion ---
-
 impl From<users::Model> for User {
     fn from(model: users::Model) -> Self {
         Self {
@@ -62,8 +58,6 @@ impl From<users::Model> for User {
         }
     }
 }
-
-// --- UserRepository implementation ---
 
 use crate::domain::ports::user_repository::UserRepository;
 
@@ -137,12 +131,12 @@ impl UserRepository for PostgresUserRepository {
 
     async fn update(&self, user: &User) -> Result<User, RepositoryError> {
         let active_model = users::ActiveModel {
-            id: Set(user.id),
+            id: Unchanged(user.id),
             handle: Set(user.handle.clone()),
             name: Set(user.name.clone()),
             role: Set(user.role.into()),
             is_active: Set(user.is_active),
-            created_at: Set(user.created_at.into()),
+            created_at: Unchanged(user.created_at.into()),
             updated_at: Set(user.updated_at.into()),
         };
 

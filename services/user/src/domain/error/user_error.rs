@@ -1,4 +1,5 @@
 use super::repository_error::RepositoryError;
+use crate::domain::input::handle_input::HandleValidationError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UserError {
@@ -37,6 +38,15 @@ pub enum UserError {
 
     #[error("internal error: {0}")]
     Internal(String),
+}
+
+impl From<HandleValidationError> for UserError {
+    fn from(e: HandleValidationError) -> Self {
+        match e {
+            HandleValidationError::Reserved => UserError::HandleReserved,
+            HandleValidationError::Invalid(msg) => UserError::InvalidHandle(msg),
+        }
+    }
 }
 
 impl From<RepositoryError> for UserError {

@@ -25,8 +25,10 @@ pub async fn list_users(
     let response = state.user_client.clone().list_users(request).await?;
 
     let inner = response.into_inner();
-    let next_cursor = inner.next_cursor.unwrap_or_default();
+    let headers = inner
+        .next_cursor
+        .map(|c| AppendHeaders([(X_NEXT_CURSOR, c)]));
     let users: Vec<User> = inner.users.into_iter().map_into().collect();
 
-    Ok((AppendHeaders([(X_NEXT_CURSOR, next_cursor)]), Json(users)))
+    Ok((headers, Json(users)))
 }

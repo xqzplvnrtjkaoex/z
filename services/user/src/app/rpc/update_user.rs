@@ -1,6 +1,5 @@
 use madome_proto::user::{UpdateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 
 use crate::{
     domain::ports::UserPorts,
@@ -13,9 +12,7 @@ pub async fn execute<C: UserPorts>(
     request: Request<UpdateUserRequest>,
 ) -> Result<Response<UserResponse>, Status> {
     let req = request.into_inner();
-
-    let id = Uuid::from_slice(&req.id)
-        .map_err(|_| Status::invalid_argument("invalid user id format"))?;
+    let id = super::parse_user_id(&req.id)?;
 
     let payload = UpdateUserPayload {
         id,

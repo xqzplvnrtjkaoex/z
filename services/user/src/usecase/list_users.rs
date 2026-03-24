@@ -19,7 +19,6 @@ pub async fn list_users(
     ctx: &(impl UserPorts + ?Sized),
     payload: ListUsersPayload,
 ) -> Result<(Vec<User>, Option<String>), UserError> {
-    // Cap and default limit
     let limit = if payload.limit == 0 {
         25
     } else if payload.limit > 100 {
@@ -28,7 +27,6 @@ pub async fn list_users(
         payload.limit
     };
 
-    // Decode cursor if present
     let decoded_cursor = if let Some(cursor_str) = payload.cursor {
         let bytes = BASE64
             .decode(cursor_str.as_bytes())
@@ -55,7 +53,6 @@ pub async fn list_users(
         .list(limit + 1, decoded_cursor, payload.include_inactive)
         .await?;
 
-    // Determine next cursor
     let next_cursor = if users.len() > limit as usize {
         users.pop(); // remove the extra item
         // Encode last item's (created_at, id) as cursor

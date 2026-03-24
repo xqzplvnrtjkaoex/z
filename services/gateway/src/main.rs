@@ -15,14 +15,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let user_addr = madome_common::env::required_env("USER_GRPC_ADDR");
     let gateway_addr = madome_common::env::optional_env("GATEWAY_ADDR", "0.0.0.0:3000");
 
-    tracing::info!("connecting to auth at {auth_addr}");
-    let auth_client = AuthServiceClient::connect(auth_addr).await?;
-
-    tracing::info!("connecting to catalog at {catalog_addr}");
-    let catalog_client = CatalogServiceClient::connect(catalog_addr).await?;
-
-    tracing::info!("connecting to user at {user_addr}");
-    let user_client = UserServiceClient::connect(user_addr).await?;
+    tracing::info!("connecting to backend services");
+    let (auth_client, catalog_client, user_client) = tokio::try_join!(
+        AuthServiceClient::connect(auth_addr),
+        CatalogServiceClient::connect(catalog_addr),
+        UserServiceClient::connect(user_addr),
+    )?;
 
     let app_state = AppState {
         auth_client,

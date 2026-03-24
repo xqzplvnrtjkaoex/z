@@ -24,14 +24,7 @@ pub async fn create_user(
         return Err(UserError::OwnerRoleRejected);
     }
 
-    let handle_input = HandleInput::new(&payload.handle);
-    handle_input.validate_handle().map_err(|msg| {
-        if msg.contains("reserved") {
-            UserError::HandleReserved
-        } else {
-            UserError::InvalidHandle(msg)
-        }
-    })?;
+    HandleInput::new(&payload.handle).validate_handle()?;
 
     let name_input = NameInput::new(&payload.name);
     name_input

@@ -33,10 +33,11 @@ pub async fn service_health(
 ) -> Result<Json<HealthResponse>, AppError> {
     let request_id = Uuid::now_v7().to_string();
 
-    // Call each backend service health RPC, treating individual failures as "unavailable"
-    let auth_status = call_auth_health(state.auth_client.clone(), &request_id).await;
-    let catalog_status = call_catalog_health(state.catalog_client.clone(), &request_id).await;
-    let user_status = call_user_health(state.user_client.clone(), &request_id).await;
+    let (auth_status, catalog_status, user_status) = tokio::join!(
+        call_auth_health(state.auth_client.clone(), &request_id),
+        call_catalog_health(state.catalog_client.clone(), &request_id),
+        call_user_health(state.user_client.clone(), &request_id),
+    );
 
     Ok(Json(HealthResponse {
         status: "ok",

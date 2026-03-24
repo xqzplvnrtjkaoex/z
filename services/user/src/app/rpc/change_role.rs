@@ -1,7 +1,6 @@
 use madome_common::caller::CallerIdentity;
 use madome_proto::user::{ChangeRoleRequest, UserResponse};
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 
 use crate::{
     app::rpc::ProtoRole,
@@ -16,9 +15,7 @@ pub async fn execute<C: UserPorts>(
 ) -> Result<Response<UserResponse>, Status> {
     let identity = CallerIdentity::from_metadata(&request)?;
     let req = request.into_inner();
-
-    let target_id = Uuid::from_slice(&req.id)
-        .map_err(|_| Status::invalid_argument("invalid user id format"))?;
+    let target_id = super::parse_user_id(&req.id)?;
 
     let new_role = UserRole::try_from(ProtoRole(req.new_role))?;
 

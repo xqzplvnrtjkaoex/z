@@ -27,14 +27,7 @@ pub async fn update_user(
         .ok_or(UserError::UserNotFound)?;
 
     if let Some(handle) = payload.handle {
-        let handle_input = HandleInput::new(&handle);
-        handle_input.validate_handle().map_err(|msg| {
-            if msg.contains("reserved") {
-                UserError::HandleReserved
-            } else {
-                UserError::InvalidHandle(msg)
-            }
-        })?;
+        HandleInput::new(&handle).validate_handle()?;
 
         // Check handle uniqueness: if another user already has this handle
         if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await?

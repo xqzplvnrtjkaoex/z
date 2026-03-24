@@ -23,10 +23,19 @@ fn check_reserved_handle(handle: &str) -> Result<(), validator::ValidationError>
 }
 
 fn check_handle_chars(handle: &str) -> Result<(), validator::ValidationError> {
-    if !handle.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_') {
+    if !handle
+        .bytes()
+        .all(|b| b.is_ascii_alphanumeric() || b == b'_')
+    {
         return Err(validator::ValidationError::new("invalid_handle_chars"));
     }
     Ok(())
+}
+
+#[derive(Debug)]
+pub enum HandleValidationError {
+    Reserved,
+    Invalid(String),
 }
 
 /// Validates a user handle: 4-15 alphanumeric/underscore chars, not reserved.
@@ -48,16 +57,26 @@ impl HandleInput {
         }
     }
 
-    /// Validate and return a descriptive error string on failure.
-    pub fn validate_handle(&self) -> Result<(), String> {
+    /// Validates the handle and returns a typed error on failure.
+    pub fn validate_handle(&self) -> Result<(), HandleValidationError> {
         self.validate().map_err(|e| {
-            e.field_errors()
+            let errors: Vec<_> = e
+                .field_errors()
                 .values()
                 .flat_map(|errs| errs.iter())
+                .collect();
+
+            if errors.iter().any(|err| err.code == "reserved_handle") {
+                return HandleValidationError::Reserved;
+            }
+
+            let msg = errors
+                .iter()
                 .filter_map(|e| e.message.as_ref())
                 .next()
                 .map(|m| m.to_string())
-                .unwrap_or_else(|| "invalid handle".to_string())
+                .unwrap_or_else(|| "invalid handle".to_string());
+            HandleValidationError::Invalid(msg)
         })
     }
 }

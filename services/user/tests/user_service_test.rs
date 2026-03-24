@@ -1,5 +1,6 @@
 use std::{net::SocketAddr, time::Duration};
 
+use madome_common::caller::{CallerIdentity, CallerRole};
 use madome_proto::user::{
     ActivateUserRequest, ChangeRoleRequest, CreateUserRequest, DeactivateUserRequest,
     GetUserRequest, ListUsersRequest, Role, user_service_client::UserServiceClient,
@@ -170,17 +171,15 @@ async fn should_change_role_with_caller_context_via_grpc() {
         .into_inner();
 
     // Change role from user -> admin, with owner caller context
-    let owner_id = uuid::Uuid::new_v4().to_string();
     let mut request = tonic::Request::new(ChangeRoleRequest {
         id: user.id.clone(),
         new_role: Role::Admin as i32,
     });
-    request
-        .metadata_mut()
-        .insert("x-caller-id", owner_id.parse().unwrap());
-    request
-        .metadata_mut()
-        .insert("x-caller-role", "owner".parse().unwrap());
+    let identity = CallerIdentity {
+        caller_id: uuid::Uuid::new_v4(),
+        caller_role: CallerRole::Owner,
+    };
+    identity.inject_into(&mut request);
 
     let response = client
         .change_role(request)
@@ -207,18 +206,16 @@ async fn should_deactivate_and_activate_user_via_grpc() {
         .expect("create_user failed")
         .into_inner();
 
-    let admin_id = uuid::Uuid::new_v4().to_string();
+    let identity = CallerIdentity {
+        caller_id: uuid::Uuid::new_v4(),
+        caller_role: CallerRole::Owner,
+    };
 
     // Deactivate
     let mut deactivate_req = tonic::Request::new(DeactivateUserRequest {
         id: user.id.clone(),
     });
-    deactivate_req
-        .metadata_mut()
-        .insert("x-caller-id", admin_id.parse().unwrap());
-    deactivate_req
-        .metadata_mut()
-        .insert("x-caller-role", "owner".parse().unwrap());
+    identity.inject_into(&mut deactivate_req);
 
     let deactivated = client
         .deactivate_user(deactivate_req)
@@ -231,12 +228,7 @@ async fn should_deactivate_and_activate_user_via_grpc() {
     let mut activate_req = tonic::Request::new(ActivateUserRequest {
         id: user.id.clone(),
     });
-    activate_req
-        .metadata_mut()
-        .insert("x-caller-id", admin_id.parse().unwrap());
-    activate_req
-        .metadata_mut()
-        .insert("x-caller-role", "owner".parse().unwrap());
+    identity.inject_into(&mut activate_req);
 
     let activated = client
         .activate_user(activate_req)

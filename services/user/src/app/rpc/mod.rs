@@ -10,8 +10,13 @@ pub mod update_user;
 use madome_proto::user::{Role, UserResponse};
 use prost_types::Timestamp;
 use tonic::Status;
+use uuid::Uuid;
 
 use crate::domain::types::{role::UserRole, user::User};
+
+pub(crate) fn parse_user_id(bytes: &[u8]) -> Result<Uuid, Status> {
+    Uuid::from_slice(bytes).map_err(|_| Status::invalid_argument("invalid user id format"))
+}
 
 impl From<UserRole> for Role {
     fn from(role: UserRole) -> Self {
