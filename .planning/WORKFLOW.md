@@ -17,7 +17,7 @@ Extended GSD workflow with custom skills (/case, /test-gen) inserted into the of
          |
      /test-gen
          |
-    gsd:execute
+    gsd:execute --> gsd:verify --> gsd:ship
 ```
 
 **Iterative, not linear.** Any step can return to an earlier step and redo from there. Common loops:
@@ -60,6 +60,42 @@ At each step, what artifacts exist:
 | gsd:execute | Y | Y | Y | Y | Y | being created |
 
 **Key constraint:** No implementation code, proto files, or tests exist until gsd:execute. All preceding steps must work from planning documents only.
+
+## Artifact File Locations
+
+All phase artifacts live in `.planning/phases/{padded_phase}-{name}/`:
+
+| Artifact | Filename | Producer |
+|----------|----------|----------|
+| Context | `{padded}-CONTEXT.md` | discuss-phase |
+| Cases | `{padded}-CASES.md` | /case |
+| Case Briefing | `CASE-BRIEFING.md` | case-briefer (internal to /case) |
+| Case Scratch | `CASE-SCRATCH.md` | /case (internal, resume support) |
+| Research | `{padded}-RESEARCH.md` | plan-phase |
+| Plan | `{padded}-{N}-PLAN.md` | plan-phase |
+| Validation | `{padded}-VALIDATION.md` | plan-phase (Nyquist) |
+| UI Spec | `{padded}-UI-SPEC.md` | ui-phase |
+
+## Iterative Return Paths
+
+| From | To | Trigger | Effect |
+|------|----|---------|--------|
+| plan | case | Missing behavioral cases discovered | Re-run /case, then re-plan |
+| plan | discuss | Unresolved design decisions | Re-run discuss, then /case + plan |
+| case | discuss | Case discussion surfaces gray areas | Re-run discuss, then redo /case |
+| execute | plan | Implementation reveals plan flaws | Generate fix plans or re-plan |
+| verify | execute | UAT failures | Generate fix plans, re-execute |
+
+**Redo semantics:** All downstream artifacts from the return point forward are regenerated.
+
+## CASES.md Optionality
+
+The planner must work with or without CASES.md:
+
+- **With CASES.md:** must-priority cases become acceptance criteria. Case IDs (S1, F3, E2) referenced in PLAN.md tasks. Open questions flag unresolved items.
+- **Without CASES.md:** plans derive from CONTEXT.md + REQUIREMENTS.md alone (standard GSD).
+
+Not every phase needs /case — simple phases, infrastructure phases, or time-constrained phases may skip it.
 
 ## Integration Notes
 

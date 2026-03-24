@@ -142,12 +142,42 @@ Proto files live in `proto/` and are compiled by `crates/madome-proto/build.rs`.
 2. If adding a new `.proto` file, add it to `build.rs` compile list and create a module in `src/lib.rs`
 3. `cargo build -p madome-proto` triggers recompilation; downstream crates pick up changes automatically
 
+## Extended Workflow
+
+This project extends the GSD workflow with custom skills between standard stages:
+
+### Pipeline Order
+
+```
+discuss -> /case -> (ui) -> plan -> /test-gen -> execute -> verify -> ship
+```
+
+- `/case`: behavioral case discovery. Produces `{padded_phase}-CASES.md` with S/F/E case tables.
+- `/test-gen`: test skeleton generation (planned, not yet built). Produces failing test files.
+- `ui-phase`: frontend only, inserted after `/case`. Not applicable to current backend scope.
+- The workflow is iterative — any stage can return to an earlier stage and redo forward.
+
+### CASES.md Integration with Plan-Phase
+
+When `{phase_dir}/*-CASES.md` exists, the planner should:
+- Read it as additional input alongside CONTEXT.md
+- Map must-priority cases to required test tasks in PLAN.md
+- Reference case IDs (S1, F3, E2) in task `acceptance_criteria`
+- Flag open questions (Q1-QN) as items requiring resolution
+
+When CASES.md does not exist, plan-phase works normally from CONTEXT.md + REQUIREMENTS.md alone.
+
+### Detailed Workflow Reference
+
+See `.planning/WORKFLOW.md` for the complete artifact dependency chain, stage-by-stage breakdown, and iterative return path rules.
+
 ## Architecture Reference
 
 Detailed architecture, data flows, and design decisions are in `.planning/`:
 - `.planning/PROJECT.md` — domain decisions, service topology, internal service architecture, auth/renewal design
 - `.planning/research/ARCHITECTURE.md` — system overview, data flows, DB schema design
 - `.planning/research/ARCHITECTURE-PATTERNS.md` — internal service architecture pattern research (Clean/Hexagonal/Pragmatic comparison)
+- `.planning/WORKFLOW.md` — extended GSD pipeline with custom skills, artifact dependency chain, iterative return paths
 - `.planning/ROADMAP.md` — phased build plan with dependencies
 
 ## Keeping CLAUDE.md in Sync
