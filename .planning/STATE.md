@@ -115,11 +115,12 @@ Recent decisions affecting current work:
 | 260322-of1 | Update PROJECT.md and ROADMAP.md with pending decisions and phase restructuring | 2026-03-22 | 9e691ba | [260322-of1-update-project-md-and-roadmap-md-with-pe](./quick/260322-of1-update-project-md-and-roadmap-md-with-pe/) |
 | 260322-vwa | Refactor user service and gateway: typed header constants, From<DbErr>, CallerContext middleware, handler file renames | 2026-03-22 | 17e1012 | [260322-vwa-refactor-user-service-and-gateway-typed-](./quick/260322-vwa-refactor-user-service-and-gateway-typed-/) |
 | 260323-pwj | Replace standalone conversion fns with From/TryFrom impls in user rpc layer | 2026-03-23 | 4f002ff | [260323-pwj-user-to-response-function-violates-namin](./quick/260323-pwj-user-to-response-function-violates-namin/) |
+| 260324-r69 | Simplify NameInput: replace custom check_name_length fn with #[validate(length(...))] and remove validate_name() wrapper | 2026-03-24 | 3c71ec2 | [260324-r69-simplify-nameinput-use-validator-built-i](./quick/260324-r69-simplify-nameinput-use-validator-built-i/) |
 
 ## Session Continuity
 
 Last session: 2026-03-24
-Last activity: (1) Completed /case skill redesign — case.md orchestrator, case-briefer.md, case-validator.md refined for technology-neutral consistency, requirement mapping, and error handling. (2) Updated WORKFLOW.md with corrected return-path diagram and dual-role explanation. (3) Updated CLAUDE.md case ID format to OperationName.S1. (4) Added .claude/docs/case.md README documenting 3-agent architecture. (5) Full 4th-round verification passed (all cross-file consistency checks clean).
-Stopped at: /case skill complete and committed (a7b45ce, 07727b1). Ready for Phase 03 authentication.
+Last activity: (1) Completed /case skill redesign — case.md orchestrator, case-briefer.md, case-validator.md refined for technology-neutral consistency, requirement mapping, and error handling. (2) Updated WORKFLOW.md with corrected return-path diagram and dual-role explanation. (3) Updated CLAUDE.md case ID format to OperationName.S1. (4) Added .claude/docs/case.md README documenting 3-agent architecture. (5) Full 4th-round verification passed (all cross-file consistency checks clean). (6) Quick task 260324-r69: simplified NameInput validation using validator built-in length attribute.
+Stopped at: Quick task 260324-r69 complete. Ready for Phase 03 authentication.
 Resume file: .planning/STATE.md
 Next action: /gsd:discuss-phase 3 or /gsd:plan-phase 3 (authentication)
