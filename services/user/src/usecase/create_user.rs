@@ -1,5 +1,6 @@
 use chrono::Utc;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::domain::{
     error::user_error::UserError,
@@ -33,7 +34,9 @@ pub async fn create_user(
     })?;
 
     let name_input = NameInput::new(&payload.name);
-    name_input.validate_name().map_err(UserError::InvalidName)?;
+    name_input
+        .validate()
+        .map_err(|e| UserError::InvalidName(e.to_string()))?;
 
     let now = Utc::now();
     let user = User {
