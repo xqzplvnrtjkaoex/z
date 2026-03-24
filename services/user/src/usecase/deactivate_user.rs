@@ -9,7 +9,7 @@ use crate::{
     payload::user::DeactivateUserPayload,
 };
 
-#[tracing::instrument(skip_all, fields(target_id = %payload.target_id, actor_id = %payload.caller_id), err)]
+#[tracing::instrument(skip_all, fields(target_id = %payload.target_id(), actor_id = %payload.caller_id()), err)]
 pub async fn deactivate_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: DeactivateUserPayload,
@@ -108,11 +108,7 @@ mod tests {
             .returning(move |_| Ok(deactivated_clone.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = DeactivateUserPayload {
-            target_id,
-            caller_id,
-            caller_role: UserRole::Admin,
-        };
+        let payload = DeactivateUserPayload::new(target_id, caller_id, UserRole::Admin);
 
         let result = deactivate_user(&ctx, payload).await;
         assert!(result.is_ok());
@@ -124,11 +120,7 @@ mod tests {
         let id = Uuid::new_v4();
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = DeactivateUserPayload {
-            target_id: id,
-            caller_id: id,
-            caller_role: UserRole::Admin,
-        };
+        let payload = DeactivateUserPayload::new(id, id, UserRole::Admin);
 
         let result = deactivate_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::SelfModification)));
@@ -147,11 +139,7 @@ mod tests {
             .returning(move |_| Ok(Some(target_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = DeactivateUserPayload {
-            target_id,
-            caller_id,
-            caller_role: UserRole::Admin,
-        };
+        let payload = DeactivateUserPayload::new(target_id, caller_id, UserRole::Admin);
 
         let result = deactivate_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InsufficientRole { .. })));
@@ -170,11 +158,7 @@ mod tests {
             .returning(move |_| Ok(Some(target_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = DeactivateUserPayload {
-            target_id,
-            caller_id,
-            caller_role: UserRole::Admin,
-        };
+        let payload = DeactivateUserPayload::new(target_id, caller_id, UserRole::Admin);
 
         let result = deactivate_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::UserAlreadyInactive)));

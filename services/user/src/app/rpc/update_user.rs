@@ -13,11 +13,7 @@ pub async fn execute<C: UserPorts>(
     let req = request.into_inner();
     let id = super::parse_user_id(&req.id)?;
 
-    let payload = UpdateUserPayload {
-        id,
-        handle: req.handle,
-        name: req.name,
-    };
+    let payload = UpdateUserPayload::new(id, req.handle, req.name);
 
     let user = update_user(ctx, payload).await?;
 

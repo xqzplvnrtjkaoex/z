@@ -7,7 +7,7 @@ use crate::{
     payload::user::GetUserByHandlePayload,
 };
 
-#[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
+#[tracing::instrument(skip_all, fields(handle = %payload.handle()), err)]
 pub async fn get_user_by_handle(
     ctx: &(impl UserPorts + ?Sized),
     payload: GetUserByHandlePayload,
@@ -70,10 +70,7 @@ mod tests {
             .returning(move |_| Ok(Some(user_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = GetUserByHandlePayload {
-            handle: "testuser".to_string(),
-            caller_role: UserRole::User,
-        };
+        let payload = GetUserByHandlePayload::new("testuser".to_string(), UserRole::User);
 
         let result = get_user_by_handle(&ctx, payload).await;
         assert!(result.is_ok());
@@ -85,10 +82,7 @@ mod tests {
         mock.expect_find_by_handle().once().returning(|_| Ok(None));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = GetUserByHandlePayload {
-            handle: "nonexistent".to_string(),
-            caller_role: UserRole::User,
-        };
+        let payload = GetUserByHandlePayload::new("nonexistent".to_string(), UserRole::User);
 
         let result = get_user_by_handle(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::UserNotFound)));
@@ -105,10 +99,7 @@ mod tests {
             .returning(move |_| Ok(Some(user_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = GetUserByHandlePayload {
-            handle: "inactive_user".to_string(),
-            caller_role: UserRole::User,
-        };
+        let payload = GetUserByHandlePayload::new("inactive_user".to_string(), UserRole::User);
 
         let result = get_user_by_handle(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::UserNotFound)));
@@ -125,10 +116,7 @@ mod tests {
             .returning(move |_| Ok(Some(user_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = GetUserByHandlePayload {
-            handle: "inactive_user".to_string(),
-            caller_role: UserRole::Admin,
-        };
+        let payload = GetUserByHandlePayload::new("inactive_user".to_string(), UserRole::Admin);
 
         let result = get_user_by_handle(&ctx, payload).await;
         assert!(result.is_ok());

@@ -15,10 +15,7 @@ pub async fn execute<C: UserPorts>(
     let identity = CallerIdentity::from_metadata(&request)?;
     let req = request.into_inner();
 
-    let payload = GetUserByHandlePayload {
-        handle: req.handle,
-        caller_role: identity.caller_role.into(),
-    };
+    let payload = GetUserByHandlePayload::new(req.handle, identity.caller_role.into());
 
     let user = get_user_by_handle(ctx, payload).await?;
 

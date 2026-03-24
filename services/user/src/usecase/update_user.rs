@@ -10,20 +10,20 @@ use crate::{
     payload::user::UpdateUserPayload,
 };
 
-#[tracing::instrument(skip_all, fields(user_id = %payload.id), err)]
+#[tracing::instrument(skip_all, fields(user_id = %payload.id()), err)]
 pub async fn update_user(
     ctx: &(impl UserPorts + ?Sized),
-    payload: UpdateUserPayload,
+    mut payload: UpdateUserPayload,
 ) -> Result<User, UserError> {
     payload.validate()?;
 
     let mut user = ctx
         .user_repo()
-        .find_by_id(payload.id)
+        .find_by_id(payload.id())
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    if let Some(handle) = payload.handle {
+    if let Some(handle) = payload.take_handle() {
         if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await?
             && existing.id != user.id
         {
@@ -33,7 +33,7 @@ pub async fn update_user(
         user.handle = handle;
     }
 
-    if let Some(name) = payload.name {
+    if let Some(name) = payload.take_name() {
         user.name = name;
     }
 
@@ -92,11 +92,7 @@ mod tests {
         mock.expect_update().once().returning(|u| Ok(u.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = UpdateUserPayload {
-            id,
-            handle: Some("newhandle".to_string()),
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(id, Some("newhandle".to_string()), None);
 
         let result = update_user(&ctx, payload).await;
         assert!(result.is_ok());
@@ -121,11 +117,7 @@ mod tests {
             .returning(move |_| Ok(Some(other_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = UpdateUserPayload {
-            id,
-            handle: Some("takenhandle".to_string()),
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(id, Some("takenhandle".to_string()), None);
 
         let result = update_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::HandleTaken)));
@@ -148,11 +140,7 @@ mod tests {
         mock.expect_update().once().returning(|u| Ok(u.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = UpdateUserPayload {
-            id,
-            handle: Some("samehandle".to_string()),
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(id, Some("samehandle".to_string()), None);
 
         let result = update_user(&ctx, payload).await;
         assert!(result.is_ok());
@@ -162,11 +150,7 @@ mod tests {
     async fn should_reject_invalid_handle_on_update() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = UpdateUserPayload {
-            id: Uuid::new_v4(),
-            handle: Some("ab".to_string()), // too short
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(Uuid::new_v4(), Some("ab".to_string()), None);
 
         let result = update_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InvalidInput(_))));

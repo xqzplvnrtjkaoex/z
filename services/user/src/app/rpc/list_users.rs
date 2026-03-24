@@ -8,11 +8,7 @@ use crate::{
 
 impl From<ListUsersRequest> for ListUsersPayload {
     fn from(req: ListUsersRequest) -> Self {
-        Self {
-            limit: req.limit as u64,
-            cursor: req.cursor,
-            include_inactive: req.include_inactive,
-        }
+        Self::new(req.limit as u64, req.cursor, req.include_inactive)
     }
 }
 

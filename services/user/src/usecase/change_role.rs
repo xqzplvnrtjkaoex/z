@@ -9,7 +9,7 @@ use crate::{
     payload::user::ChangeRolePayload,
 };
 
-#[tracing::instrument(skip_all, fields(target_id = %payload.target_id, actor_id = %payload.caller_id), err)]
+#[tracing::instrument(skip_all, fields(target_id = %payload.target_id(), actor_id = %payload.caller_id()), err)]
 pub async fn change_role(
     ctx: &(impl UserPorts + ?Sized),
     payload: ChangeRolePayload,
@@ -120,12 +120,8 @@ mod tests {
             .returning(move |_| Ok(updated_clone.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ChangeRolePayload {
-            target_id,
-            new_role: UserRole::Admin,
-            caller_id,
-            caller_role: UserRole::Owner,
-        };
+        let payload =
+            ChangeRolePayload::new(target_id, UserRole::Admin, caller_id, UserRole::Owner);
 
         let result = change_role(&ctx, payload).await;
         assert!(result.is_ok());
@@ -137,12 +133,7 @@ mod tests {
         let id = Uuid::new_v4();
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = ChangeRolePayload {
-            target_id: id,
-            new_role: UserRole::User,
-            caller_id: id,
-            caller_role: UserRole::Owner,
-        };
+        let payload = ChangeRolePayload::new(id, UserRole::User, id, UserRole::Owner);
 
         let result = change_role(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::SelfModification)));
@@ -154,12 +145,8 @@ mod tests {
         let target_id = Uuid::new_v4();
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = ChangeRolePayload {
-            target_id,
-            new_role: UserRole::Owner,
-            caller_id,
-            caller_role: UserRole::Owner,
-        };
+        let payload =
+            ChangeRolePayload::new(target_id, UserRole::Owner, caller_id, UserRole::Owner);
 
         let result = change_role(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::OwnerRoleRejected)));
@@ -178,12 +165,8 @@ mod tests {
             .returning(move |_| Ok(Some(target_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ChangeRolePayload {
-            target_id,
-            new_role: UserRole::User,
-            caller_id,
-            caller_role: UserRole::Admin,
-        };
+        let payload =
+            ChangeRolePayload::new(target_id, UserRole::User, caller_id, UserRole::Admin);
 
         let result = change_role(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InsufficientRole { .. })));
@@ -202,12 +185,8 @@ mod tests {
             .returning(move |_| Ok(Some(target_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ChangeRolePayload {
-            target_id,
-            new_role: UserRole::Admin,
-            caller_id,
-            caller_role: UserRole::Admin,
-        };
+        let payload =
+            ChangeRolePayload::new(target_id, UserRole::Admin, caller_id, UserRole::Admin);
 
         let result = change_role(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InsufficientRole { .. })));

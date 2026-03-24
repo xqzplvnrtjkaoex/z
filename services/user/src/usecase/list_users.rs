@@ -85,11 +85,7 @@ mod tests {
             .returning(move |_, _, _| Ok(users_clone.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ListUsersPayload {
-            limit: 25,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(25, None, false);
 
         let result = list_users(&ctx, payload).await;
         assert!(result.is_ok());
@@ -109,11 +105,7 @@ mod tests {
             .returning(move |_, _, _| Ok(users_clone.clone()));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ListUsersPayload {
-            limit: 25,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(25, None, false);
 
         let result = list_users(&ctx, payload).await;
         assert!(result.is_ok());
@@ -131,11 +123,7 @@ mod tests {
             .returning(|_, _, _| Ok(vec![]));
 
         let ctx = TestContext { user_repo: mock };
-        let payload = ListUsersPayload {
-            limit: 0,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(0, None, false);
 
         let result = list_users(&ctx, payload).await;
         assert!(result.is_ok());
@@ -145,11 +133,7 @@ mod tests {
     async fn should_reject_limit_over_100() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = ListUsersPayload {
-            limit: 101,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(101, None, false);
 
         let result = list_users(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InvalidInput(_))));

@@ -20,12 +20,12 @@ pub async fn execute<C: UserPorts>(
 
     let new_role = UserRole::try_from(ProtoRole(req.new_role))?;
 
-    let payload = ChangeRolePayload {
+    let payload = ChangeRolePayload::new(
         target_id,
         new_role,
-        caller_id: identity.caller_id,
-        caller_role: identity.caller_role.into(),
-    };
+        identity.caller_id,
+        identity.caller_role.into(),
+    );
 
     let user = change_role(ctx, payload).await?;
 

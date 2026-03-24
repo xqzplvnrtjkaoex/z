@@ -16,11 +16,8 @@ pub async fn execute<C: UserPorts>(
     let req = request.into_inner();
     let target_id = super::parse_user_id(&req.id)?;
 
-    let payload = ActivateUserPayload {
-        target_id,
-        caller_id: identity.caller_id,
-        caller_role: identity.caller_role.into(),
-    };
+    let payload =
+        ActivateUserPayload::new(target_id, identity.caller_id, identity.caller_role.into());
 
     let user = activate_user(ctx, payload).await?;
 

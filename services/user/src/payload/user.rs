@@ -53,15 +53,37 @@ pub struct CreateUserPayload {
         ),
         custom(function = "check_reserved_handle", message = "handle is reserved")
     )]
-    pub handle: String,
+    handle: String,
     #[validate(length(min = 1, max = 20, message = "name must be 1-20 characters"))]
-    pub name: String,
-    pub role: UserRole,
+    name: String,
+    role: UserRole,
+}
+
+impl CreateUserPayload {
+    pub fn new(handle: String, name: String, role: UserRole) -> Self {
+        Self { handle, name, role }
+    }
+
+    pub fn handle(&self) -> &str {
+        &self.handle
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn role(&self) -> UserRole {
+        self.role
+    }
+
+    pub fn into_parts(self) -> (String, String, UserRole) {
+        (self.handle, self.name, self.role)
+    }
 }
 
 #[derive(Validate)]
 pub struct UpdateUserPayload {
-    pub id: Uuid,
+    id: Uuid,
     #[validate(
         length(min = 4, max = 15, message = "handle must be 4-15 characters"),
         custom(
@@ -70,20 +92,54 @@ pub struct UpdateUserPayload {
         ),
         custom(function = "check_reserved_handle", message = "handle is reserved")
     )]
-    pub handle: Option<String>,
+    handle: Option<String>,
     #[validate(length(min = 1, max = 20, message = "name must be 1-20 characters"))]
-    pub name: Option<String>,
+    name: Option<String>,
+}
+
+impl UpdateUserPayload {
+    pub fn new(id: Uuid, handle: Option<String>, name: Option<String>) -> Self {
+        Self { id, handle, name }
+    }
+
+    pub fn id(&self) -> Uuid {
+        self.id
+    }
+
+    pub fn handle(&self) -> Option<&str> {
+        self.handle.as_deref()
+    }
+
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
+    pub fn take_handle(&mut self) -> Option<String> {
+        self.handle.take()
+    }
+
+    pub fn take_name(&mut self) -> Option<String> {
+        self.name.take()
+    }
 }
 
 #[derive(Validate)]
 pub struct ListUsersPayload {
     #[validate(range(max = 100, message = "limit must be at most 100"))]
-    pub limit: u64,
-    pub cursor: Option<String>,
-    pub include_inactive: bool,
+    limit: u64,
+    cursor: Option<String>,
+    include_inactive: bool,
 }
 
 impl ListUsersPayload {
+    pub fn new(limit: u64, cursor: Option<String>, include_inactive: bool) -> Self {
+        Self {
+            limit,
+            cursor,
+            include_inactive,
+        }
+    }
+
     pub fn limit(&self) -> u64 {
         if self.limit == 0 { 25 } else { self.limit }
     }
@@ -115,12 +171,20 @@ impl ListUsersPayload {
 }
 
 pub struct DeactivateUserPayload {
-    pub target_id: Uuid,
-    pub caller_id: Uuid,
-    pub caller_role: UserRole,
+    target_id: Uuid,
+    caller_id: Uuid,
+    caller_role: UserRole,
 }
 
 impl DeactivateUserPayload {
+    pub fn new(target_id: Uuid, caller_id: Uuid, caller_role: UserRole) -> Self {
+        Self {
+            target_id,
+            caller_id,
+            caller_role,
+        }
+    }
+
     pub fn target_id(&self) -> Uuid {
         self.target_id
     }
@@ -135,12 +199,20 @@ impl DeactivateUserPayload {
 }
 
 pub struct ActivateUserPayload {
-    pub target_id: Uuid,
-    pub caller_id: Uuid,
-    pub caller_role: UserRole,
+    target_id: Uuid,
+    caller_id: Uuid,
+    caller_role: UserRole,
 }
 
 impl ActivateUserPayload {
+    pub fn new(target_id: Uuid, caller_id: Uuid, caller_role: UserRole) -> Self {
+        Self {
+            target_id,
+            caller_id,
+            caller_role,
+        }
+    }
+
     pub fn target_id(&self) -> Uuid {
         self.target_id
     }
@@ -155,13 +227,22 @@ impl ActivateUserPayload {
 }
 
 pub struct ChangeRolePayload {
-    pub target_id: Uuid,
-    pub new_role: UserRole,
-    pub caller_id: Uuid,
-    pub caller_role: UserRole,
+    target_id: Uuid,
+    new_role: UserRole,
+    caller_id: Uuid,
+    caller_role: UserRole,
 }
 
 impl ChangeRolePayload {
+    pub fn new(target_id: Uuid, new_role: UserRole, caller_id: Uuid, caller_role: UserRole) -> Self {
+        Self {
+            target_id,
+            new_role,
+            caller_id,
+            caller_role,
+        }
+    }
+
     pub fn target_id(&self) -> Uuid {
         self.target_id
     }
@@ -180,11 +261,15 @@ impl ChangeRolePayload {
 }
 
 pub struct GetUserByHandlePayload {
-    pub handle: String,
-    pub caller_role: UserRole,
+    handle: String,
+    caller_role: UserRole,
 }
 
 impl GetUserByHandlePayload {
+    pub fn new(handle: String, caller_role: UserRole) -> Self {
+        Self { handle, caller_role }
+    }
+
     pub fn handle(&self) -> &str {
         &self.handle
     }
@@ -204,32 +289,22 @@ mod tests {
 
     #[test]
     fn should_reject_handle_shorter_than_4_characters() {
-        let payload = CreateUserPayload {
-            handle: "abc".to_string(),
-            name: "Test".to_string(),
-            role: UserRole::User,
-        };
+        let payload = CreateUserPayload::new("abc".to_string(), "Test".to_string(), UserRole::User);
         assert!(payload.validate().is_err());
     }
 
     #[test]
     fn should_reject_handle_longer_than_15_characters() {
-        let payload = CreateUserPayload {
-            handle: "a".repeat(16),
-            name: "Test".to_string(),
-            role: UserRole::User,
-        };
+        let payload =
+            CreateUserPayload::new("a".repeat(16), "Test".to_string(), UserRole::User);
         assert!(payload.validate().is_err());
     }
 
     #[test]
     fn should_reject_handle_with_non_alphanumeric_characters() {
         for bad in ["test-user", "test user", "test@user"] {
-            let payload = CreateUserPayload {
-                handle: bad.to_string(),
-                name: "Test".to_string(),
-                role: UserRole::User,
-            };
+            let payload =
+                CreateUserPayload::new(bad.to_string(), "Test".to_string(), UserRole::User);
             assert!(payload.validate().is_err(), "expected rejection for {bad}");
         }
     }
@@ -237,11 +312,8 @@ mod tests {
     #[test]
     fn should_accept_valid_handles() {
         for good in ["test", "test_user1", "1234", "abcdefghijklmno"] {
-            let payload = CreateUserPayload {
-                handle: good.to_string(),
-                name: "Test".to_string(),
-                role: UserRole::User,
-            };
+            let payload =
+                CreateUserPayload::new(good.to_string(), "Test".to_string(), UserRole::User);
             assert!(payload.validate().is_ok(), "expected acceptance for {good}");
         }
     }
@@ -249,11 +321,8 @@ mod tests {
     #[test]
     fn should_reject_reserved_handles_case_insensitively() {
         for reserved in ["admin", "Admin", "ADMIN", "madome", "system", "help"] {
-            let payload = CreateUserPayload {
-                handle: reserved.to_string(),
-                name: "Test".to_string(),
-                role: UserRole::User,
-            };
+            let payload =
+                CreateUserPayload::new(reserved.to_string(), "Test".to_string(), UserRole::User);
             assert!(
                 payload.validate().is_err(),
                 "expected rejection for {reserved}"
@@ -265,21 +334,15 @@ mod tests {
 
     #[test]
     fn should_reject_empty_name() {
-        let payload = CreateUserPayload {
-            handle: "testuser".to_string(),
-            name: "".to_string(),
-            role: UserRole::User,
-        };
+        let payload =
+            CreateUserPayload::new("testuser".to_string(), "".to_string(), UserRole::User);
         assert!(payload.validate().is_err());
     }
 
     #[test]
     fn should_reject_name_longer_than_20_characters() {
-        let payload = CreateUserPayload {
-            handle: "testuser".to_string(),
-            name: "a".repeat(21),
-            role: UserRole::User,
-        };
+        let payload =
+            CreateUserPayload::new("testuser".to_string(), "a".repeat(21), UserRole::User);
         assert!(payload.validate().is_err());
     }
 
@@ -290,11 +353,8 @@ mod tests {
             "가".repeat(20).as_str(),
             "あ".repeat(20).as_str(),
         ] {
-            let payload = CreateUserPayload {
-                handle: "testuser".to_string(),
-                name: name.to_string(),
-                role: UserRole::User,
-            };
+            let payload =
+                CreateUserPayload::new("testuser".to_string(), name.to_string(), UserRole::User);
             assert!(payload.validate().is_ok(), "expected acceptance for {name}");
         }
     }
@@ -303,21 +363,13 @@ mod tests {
 
     #[test]
     fn should_skip_handle_validation_when_none() {
-        let payload = UpdateUserPayload {
-            id: Uuid::new_v4(),
-            handle: None,
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(Uuid::new_v4(), None, None);
         assert!(payload.validate().is_ok());
     }
 
     #[test]
     fn should_validate_handle_when_some() {
-        let payload = UpdateUserPayload {
-            id: Uuid::new_v4(),
-            handle: Some("ab".to_string()), // too short
-            name: None,
-        };
+        let payload = UpdateUserPayload::new(Uuid::new_v4(), Some("ab".to_string()), None);
         assert!(payload.validate().is_err());
     }
 
@@ -325,21 +377,13 @@ mod tests {
 
     #[test]
     fn should_use_default_limit_25_when_zero() {
-        let payload = ListUsersPayload {
-            limit: 0,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(0, None, false);
         assert_eq!(payload.limit(), 25);
     }
 
     #[test]
     fn should_reject_limit_over_100() {
-        let payload = ListUsersPayload {
-            limit: 101,
-            cursor: None,
-            include_inactive: false,
-        };
+        let payload = ListUsersPayload::new(101, None, false);
         assert!(payload.validate().is_err());
     }
 }

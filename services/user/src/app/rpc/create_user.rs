@@ -17,11 +17,7 @@ pub async fn execute<C: UserPorts>(
 
     let role = UserRole::try_from(ProtoRole(req.role))?;
 
-    let payload = CreateUserPayload {
-        handle: req.handle,
-        name: req.name,
-        role,
-    };
+    let payload = CreateUserPayload::new(req.handle, req.name, role);
 
     let user = create_user(ctx, payload).await?;
 
