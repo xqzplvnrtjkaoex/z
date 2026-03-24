@@ -14,6 +14,8 @@ allowed-tools:
   - Grep
   - AskUserQuestion
   - Agent
+  - TaskCreate
+  - TaskUpdate
 ---
 
 <objective>
@@ -105,7 +107,7 @@ Read these files for locked decisions and phase scope:
 ### 1c: Resume check
 
 ```bash
-ls ${phase_dir}/*-CASES.md 2>/dev/null
+ls ${phase_dir}/*-CASES.md ${phase_dir}/CASE-SCRATCH.md 2>/dev/null
 ```
 
 If CASES.md exists:
@@ -113,16 +115,22 @@ If CASES.md exists:
 - Ask developer: "Update existing" / "Resume (add more operations)" / "Start fresh"
 - Resume mode: present only undocumented operations in Step 2
 
+If only CASE-SCRATCH.md exists (no CASES.md -- interrupted session):
+- Read it and identify operations already discussed
+- Ask developer: "Resume from scratch file (continue where we left off)" / "Start fresh"
+- Resume mode: load scratch data as already-discussed operations, skip to next undiscussed operation
+- The scratch file's cases will be included in the final CASES.md without re-discussion
+
 ### 1d: Dispatch case-briefer for operation extraction
 
-Dispatch the `case-briefer` agent to analyze the codebase and produce an operation briefing:
+Dispatch the `case-briefer` agent to extract operations from planning documents:
 
 ```
 Agent(
   subagent_type: "case-briefer",
   prompt: "<objective>
-Analyze the codebase for Phase {phase_number}: {phase_name}.
-Extract all operations, validation patterns, test coverage, and domain constraints.
+Analyze planning documents for Phase {phase_number}: {phase_name}.
+Extract all operations, constraints, and decision context.
 </objective>
 
 <phase_context>
@@ -132,7 +140,10 @@ Locked decisions: {key decisions from CONTEXT.md}
 </phase_context>
 
 <files_to_read>
-{relevant source paths with annotations, derived from phase scope}
+- .planning/ROADMAP.md -- phase description, success criteria, requirement IDs
+- {phase_dir}/*-CONTEXT.md -- locked decisions, constraints
+- .planning/REQUIREMENTS.md -- requirement ID descriptions
+- .planning/PROJECT.md -- architecture reference (service topology, patterns)
 </files_to_read>
 
 <output>
@@ -288,13 +299,34 @@ What if this operation is called twice in rapid succession?
 
 **3c-vi: Side effects and data integrity**
 
+Probe side effects systematically by category. Batch all applicable categories into one proposal:
+
 ```
-What other state changes when this operation succeeds?
-- Events emitted?
-- Related entities updated?
-- Cache invalidated?
-What if the operation partially succeeds then fails?
+When this operation succeeds, I expect these side effects:
+
+Domain events:
+- SE_: "[entity].[action]" event emitted with [key fields]
+
+Related entity updates:
+- SE_: [related entity] [created/updated/deleted] as consequence
+
+Cache mutations:
+- SE_: [cache key/region] invalidated
+
+Audit / logging:
+- SE_: Audit log entry with [action, actor, target]
+
+Notifications:
+- SE_: [notification type] sent to [recipient]
+
+External system calls:
+- SE_: [system] called with [payload summary]
+
+Which of these apply? Any I'm missing?
+What if the operation partially succeeds then fails -- are side effects rolled back or left in place?
 ```
+
+Omit categories that clearly do not apply (e.g., skip "Notifications" for an internal data migration operation). Use SE_ as a working label during discussion; in the final case tables, side effects are recorded in the Expected Outcome column of the relevant S/F/E case, not as a separate category.
 
 **3c-vii: Infrastructure failures (brief, standardized)**
 
@@ -316,12 +348,15 @@ Rules: N confirmed
 Success cases: M
 Failure cases: K
 Edge cases: J
+Side effects identified: N (all reflected in Expected Outcome column)
 Open questions: P
   Q1: [question]
 
 Anything else that could go wrong that we haven't covered?
 Any domain-specific risk my systematic probes wouldn't catch?
 ```
+
+Before closing, verify: every side effect identified in 3c-vi is represented in at least one case's Expected Outcome. Success cases should assert side effects OCCURRED; relevant failure cases should assert side effects DID NOT occur.
 
 **Termination signals:**
 - Per rule: 4-5 examples typical; beyond 6, consider splitting the rule
@@ -340,6 +375,12 @@ Append format per operation:
 ### Rules
 - R1: [rule]
 
+### Side Effects
+> Optional. Include only when side effects were identified in 3c-vi.
+
+- Domain event: "[entity].[action]" with [key fields]
+- [other side effects by category]
+
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
@@ -351,6 +392,8 @@ Append format per operation:
 |----|----------|--------|
 | Q1 | ... | ... |
 ```
+
+The Side Effects sub-section serves as a quick-reference inventory of what the Expected Outcome column must include. It is not a case category -- cases remain S/F/E only.
 
 **Then move to the next selected operation.**
 </step>
@@ -365,43 +408,54 @@ Let me check cross-operation consistency:
 - Are error response formats consistent across all operations?
 - In [operation A], we said [constraint]. Does [operation B] also enforce this?
 - If [operation C] deletes a resource, how does [operation D] handle that?
+
+Side effect consistency:
+- Do all mutation operations emit domain events? [list which do, which don't]
+- Do all deletions cascade to related entities consistently?
+- Are audit log entries written for the same categories of operations?
+- On failure, do all operations consistently suppress side effects?
 ```
 
-Keep this brief. Only raise concerns where inconsistency was actually detected.
+Keep this brief. Only raise concerns where inconsistency was actually detected. For side effects, flag operations that break the pattern (e.g., "CreateBook emits an event but UpdateBook does not -- intentional?").
 </step>
 
 <step name="validate">
 ## Step 5: Validate with case-validator
 
-After discussion is complete, dispatch the `case-validator` agent to cross-check discovered cases against the codebase:
+After discussion is complete, dispatch the `case-validator` agent to cross-check discovered cases against planning artifacts.
+
+**Skip validation when:** operation count <= 2 AND no CONTEXT.md exists. Note: "Validation skipped (small phase, no locked decisions)."
 
 ```
 Agent(
   subagent_type: "case-validator",
   prompt: "<objective>
-Cross-check discovered behavioral cases for Phase {phase_number}: {phase_name} against the codebase.
+Cross-check discovered behavioral cases for Phase {phase_number}: {phase_name}
+against planning artifacts. Find requirement gaps, decision gaps, consistency issues,
+and completeness gaps.
 </objective>
 
-<cases_file>
-{phase_dir}/CASE-SCRATCH.md
-</cases_file>
+<cases_file>{phase_dir}/CASE-SCRATCH.md</cases_file>
 
-<briefing_file>
-{phase_dir}/CASE-BRIEFING.md
-</briefing_file>
+<briefing_file>{phase_dir}/CASE-BRIEFING.md</briefing_file>
 
-<files_to_read>
-{relevant source paths with annotations, same as briefer dispatch}
-</files_to_read>",
+<context_file>{phase_dir}/{padded_phase}-CONTEXT.md</context_file>
+
+<requirements>
+Phase requirements: {comma-separated REQ-IDs from ROADMAP.md}
+Roadmap path: .planning/ROADMAP.md
+Requirements path: .planning/REQUIREMENTS.md
+</requirements>",
   run_in_background: false
 )
 ```
 
 Present findings to the developer:
 ```
-The codebase analysis found [N] items to review:
+The validation found [N] items to review:
 
-[1] [finding] -- [file:line]
+[1] [Category]: [finding]
+    Source: [D-XX / REQ-XX]
     Suggested case: [case description]
 
 [2] ...
@@ -466,11 +520,17 @@ CASES.md written. Next steps:
 - R2: [validation rule]
 - R3: [authorization rule]
 
+### Side Effects
+> Optional. Include only when the operation has side effects beyond the primary response.
+
+- Domain event: "[entity].[action]" emitted on success
+- [category]: [description]
+
 ### Success Cases
 
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
-| S1 | [name] | [state before] | [what happens] | [result] | must |
+| S1 | [name] | [state before] | [what happens] | [result; side effects] | must |
 | S2 | [name] | [state before] | [what happens] | [result] | should |
 
 ### Failure Cases
@@ -525,6 +585,12 @@ AI auto-assigns priority based on: data loss potential, security impact, user-fa
 **Case annotations:**
 - **Section-level blockquote** (above table): shared context for the group -- validation strategy, design decisions affecting multiple cases. Optional.
 - **Per-case footnote** (below table, `- **ID:** explanation`): why a specific case matters, non-obvious reasoning, or design decisions. Only for cases that need context -- most cases are self-explanatory from the table alone.
+
+**Expected Outcome column guidance:**
+- Include ALL observable effects: return value/status, state changes, AND side effects.
+- Success cases: assert side effects OCCURRED (e.g., "201 Created; 'book.created' event emitted").
+- Failure cases: assert side effects DID NOT occur where relevant (e.g., "400 Bad Request; no event emitted").
+- For complex side effects, use per-case footnotes to detail parameters and atomicity requirements.
 </output_format>
 
 <success_criteria>
@@ -532,8 +598,9 @@ AI auto-assigns priority based on: data loss potential, security impact, user-fa
 - Developer selected which operations to discuss
 - Each selected operation discussed depth-first: anchor, success, systematic probing, review
 - Cases organized as S/F/E with priority levels
+- Side effects reflected in Expected Outcome for all relevant cases (success: occurred; failure: did not occur)
 - Open questions captured (not glossed over or guessed)
-- Cross-operation consistency checked
+- Cross-operation consistency checked (including side effect consistency)
 - XX-CASES.md written and confirmed by developer
 - Next step (plan-phase or resolve questions) communicated
 </success_criteria>
