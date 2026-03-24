@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use validator::Validate;
 
 const RESERVED_HANDLES: &[&str] = &[
@@ -14,9 +12,6 @@ const RESERVED_HANDLES: &[&str] = &[
     "madome",
 ];
 
-static HANDLE_REGEX: LazyLock<regex::Regex> =
-    LazyLock::new(|| regex::Regex::new(r"^[a-zA-Z0-9_]+$").unwrap());
-
 fn check_reserved_handle(handle: &str) -> Result<(), validator::ValidationError> {
     if RESERVED_HANDLES
         .iter()
@@ -28,7 +23,7 @@ fn check_reserved_handle(handle: &str) -> Result<(), validator::ValidationError>
 }
 
 fn check_handle_chars(handle: &str) -> Result<(), validator::ValidationError> {
-    if !HANDLE_REGEX.is_match(handle) {
+    if !handle.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_') {
         return Err(validator::ValidationError::new("invalid_handle_chars"));
     }
     Ok(())
