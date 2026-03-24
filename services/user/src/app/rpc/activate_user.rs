@@ -3,8 +3,8 @@ use madome_proto::user::{ActivateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    domain::ports::UserPorts,
-    usecase::activate_user::{ActivateUserPayload, activate_user},
+    domain::ports::UserPorts, payload::user::ActivateUserPayload,
+    usecase::activate_user::activate_user,
 };
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ActivateUser"))]

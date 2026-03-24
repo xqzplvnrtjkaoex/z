@@ -4,7 +4,8 @@ use tonic::{Request, Response, Status};
 use crate::{
     app::rpc::ProtoRole,
     domain::{ports::UserPorts, types::role::UserRole},
-    usecase::create_user::{CreateUserPayload, create_user},
+    payload::user::CreateUserPayload,
+    usecase::create_user::create_user,
 };
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "CreateUser"))]

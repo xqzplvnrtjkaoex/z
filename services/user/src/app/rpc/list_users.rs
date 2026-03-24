@@ -3,22 +3,25 @@ use madome_proto::user::{ListUsersRequest, ListUsersResponse, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    domain::ports::UserPorts,
-    usecase::list_users::{ListUsersPayload, list_users},
+    domain::ports::UserPorts, payload::user::ListUsersPayload, usecase::list_users::list_users,
 };
+
+impl From<ListUsersRequest> for ListUsersPayload {
+    fn from(req: ListUsersRequest) -> Self {
+        Self {
+            limit: req.limit as u64,
+            cursor: req.cursor,
+            include_inactive: req.include_inactive,
+        }
+    }
+}
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ListUsers"))]
 pub async fn execute<C: UserPorts>(
     ctx: &C,
     request: Request<ListUsersRequest>,
 ) -> Result<Response<ListUsersResponse>, Status> {
-    let req = request.into_inner();
-
-    let payload = ListUsersPayload {
-        limit: req.limit as u64,
-        cursor: req.cursor,
-        include_inactive: req.include_inactive,
-    };
+    let payload: ListUsersPayload = request.into_inner().into();
 
     let (users, next_cursor) = list_users(ctx, payload).await?;
 

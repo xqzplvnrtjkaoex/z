@@ -1,25 +1,22 @@
 use chrono::Utc;
-use uuid::Uuid;
 use validator::Validate;
 
-use crate::domain::{
-    error::user_error::UserError,
-    input::{handle_input::HandleInput, name_input::NameInput},
-    ports::{UserPorts, user_repository::UserRepository},
-    types::user::User,
+use crate::{
+    domain::{
+        error::user_error::UserError,
+        ports::{UserPorts, user_repository::UserRepository},
+        types::user::User,
+    },
+    payload::user::UpdateUserPayload,
 };
-
-pub struct UpdateUserPayload {
-    pub id: Uuid,
-    pub handle: Option<String>,
-    pub name: Option<String>,
-}
 
 #[tracing::instrument(skip_all, fields(user_id = %payload.id), err)]
 pub async fn update_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: UpdateUserPayload,
 ) -> Result<User, UserError> {
+    payload.validate()?;
+
     let mut user = ctx
         .user_repo()
         .find_by_id(payload.id)
@@ -27,9 +24,6 @@ pub async fn update_user(
         .ok_or(UserError::UserNotFound)?;
 
     if let Some(handle) = payload.handle {
-        HandleInput::new(&handle).validate_handle()?;
-
-        // Check handle uniqueness: if another user already has this handle
         if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await?
             && existing.id != user.id
         {
@@ -40,10 +34,6 @@ pub async fn update_user(
     }
 
     if let Some(name) = payload.name {
-        let name_input = NameInput::new(&name);
-        name_input
-            .validate()
-            .map_err(|e| UserError::InvalidName(e.to_string()))?;
         user.name = name;
     }
 
@@ -54,6 +44,7 @@ pub async fn update_user(
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use uuid::Uuid;
 
     use super::*;
     use crate::domain::{
@@ -151,7 +142,6 @@ mod tests {
         mock.expect_find_by_id()
             .once()
             .returning(move |_| Ok(Some(user_clone.clone())));
-        // find_by_handle returns the same user (same id), so no conflict
         mock.expect_find_by_handle()
             .once()
             .returning(move |_| Ok(Some(user_clone2.clone())));
@@ -166,5 +156,19 @@ mod tests {
 
         let result = update_user(&ctx, payload).await;
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn should_reject_invalid_handle_on_update() {
+        let mock = MockUserRepository::new();
+        let ctx = TestContext { user_repo: mock };
+        let payload = UpdateUserPayload {
+            id: Uuid::new_v4(),
+            handle: Some("ab".to_string()), // too short
+            name: None,
+        };
+
+        let result = update_user(&ctx, payload).await;
+        assert!(matches!(result, Err(UserError::InvalidInput(_))));
     }
 }

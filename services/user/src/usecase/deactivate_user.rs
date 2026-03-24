@@ -1,38 +1,35 @@
 use chrono::Utc;
-use uuid::Uuid;
 
-use crate::domain::{
-    error::user_error::UserError,
-    ports::{UserPorts, user_repository::UserRepository},
-    types::{role::UserRole, user::User},
+use crate::{
+    domain::{
+        error::user_error::UserError,
+        ports::{UserPorts, user_repository::UserRepository},
+        types::user::User,
+    },
+    payload::user::DeactivateUserPayload,
 };
-
-pub struct DeactivateUserPayload {
-    pub target_id: Uuid,
-    pub caller_id: Uuid,
-    pub caller_role: UserRole,
-}
 
 #[tracing::instrument(skip_all, fields(target_id = %payload.target_id, actor_id = %payload.caller_id), err)]
 pub async fn deactivate_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: DeactivateUserPayload,
 ) -> Result<User, UserError> {
-    if payload.caller_id == payload.target_id {
+    if payload.caller_id() == payload.target_id() {
         return Err(UserError::SelfModification);
     }
 
     let mut target = ctx
         .user_repo()
-        .find_by_id(payload.target_id)
+        .find_by_id(payload.target_id())
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    if !payload.caller_role.can_manage(target.role) {
+    if !payload.caller_role().can_manage(target.role) {
         return Err(UserError::InsufficientRole {
             reason: format!(
                 "role {} cannot manage role {}",
-                payload.caller_role, target.role
+                payload.caller_role(),
+                target.role
             ),
         });
     }
@@ -48,8 +45,8 @@ pub async fn deactivate_user(
 
     tracing::info!(
         event = "user.deactivated",
-        actor_id = %payload.caller_id,
-        target_id = %payload.target_id,
+        actor_id = %payload.caller_id(),
+        target_id = %payload.target_id(),
     );
 
     Ok(updated)
@@ -58,11 +55,15 @@ pub async fn deactivate_user(
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use uuid::Uuid;
 
     use super::*;
-    use crate::domain::ports::{
-        UserPorts,
-        user_repository::{MockUserRepository, UserRepository},
+    use crate::domain::{
+        ports::{
+            UserPorts,
+            user_repository::{MockUserRepository, UserRepository},
+        },
+        types::role::UserRole,
     };
 
     struct TestContext {
@@ -125,7 +126,7 @@ mod tests {
         let ctx = TestContext { user_repo: mock };
         let payload = DeactivateUserPayload {
             target_id: id,
-            caller_id: id, // same as target
+            caller_id: id,
             caller_role: UserRole::Admin,
         };
 
@@ -149,7 +150,7 @@ mod tests {
         let payload = DeactivateUserPayload {
             target_id,
             caller_id,
-            caller_role: UserRole::Admin, // equal role, not higher
+            caller_role: UserRole::Admin,
         };
 
         let result = deactivate_user(&ctx, payload).await;
@@ -160,7 +161,7 @@ mod tests {
     async fn should_return_user_already_inactive_when_user_is_already_deactivated() {
         let caller_id = Uuid::new_v4();
         let target_id = Uuid::new_v4();
-        let target = make_user(target_id, UserRole::User, false); // already inactive
+        let target = make_user(target_id, UserRole::User, false);
         let target_clone = target.clone();
 
         let mut mock = MockUserRepository::new();

@@ -1,13 +1,11 @@
-use crate::domain::{
-    error::user_error::UserError,
-    ports::{UserPorts, user_repository::UserRepository},
-    types::{role::UserRole, user::User},
+use crate::{
+    domain::{
+        error::user_error::UserError,
+        ports::{UserPorts, user_repository::UserRepository},
+        types::{role::UserRole, user::User},
+    },
+    payload::user::GetUserByHandlePayload,
 };
-
-pub struct GetUserByHandlePayload {
-    pub handle: String,
-    pub caller_role: UserRole,
-}
 
 #[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
 pub async fn get_user_by_handle(
@@ -16,11 +14,11 @@ pub async fn get_user_by_handle(
 ) -> Result<User, UserError> {
     let user = ctx
         .user_repo()
-        .find_by_handle(&payload.handle)
+        .find_by_handle(payload.handle())
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    if !user.is_active && !payload.caller_role.can_manage(UserRole::User) {
+    if !user.is_active && !payload.caller_role().can_manage(UserRole::User) {
         return Err(UserError::UserNotFound);
     }
 

@@ -1,61 +1,32 @@
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD as BASE64};
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use validator::Validate;
 
-use crate::domain::{
-    error::user_error::UserError,
-    ports::{UserPorts, user_repository::UserRepository},
-    types::user::User,
+use crate::{
+    domain::{
+        error::user_error::UserError,
+        ports::{UserPorts, user_repository::UserRepository},
+        types::user::User,
+    },
+    payload::user::ListUsersPayload,
 };
-
-pub struct ListUsersPayload {
-    pub limit: u64,
-    pub cursor: Option<String>,
-    pub include_inactive: bool,
-}
 
 #[tracing::instrument(skip_all, err)]
 pub async fn list_users(
     ctx: &(impl UserPorts + ?Sized),
     payload: ListUsersPayload,
 ) -> Result<(Vec<User>, Option<String>), UserError> {
-    let limit = if payload.limit == 0 {
-        25
-    } else if payload.limit > 100 {
-        100
-    } else {
-        payload.limit
-    };
-
-    let decoded_cursor = if let Some(cursor_str) = payload.cursor {
-        let bytes = BASE64
-            .decode(cursor_str.as_bytes())
-            .map_err(|_| UserError::Internal("invalid cursor encoding".to_string()))?;
-        let s = String::from_utf8(bytes)
-            .map_err(|_| UserError::Internal("invalid cursor encoding".to_string()))?;
-        let (ts_part, uuid_part) = s
-            .rsplit_once(',')
-            .ok_or_else(|| UserError::Internal("invalid cursor format".to_string()))?;
-        let ts = ts_part
-            .parse::<DateTime<Utc>>()
-            .map_err(|_| UserError::Internal("invalid cursor timestamp".to_string()))?;
-        let id = uuid_part
-            .parse::<Uuid>()
-            .map_err(|_| UserError::Internal("invalid cursor uuid".to_string()))?;
-        Some((ts, id))
-    } else {
-        None
-    };
+    payload.validate()?;
+    let limit = payload.limit();
+    let cursor = payload.cursor()?;
 
     // Fetch limit + 1 to detect if there are more results
     let mut users = ctx
         .user_repo()
-        .list(limit + 1, decoded_cursor, payload.include_inactive)
+        .list(limit + 1, cursor, payload.include_inactive())
         .await?;
 
     let next_cursor = if users.len() > limit as usize {
         users.pop(); // remove the extra item
-        // Encode last item's (created_at, id) as cursor
         let last = users.last().unwrap();
         let cursor_str = format!("{},{}", last.created_at.to_rfc3339(), last.id);
         Some(BASE64.encode(cursor_str.as_bytes()))
@@ -69,6 +40,7 @@ pub async fn list_users(
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use uuid::Uuid;
 
     use super::*;
     use crate::domain::{
@@ -128,7 +100,6 @@ mod tests {
 
     #[tokio::test]
     async fn should_return_next_cursor_when_more_results_exist() {
-        // Build 26 users (limit is 25, so 26 signals more pages)
         let users: Vec<User> = (0..26).map(|i| make_user(&format!("user{i}"))).collect();
         let users_clone = users.clone();
 
@@ -149,5 +120,38 @@ mod tests {
         let (returned_users, next_cursor) = result.unwrap();
         assert_eq!(returned_users.len(), 25);
         assert!(next_cursor.is_some());
+    }
+
+    #[tokio::test]
+    async fn should_use_default_limit_25_when_limit_is_zero() {
+        let mut mock = MockUserRepository::new();
+        mock.expect_list()
+            .once()
+            .withf(|limit, _, _| *limit == 26) // 25 + 1 for has-more detection
+            .returning(|_, _, _| Ok(vec![]));
+
+        let ctx = TestContext { user_repo: mock };
+        let payload = ListUsersPayload {
+            limit: 0,
+            cursor: None,
+            include_inactive: false,
+        };
+
+        let result = list_users(&ctx, payload).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn should_reject_limit_over_100() {
+        let mock = MockUserRepository::new();
+        let ctx = TestContext { user_repo: mock };
+        let payload = ListUsersPayload {
+            limit: 101,
+            cursor: None,
+            include_inactive: false,
+        };
+
+        let result = list_users(&ctx, payload).await;
+        assert!(matches!(result, Err(UserError::InvalidInput(_))));
     }
 }

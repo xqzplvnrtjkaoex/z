@@ -2,34 +2,25 @@ use chrono::Utc;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::domain::{
-    error::user_error::UserError,
-    input::{handle_input::HandleInput, name_input::NameInput},
-    ports::{UserPorts, user_repository::UserRepository},
-    types::{role::UserRole, user::User},
+use crate::{
+    domain::{
+        error::user_error::UserError,
+        ports::{UserPorts, user_repository::UserRepository},
+        types::{role::UserRole, user::User},
+    },
+    payload::user::CreateUserPayload,
 };
-
-pub struct CreateUserPayload {
-    pub handle: String,
-    pub name: String,
-    pub role: UserRole,
-}
 
 #[tracing::instrument(skip_all, fields(handle = %payload.handle), err)]
 pub async fn create_user(
     ctx: &(impl UserPorts + ?Sized),
     payload: CreateUserPayload,
 ) -> Result<User, UserError> {
+    payload.validate()?;
+
     if payload.role == UserRole::Owner {
         return Err(UserError::OwnerRoleRejected);
     }
-
-    HandleInput::new(&payload.handle).validate_handle()?;
-
-    let name_input = NameInput::new(&payload.name);
-    name_input
-        .validate()
-        .map_err(|e| UserError::InvalidName(e.to_string()))?;
 
     let now = Utc::now();
     let user = User {
@@ -110,7 +101,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_reject_invalid_handle_with_invalid_handle_error() {
+    async fn should_reject_invalid_handle() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
         let payload = CreateUserPayload {
@@ -120,11 +111,11 @@ mod tests {
         };
 
         let result = create_user(&ctx, payload).await;
-        assert!(matches!(result, Err(UserError::InvalidHandle(_))));
+        assert!(matches!(result, Err(UserError::InvalidInput(_))));
     }
 
     #[tokio::test]
-    async fn should_reject_reserved_handle_with_handle_reserved_error() {
+    async fn should_reject_reserved_handle() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
         let payload = CreateUserPayload {
@@ -134,11 +125,11 @@ mod tests {
         };
 
         let result = create_user(&ctx, payload).await;
-        assert!(matches!(result, Err(UserError::HandleReserved)));
+        assert!(matches!(result, Err(UserError::InvalidInput(_))));
     }
 
     #[tokio::test]
-    async fn should_reject_invalid_name_with_invalid_name_error() {
+    async fn should_reject_invalid_name() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
         let payload = CreateUserPayload {
@@ -148,7 +139,7 @@ mod tests {
         };
 
         let result = create_user(&ctx, payload).await;
-        assert!(matches!(result, Err(UserError::InvalidName(_))));
+        assert!(matches!(result, Err(UserError::InvalidInput(_))));
     }
 
     #[tokio::test]

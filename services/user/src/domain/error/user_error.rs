@@ -1,5 +1,4 @@
 use super::repository_error::RepositoryError;
-use crate::domain::input::handle_input::HandleValidationError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UserError {
@@ -9,14 +8,8 @@ pub enum UserError {
     #[error("handle already taken")]
     HandleTaken,
 
-    #[error("handle is reserved")]
-    HandleReserved,
-
-    #[error("invalid handle: {0}")]
-    InvalidHandle(String),
-
-    #[error("invalid name: {0}")]
-    InvalidName(String),
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 
     #[error("insufficient role: {reason}")]
     InsufficientRole { reason: String },
@@ -40,12 +33,17 @@ pub enum UserError {
     Internal(String),
 }
 
-impl From<HandleValidationError> for UserError {
-    fn from(e: HandleValidationError) -> Self {
-        match e {
-            HandleValidationError::Reserved => UserError::HandleReserved,
-            HandleValidationError::Invalid(msg) => UserError::InvalidHandle(msg),
-        }
+impl From<validator::ValidationErrors> for UserError {
+    fn from(err: validator::ValidationErrors) -> Self {
+        let msg = err
+            .field_errors()
+            .values()
+            .flat_map(|errors| errors.iter())
+            .filter_map(|e| e.message.as_ref())
+            .next()
+            .map(|m| m.to_string())
+            .unwrap_or_else(|| err.to_string());
+        UserError::InvalidInput(msg)
     }
 }
 
@@ -70,9 +68,7 @@ impl From<UserError> for tonic::Status {
         match err {
             UserError::UserNotFound => tonic::Status::not_found(err.to_string()),
             UserError::HandleTaken => tonic::Status::already_exists(err.to_string()),
-            UserError::HandleReserved => tonic::Status::invalid_argument(err.to_string()),
-            UserError::InvalidHandle(_) => tonic::Status::invalid_argument(err.to_string()),
-            UserError::InvalidName(_) => tonic::Status::invalid_argument(err.to_string()),
+            UserError::InvalidInput(_) => tonic::Status::invalid_argument(err.to_string()),
             UserError::InsufficientRole { .. } => tonic::Status::permission_denied(err.to_string()),
             UserError::SelfModification => tonic::Status::permission_denied(err.to_string()),
             UserError::UserInactive => tonic::Status::failed_precondition(err.to_string()),
@@ -103,20 +99,8 @@ mod tests {
     }
 
     #[test]
-    fn should_map_handle_reserved_to_invalid_argument_status() {
-        let status: tonic::Status = UserError::HandleReserved.into();
-        assert_eq!(status.code(), Code::InvalidArgument);
-    }
-
-    #[test]
-    fn should_map_invalid_handle_to_invalid_argument_status() {
-        let status: tonic::Status = UserError::InvalidHandle("too short".to_string()).into();
-        assert_eq!(status.code(), Code::InvalidArgument);
-    }
-
-    #[test]
-    fn should_map_invalid_name_to_invalid_argument_status() {
-        let status: tonic::Status = UserError::InvalidName("too long".to_string()).into();
+    fn should_map_invalid_input_to_invalid_argument_status() {
+        let status: tonic::Status = UserError::InvalidInput("bad".to_string()).into();
         assert_eq!(status.code(), Code::InvalidArgument);
     }
 

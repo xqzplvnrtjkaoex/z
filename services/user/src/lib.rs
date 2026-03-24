@@ -1,6 +1,7 @@
 pub mod adapter;
 pub mod app;
 pub mod domain;
+pub mod payload;
 pub mod usecase;
 
 #[path = "../schema/mod.rs"]

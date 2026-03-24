@@ -5,7 +5,8 @@ use tonic::{Request, Response, Status};
 use crate::{
     app::rpc::ProtoRole,
     domain::{ports::UserPorts, types::role::UserRole},
-    usecase::change_role::{ChangeRolePayload, change_role},
+    payload::user::ChangeRolePayload,
+    usecase::change_role::change_role,
 };
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "ChangeRole"))]

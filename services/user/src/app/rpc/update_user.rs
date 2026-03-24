@@ -2,8 +2,7 @@ use madome_proto::user::{UpdateUserRequest, UserResponse};
 use tonic::{Request, Response, Status};
 
 use crate::{
-    domain::ports::UserPorts,
-    usecase::update_user::{UpdateUserPayload, update_user},
+    domain::ports::UserPorts, payload::user::UpdateUserPayload, usecase::update_user::update_user,
 };
 
 #[tracing::instrument(skip_all, fields(otel.kind = "server", rpc = "UpdateUser"))]
