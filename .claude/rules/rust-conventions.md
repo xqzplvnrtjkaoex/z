@@ -4,11 +4,11 @@ paths: ["*.rs"]
 
 # Rust Coding Conventions
 
-## Typed Constants Over String Literals
+## Typed APIs Over String Matching
 
-Prefer typed constants over raw string literals for any protocol-level or well-known identifier (HTTP headers, cookie names, MIME types, gRPC metadata keys, etc.).
+Prefer typed constants, enums, and structured APIs over raw string literals or `to_string()` / `contains(...)` matching.
 
-- MUST: When the framework or library already provides a typed constant (e.g., `header::CONTENT_TYPE`, `header::SET_COOKIE`), always use it.
+- MUST: When the framework or library already provides a typed API (e.g., `header::CONTENT_TYPE`, `DbErr::sql_err()`, `io::Error::kind()`), always use it.
 - SHOULD: When no typed constant exists, define your own (`const` or `HeaderName::from_static(...)`) rather than repeating string literals across call sites. Exceptions are acceptable for one-off or context-local usage.
 
 ## Import Style
