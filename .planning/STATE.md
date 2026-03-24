@@ -118,11 +118,12 @@ Recent decisions affecting current work:
 | 260324-r69 | Simplify NameInput: replace custom check_name_length fn with #[validate(length(...))] and remove validate_name() wrapper | 2026-03-24 | 3c71ec2 | [260324-r69-simplify-nameinput-use-validator-built-i](./quick/260324-r69-simplify-nameinput-use-validator-built-i/) |
 | 260324-rfl | Replace HANDLE_REGEX LazyLock<Regex> with bytes().all() char check, remove regex crate from user service and workspace | 2026-03-24 | 46e7a48 | [260324-rfl-replace-handle-regex-lazylock-regex-with](./quick/260324-rfl-replace-handle-regex-lazylock-regex-with/) |
 | 260325-1c6 | Check and update docs for current changes | 2026-03-25 | af7a932 | [260325-1c6-check-and-update-docs-for-current-change](./quick/260325-1c6-check-and-update-docs-for-current-change/) |
+| 260325-1um | Make payload fields private, add new() constructors and getters for all 7 user payload structs | 2026-03-25 | 191a1ea | [260325-1um-make-payload-fields-private-determine-fr](./quick/260325-1um-make-payload-fields-private-determine-fr/) |
 
 ## Session Continuity
 
 Last session: 2026-03-25
-Last activity: Doc sync quick task (260325-1c6), Attribute Style rule added to rust-conventions.md, user service payload refactor cleanup
+Last activity: Quick task 260325-1um — payload encapsulation refactor (private fields, new() constructors, getters/take methods)
 Stopped at: All pending changes committed. Phase 3A ready for planning
 Resume file: .planning/phases/03a-authentication-core/03a-CONTEXT.md
 Next action: /gsd:plan-phase 3a
