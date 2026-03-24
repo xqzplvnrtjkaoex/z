@@ -550,3 +550,84 @@ Confirmed complete list of 23 endpoints across 4 tiers (public, protected, admin
 - User deletion (admin operation) -- v2
 - CORS configuration -- when frontend is built
 - Audit logging beyond invite history -- v2+
+
+---
+
+## Context Update Session (2026-03-25)
+
+> Areas 1-2 discussed 2026-03-24, Areas 3-6 discussed 2026-03-25. Advisor mode active throughout.
+
+### Area 1: JWT Middleware Transition (2026-03-24)
+
+**Question:** How should Gateway authenticate requests after JWT is introduced?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Replace extract_caller_identity | verify_jwt via route_layer + from_fn_with_state | Y |
+| Layer on top | Add verify_jwt before existing extract_caller_identity | |
+| Inline in handlers | Per-handler JWT verification | |
+
+**Follow-up decisions:**
+- CallerIdentity extended with handle + session_id
+- Public vs protected routes structurally split at Router level
+- Grace period via response mutation (Set-Cookie after next.run())
+
+**Decisions added:** D-127, D-128, D-129
+
+### Area 2: Dev Environment Setup (2026-03-24)
+
+**Question:** How to provision JWT keys and infrastructure for development?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| just dev-keys recipe | openssl ES256 PEM -> .env (gitignored) | Y |
+| Committed test keys | Check keys into repo | |
+| Key management service | Vault or similar | |
+
+**Follow-up decisions:**
+- Docker-compose: auth-db (5434) + redis (6379)
+- Fixed well-known dev seed token. **User strongly emphasized prod seed must be separate**
+
+**Decisions added:** D-130, D-131, D-132
+
+### Area 3: Cross-Service Error Handling (2026-03-25)
+
+**Question:** What error handling strategy for Auth -> User gRPC calls?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Fail-fast + call ordering | User call first, auth DB only after success | Y |
+| Compensating transaction | User create -> credential fail -> delete user | |
+| Saga with outbox | Full saga pattern with message queue | |
+
+**Follow-up: gRPC call timeout?**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 5 seconds | Fast failure, minimal user wait | Y |
+| 10 seconds | More generous default | |
+| Claude's discretion | | |
+
+**Decisions added:** D-133, D-134, D-135, D-136
+
+### Area 4: Test Orchestration (2026-03-25)
+
+**Question:** How to compose Auth + User services in service tests?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Both in-process | Auth + User real services in same test | |
+| Auth in-process, User mocked | Mock UserServicePort in auth tests | |
+| Layer-appropriate | Mock in unit/integration/service, real in E2E | Y |
+
+**Notes:** User requested detailed explanation with recommendation. Presented test pyramid rationale. User noted this was largely already decided in existing D-64/D-65/D-94 -- the only new decision was UserServicePort specifically.
+
+**Decisions added:** D-137, D-138
+
+### Area 5: Phase 2 Code Context Update (2026-03-25)
+
+Code_context section updated based on actual codebase scan. Key corrections: madome-core does not exist (AppError in gateway), domain/input/ layer documented, gateway module structure (payload/model/util) documented. No new decisions -- factual corrections only.
+
+### Area 6: Write Updated CONTEXT.md (2026-03-25)
+
+CONTEXT.md updated with 12 new decisions (D-127 through D-138), corrected code_context, added .claude/rules/ to canonical_refs.

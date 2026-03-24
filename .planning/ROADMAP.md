@@ -14,7 +14,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Gateway Infrastructure** - Cargo workspace, shared crates, proto definitions, gateway REST-to-gRPC routing (completed 2026-03-21)
 - [x] **Phase 2: User Profile** - User service with profiles, CRUD operations via gRPC (completed 2026-03-22)
-- [ ] **Phase 3: Authentication** - Passkey registration/login, JWT lifecycle, session management, API key auth
+- [ ] **Phase 3A: Authentication Core** - Passkey registration/login, JWT lifecycle, session management, gateway JWT middleware
+- [ ] **Phase 3B: Authentication Operations** - Recovery, step-up auth, API key, admin operations, passkey management
 - [ ] **Phase 4: Catalog Core** - Book CRUD operations and publish workflow through gateway
 - [ ] **Phase 5: Catalog Queries** - Tag-based filtering, ID list lookup, paginated browse listing
 - [ ] **Phase 6: User Preferences** - Taste (like/dislike) and reading history tracking per user
@@ -53,23 +54,43 @@ Plans:
 - [x] 02-03-PLAN.md -- Usecase functions with unit tests, gRPC handler, main.rs composition root
 - [x] 02-04-PLAN.md -- Gateway REST routes for user operations, integration tests, service tests
 
-### Phase 3: Authentication
-**Goal**: Users can register a passkey, authenticate, and access protected endpoints through JWT-verified gateway
+### Phase 3A: Authentication Core
+**Goal**: Users can register a passkey via invite, authenticate, and access protected endpoints through JWT-verified gateway
 **Depends on**: Phase 1, Phase 2
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, GATE-03, GATE-04, GATE-05
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, GATE-03, GATE-04
 **Success Criteria** (what must be TRUE):
-  1. User can register a new passkey credential via the gateway API
-  2. User can authenticate with a registered passkey and receive a JWT access token as an HttpOnly cookie
-  3. Authenticated requests pass through the gateway without contacting the auth service (stateless JWT verification)
-  4. Expired JWT is automatically refreshed (grace period pass-through or session-based reissue) without user action
-  5. Scraper can authenticate to the gateway using an API key
-**Plans**: 4 plans
+  1. Owner can register via seed invite and set name + handle + passkey
+  2. Owner can create invites for new users via protected endpoint
+  3. User can register a passkey credential using a valid invite token
+  4. User can authenticate with a registered passkey and receive a JWT as an HttpOnly cookie
+  5. Authenticated requests pass through the gateway via stateless JWT verification
+  6. Expired JWT is automatically refreshed (grace period or session-based reissue) without user action
+  7. Recovery codes are generated at registration and returned once
+**Plans**: TBD (replanning needed)
 
 Plans:
-- [ ] 03-01-PLAN.md -- Proto definitions, workspace dependencies, infrastructure (Docker-compose), DB schema and migrations
-- [ ] 03-02-PLAN.md -- Auth service domain modules (WebAuthn, session, JWT, invite, recovery, API key, repositories) and gRPC service
-- [ ] 03-03-PLAN.md -- Gateway JWT middleware, 4-tier route guards, API key auth, auth REST route handlers
-- [ ] 03-04-PLAN.md -- Auth contract tests and gateway E2E integration tests
+- [ ] 03a-01-PLAN.md -- TBD
+- [ ] 03a-02-PLAN.md -- TBD
+- [ ] 03a-03-PLAN.md -- TBD
+- [ ] 03a-04-PLAN.md -- TBD
+
+### Phase 3B: Authentication Operations
+**Goal**: Recovery flows, step-up authentication, API key auth, admin operations, and passkey management
+**Depends on**: Phase 3A
+**Requirements**: AUTH-04, AUTH-05, GATE-05
+**Success Criteria** (what must be TRUE):
+  1. User can recover account access using a recovery code and re-register a passkey
+  2. Sensitive actions (passkey deletion, recovery regen, logout all) require step-up verification
+  3. Scraper can authenticate to the gateway using an API key
+  4. Admin can manage invites, deactivate/activate users, and change roles
+  5. User can list, rename, and delete passkeys (delete requires step-up)
+  6. Gateway enforces 5-tier auth: public, protected, verified, admin, scraper
+**Plans**: TBD
+
+Plans:
+- [ ] 03b-01-PLAN.md -- TBD
+- [ ] 03b-02-PLAN.md -- TBD
+- [ ] 03b-03-PLAN.md -- TBD
 
 ### Phase 4: Catalog Core
 **Goal**: Books can be created, updated, deleted, and published through the gateway API
@@ -121,15 +142,16 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3A -> 3B -> 4 -> 5 -> 6
 
-Note: Phase 4 (Catalog Core) can start in parallel with Phase 3 (Authentication) since both depend on Phase 1 (not Phase 2).
+Note: Phase 4 (Catalog Core) can start in parallel with Phase 3A/3B since both depend on Phase 1 (not Phase 2).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Gateway Infrastructure | 2/2 | Complete   | 2026-03-21 |
 | 2. User Profile | 4/4 | Complete   | 2026-03-22 |
-| 3. Authentication | 0/4 | Not started | - |
+| 3A. Authentication Core | 0/? | Not started | - |
+| 3B. Authentication Operations | 0/? | Blocked (3A) | - |
 | 4. Catalog Core | 0/? | Not started | - |
 | 5. Catalog Queries | 0/? | Not started | - |
 | 6. User Preferences | 0/? | Not started | - |

@@ -21,7 +21,7 @@
     "branching_strategy": "phase"
   },
   "hooks": {
-    "context_warnings": true,
+    "context_warnings": false,
     "research_questions": true
   }
 }
