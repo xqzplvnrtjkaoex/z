@@ -165,8 +165,7 @@ mod tests {
             .returning(move |_| Ok(Some(target_clone.clone())));
 
         let ctx = TestContext { user_repo: mock };
-        let payload =
-            ChangeRolePayload::new(target_id, UserRole::User, caller_id, UserRole::Admin);
+        let payload = ChangeRolePayload::new(target_id, UserRole::User, caller_id, UserRole::Admin);
 
         let result = change_role(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InsufficientRole { .. })));

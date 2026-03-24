@@ -120,11 +120,8 @@ mod tests {
     async fn should_reject_reserved_handle() {
         let mock = MockUserRepository::new();
         let ctx = TestContext { user_repo: mock };
-        let payload = CreateUserPayload::new(
-            "admin".to_string(),
-            "Test User".to_string(),
-            UserRole::User,
-        );
+        let payload =
+            CreateUserPayload::new("admin".to_string(), "Test User".to_string(), UserRole::User);
 
         let result = create_user(&ctx, payload).await;
         assert!(matches!(result, Err(UserError::InvalidInput(_))));
