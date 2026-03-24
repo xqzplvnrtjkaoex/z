@@ -13,17 +13,19 @@ use crate::{
 #[tracing::instrument(skip_all, fields(user_id = %payload.id()), err)]
 pub async fn update_user(
     ctx: &(impl UserPorts + ?Sized),
-    mut payload: UpdateUserPayload,
+    payload: UpdateUserPayload,
 ) -> Result<User, UserError> {
     payload.validate()?;
 
+    let (id, handle, name) = payload.into_parts();
+
     let mut user = ctx
         .user_repo()
-        .find_by_id(payload.id())
+        .find_by_id(id)
         .await?
         .ok_or(UserError::UserNotFound)?;
 
-    if let Some(handle) = payload.take_handle() {
+    if let Some(handle) = handle {
         if let Some(existing) = ctx.user_repo().find_by_handle(&handle).await?
             && existing.id != user.id
         {
@@ -33,7 +35,7 @@ pub async fn update_user(
         user.handle = handle;
     }
 
-    if let Some(name) = payload.take_name() {
+    if let Some(name) = name {
         user.name = name;
     }
 

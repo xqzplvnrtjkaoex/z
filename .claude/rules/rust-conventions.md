@@ -89,7 +89,7 @@ Payload structs have **private fields**, a `pub fn new(...)` constructor, and ge
 
 - **Validation**: `#[validate(...)]` attributes + `validate()?` call — rejects invalid values
 - **Normalization**: Getter methods — applies defaults or transforms (e.g., 0 → 25)
-- **Ownership transfer**: `into_parts(self)` when all fields are consumed at once, `take_field(&mut self)` for conditional consumption
+- **Ownership transfer**: `into_parts(self)` destructures the payload into owned values without cloning
 
 ```rust
 #[derive(Validate)]

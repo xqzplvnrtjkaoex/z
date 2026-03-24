@@ -114,12 +114,8 @@ impl UpdateUserPayload {
         self.name.as_deref()
     }
 
-    pub fn take_handle(&mut self) -> Option<String> {
-        self.handle.take()
-    }
-
-    pub fn take_name(&mut self) -> Option<String> {
-        self.name.take()
+    pub fn into_parts(self) -> (Uuid, Option<String>, Option<String>) {
+        (self.id, self.handle, self.name)
     }
 }
 
@@ -234,7 +230,12 @@ pub struct ChangeRolePayload {
 }
 
 impl ChangeRolePayload {
-    pub fn new(target_id: Uuid, new_role: UserRole, caller_id: Uuid, caller_role: UserRole) -> Self {
+    pub fn new(
+        target_id: Uuid,
+        new_role: UserRole,
+        caller_id: Uuid,
+        caller_role: UserRole,
+    ) -> Self {
         Self {
             target_id,
             new_role,
@@ -267,7 +268,10 @@ pub struct GetUserByHandlePayload {
 
 impl GetUserByHandlePayload {
     pub fn new(handle: String, caller_role: UserRole) -> Self {
-        Self { handle, caller_role }
+        Self {
+            handle,
+            caller_role,
+        }
     }
 
     pub fn handle(&self) -> &str {
@@ -295,8 +299,7 @@ mod tests {
 
     #[test]
     fn should_reject_handle_longer_than_15_characters() {
-        let payload =
-            CreateUserPayload::new("a".repeat(16), "Test".to_string(), UserRole::User);
+        let payload = CreateUserPayload::new("a".repeat(16), "Test".to_string(), UserRole::User);
         assert!(payload.validate().is_err());
     }
 
