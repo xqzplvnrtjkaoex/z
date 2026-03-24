@@ -103,6 +103,40 @@ All merge styles are `--no-ff` (preserve full commit history).
   3. Service tests — individual gRPC service with tonic in-process Channel
   4. E2E contract tests — through Gateway REST API, scenario-based
 
+## TDD Protocol (Executor Injection)
+
+For tasks with `tdd="true"`, the executor follows a Stub-Red-Green-Refactor cycle at **case-group granularity** (all S/F/E cases for one operation per cycle). Tasks without `tdd="true"` follow normal execution — test-first is preferred but the strict protocol below is not enforced.
+
+### Cycle per Task
+
+1. **Pre-task:** Read `<behavior>` items. Each item = one test function. Determine test layer from file context:
+   - `domain/`, `usecase/` → unit test (`#[cfg(test)] mod tests`, same file, mock ports)
+   - `adapter/` → integration test (`tests/` directory, testcontainers)
+   - `app/rpc/` → covered by service tests (separate task)
+
+2. **Stub** (only if domain types/ports don't exist yet): Create minimal stubs — struct fields tests reference, trait method signatures, error variants tests assert against. Bodies: `todo!()`. Verify: `cargo check -p {crate}`.
+
+3. **Red:** Write ALL test functions for the task's `<behavior>` items. Order by ZOMBIES (simplest success → failures → boundaries). Naming: `should_{behavior}_when_{condition}`. Run `cargo test -p {crate} -- {prefix}` — all must **fail with assertion errors** (not compile errors). If compile errors: return to Stub.
+
+4. **Green:** Implement minimum code to pass all tests. Only logic paths exercised by tests. Run `cargo test -p {crate} -- {prefix}` — all must pass.
+
+5. **Refactor:** Run `cargo clippy -p {crate}`, fix warnings. Extract duplicated setup/logic. Only refactor code with test coverage. Verify: `cargo test -p {crate}` (full crate).
+
+6. **Commit:** Test + implementation together as one atomic commit. Do NOT commit failing tests separately.
+
+### Prohibited Behaviors
+
+- Writing implementation before tests for `tdd="true"` tasks (recovery: revert implementation, write tests from scratch)
+- Writing test and implementation in the same edit (must see Red before Green)
+- `assert!(result.is_ok())` without inspecting the value — unwrap and verify fields
+- Testing mock configuration (`times()`, `withf()`) instead of behavior — use `returning()` for setup, `assert!()` for output
+- Over-implementation beyond test scope — every code path must be exercised by at least one test
+- Adding case IDs to test function names — test names describe behavior, not planning artifacts
+
+### Reference
+
+See `.planning/research/TDD-EXECUTOR-INJECTION.md` for full research and rationale.
+
 ## Crate Skills
 
 Store generated crate skills in `.claude/skills/` (project-local), not `~/.claude/skills/` (global).
@@ -150,11 +184,10 @@ This project extends the GSD workflow with custom skills between standard stages
 
 ```
 discuss -> /case -> (ui-phase) -> (research) -> plan -> (review) -> (assumptions)
-  -> /test-gen -> execute -> (ui-review) -> (validate) -> verify -> ship
+  -> execute -> (ui-review) -> (validate) -> verify -> ship
 ```
 
 - `/case`: behavioral case discovery. Produces `{padded_phase}-CASES.md` with S/F/E case tables.
-- `/test-gen`: test skeleton generation (planned, not yet built). Produces failing test files.
 - `gsd:ui-phase`: frontend only, UI design contract. `gsd:ui-review`: post-implementation visual audit.
 - `gsd:research`: standalone pre-plan research for unfamiliar libraries/protocols.
 - `gsd:review`: cross-AI peer review of PLAN.md before execution.
@@ -168,7 +201,8 @@ discuss -> /case -> (ui-phase) -> (research) -> plan -> (review) -> (assumptions
 When `{phase_dir}/*-CASES.md` exists, the planner should:
 - Read it as additional input alongside CONTEXT.md
 - Map must-priority cases to required test tasks in PLAN.md
-- Reference case IDs as `OperationName.S1` in task `acceptance_criteria` (IDs restart per operation)
+- Annotate case IDs as `[OperationName.S1]` in task `<behavior>` items (IDs restart per operation)
+- Set `tdd="true"` on tasks with behavioral test requirements
 - Flag open questions (Q1-QN) as items requiring resolution
 
 When CASES.md does not exist, plan-phase works normally from CONTEXT.md + REQUIREMENTS.md alone.

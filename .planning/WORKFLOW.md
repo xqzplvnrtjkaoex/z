@@ -1,6 +1,6 @@
 # Development Workflow
 
-Extended GSD workflow with custom skills (/case, /test-gen) and additional GSD stages for maximum coverage.
+Extended GSD workflow with custom skill (/case) and additional GSD stages for maximum coverage. TDD is enforced during execute via CLAUDE.md protocol (Stub-Red-Green-Refactor per task).
 
 ## Main Pipeline
 
@@ -21,9 +21,7 @@ Extended GSD workflow with custom skills (/case, /test-gen) and additional GSD s
          |
   (gsd:assumptions)
          |
-     /test-gen
-         |
-    gsd:execute ──(stuck)──> gsd:debug
+    gsd:execute ──(stuck)──> gsd:debug    [TDD via CLAUDE.md protocol]
          |
   (gsd:ui-review)
          |
@@ -53,8 +51,7 @@ Steps in `(parentheses)` are optional — see each step's "When to skip" note be
 | **gsd:plan** | PLAN.md | **HOW to build** — task decomposition, dependencies, execution order | CONTEXT.md, CASES.md, RESEARCH.md |
 | **gsd:review** | Review comments | **Is the plan sound** — gaps, wrong dependencies, overcomplexity | PLAN.md, CASES.md |
 | **gsd:assumptions** | Assumptions list | **What did we assume** — implicit dependencies, preconditions | PLAN.md |
-| **/test-gen** | Test skeletons | **Failing tests** — compilation-error test files from CASES.md (the "red" in TDD) | CASES.md |
-| **gsd:execute** | Implementation code | **Code** — make tests pass, implement all planned tasks | PLAN.md, test skeletons |
+| **gsd:execute** | Implementation code + tests | **Code** — implement tasks with TDD (Stub-Red-Green-Refactor per `tdd="true"` task, guided by CLAUDE.md protocol) | PLAN.md, CASES.md (via `<behavior>` items) |
 | **gsd:debug** | Debug state | **Root cause** — systematic diagnosis with persistent state | Error context |
 | **gsd:ui-review** | UI audit report | **Visual quality** — 6-pillar audit (a11y, responsiveness, etc.) | Implemented UI |
 | **gsd:validate** | Validation report | **Plan fulfilled** — PLAN.md tasks vs actual implementation | PLAN.md, code |
@@ -96,8 +93,7 @@ At each step, what artifacts exist:
 | gsd:plan | Y | Y | Y | maybe | - | - |
 | gsd:review | Y | Y | Y | maybe | Y | - |
 | gsd:assumptions | Y | Y | Y | maybe | Y | - |
-| /test-gen | Y | Y | Y | maybe | Y | - |
-| gsd:execute | Y | Y | Y | Y | Y | being created |
+| gsd:execute | Y | Y | Y | Y | Y | being created (tests + impl via TDD) |
 | gsd:ui-review | Y | Y | Y | Y | Y | Y |
 | gsd:validate | Y | Y | Y | Y | Y | Y |
 | gsd:verify | Y | Y | Y | Y | Y | Y |
@@ -147,7 +143,7 @@ Not every phase needs /case — simple phases, infrastructure phases, or time-co
 ## Integration Notes
 
 - **gsd:plan must read CASES.md:** The GSD planner does not know about CASES.md by default. CLAUDE.md instruction ensures it is included as required context for task decomposition.
-- **/test-gen consumes CASES.md:** Designed as primary input — each S/F/E case maps to a test skeleton.
+- **gsd:execute uses CASES.md via PLAN.md:** For `tdd="true"` tasks, the executor reads `<behavior>` items (annotated with case IDs) and follows the TDD protocol in CLAUDE.md to write tests before implementation.
 - **Iteration invalidates downstream:** If you redo gsd:discuss, CONTEXT.md changes may invalidate CASES.md. If you redo /case, CASES.md changes may invalidate PLAN.md. Downstream artifacts should be regenerated.
 
 ---

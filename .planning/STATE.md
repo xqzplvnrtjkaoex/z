@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: WORKFLOW.md expanded with full GSD pipeline, session/milestone/idea management
-last_updated: "2026-03-24T23:00:00.000Z"
+stopped_at: Replaced /test-gen with TDD executor injection via CLAUDE.md protocol
+last_updated: "2026-03-25T00:30:00.000Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 6
@@ -121,7 +121,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-24
-Last activity: Expanded WORKFLOW.md with full GSD pipeline (13 stages), added session management, milestone lifecycle, and idea management sections. Updated CLAUDE.md pipeline reference to match.
-Stopped at: Workflow documentation complete. Ready for Phase 03 authentication.
-Resume file: .planning/WORKFLOW.md
+Last activity: Replaced /test-gen with TDD executor injection. Researched (4 parallel agents + synthesizer) existing TDD skill, execute workflow internals, CASES-to-test mapping, AI agent TDD patterns. Added TDD Protocol section to CLAUDE.md, updated WORKFLOW.md pipeline. Key decisions: CLAUDE.md as injection point, case-group granularity, Stub-Red-Green-Refactor cycle, case IDs in behavior items.
+Stopped at: TDD executor injection complete. Ready for Phase 03 authentication.
+Resume file: .planning/research/TDD-EXECUTOR-INJECTION.md
 Next action: /gsd:discuss-phase 3 or /gsd:plan-phase 3 (authentication)
