@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Added gsd:simplify pipeline step, workflow integration complete
-last_updated: "2026-03-25T01:00:00.000Z"
-last_activity: 2026-03-24
+stopped_at: Phase 3A context update in progress — 2 of 4 gray areas discussed (JWT middleware, Dev env)
+last_updated: "2026-03-24T14:49:43.335Z"
+last_activity: Phase 3 split into 3A (Authentication Core) and 3B (Authentication Operations). Created 03a-CONTEXT.md and 03b-CONTEXT.md from original 03-CONTEXT.md (~126 decisions). ROADMAP and STATE updated. Original 03-authentication/ directory superseded.
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
-  total_plans: 10
+  total_plans: 6
   completed_plans: 6
 ---
 
@@ -20,11 +20,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Reliably mirror books from external sources and allow authenticated users to browse them.
-**Current focus:** Phase 02 complete — next: Phase 03 authentication
+**Current focus:** Phase 02 complete — next: Phase 03A authentication core
 
 ## Current Position
 
-Phase: 03
+Phase: 03A
 Plan: Not started
 
 ## Performance Metrics
@@ -120,8 +120,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Last activity: Added gsd:simplify as optional pipeline step between verify and ship. Discussed code-review/simplify skill integration — decided simplify fits as pipeline step (local, self-fix), code-review stays manual (PR-dependent, on-demand). Updated WORKFLOW.md (5 sections) and CLAUDE.md (pipeline + skill description).
-Stopped at: Workflow simplify integration complete. Ready for Phase 03 authentication.
-Resume file: .planning/WORKFLOW.md
-Next action: /gsd:discuss-phase 3 or /gsd:plan-phase 3 (authentication)
+Last session: 2026-03-24T14:49:43.331Z
+Last activity: Phase 3 split into 3A (Authentication Core) and 3B (Authentication Operations). Created 03a-CONTEXT.md and 03b-CONTEXT.md from original 03-CONTEXT.md (~126 decisions). ROADMAP and STATE updated. Original 03-authentication/ directory superseded.
+Stopped at: Phase 3A context update in progress — 2 of 4 gray areas discussed (JWT middleware, Dev env)
+Resume file: .planning/phases/03a-authentication-core/03A-CONTEXT.md
+Next action: /gsd:plan-phase 3a (or /gsd:discuss-phase 3a to update context with actual codebase patterns first)
