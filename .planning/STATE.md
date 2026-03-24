@@ -80,7 +80,7 @@ Recent decisions affecting current work:
 - [Phase 02-user-profile]: trait_variant + mockall: #[cfg_attr(test, mockall::automock)] must appear BEFORE #[trait_variant::make] - validated working in Plan 01
 - [Phase 02-user-profile]: Handle validation uses #[derive(Validate)] on payload structs with custom validator fns (check_handle_chars, check_reserved_handle) in payload/ module; regex crate fully removed
 - [Phase 02-user-profile]: Func::lower() from sea_query used for case-insensitive handle filter (type-safe vs Expr::cust raw SQL)
-- [Phase 02-user-profile]: classify_db_err inspects error message for 'duplicate key'/'23505' to map to RepositoryError::UniqueViolation since sea-orm wraps sqlx errors without stable unique-violation enum variant (now replaced by From<DbErr> impl per quick task 260322-vwa)
+- [Phase 02-user-profile]: From<DbErr> for RepositoryError uses DbErr::sql_err() type-based matching (SqlErr::UniqueConstraintViolation) instead of string matching
 - [Phase 02-user-profile]: Use #[automock(target = UserRepository)] with trait_variant to generate Send-compatible mock for unit tests
 - [Phase 02-user-profile]: base64 crate added to workspace for opaque cursor encoding in ListUsers pagination
 - [Phase 02-user-profile]: CallerIdentity in madome-common with CallerRole enum; mandatory auth (no anonymous access); from_metadata for gRPC, extract_caller_identity middleware for Gateway
@@ -119,11 +119,12 @@ Recent decisions affecting current work:
 | 260324-rfl | Replace HANDLE_REGEX LazyLock<Regex> with bytes().all() char check, remove regex crate from user service and workspace | 2026-03-24 | 46e7a48 | [260324-rfl-replace-handle-regex-lazylock-regex-with](./quick/260324-rfl-replace-handle-regex-lazylock-regex-with/) |
 | 260325-1c6 | Check and update docs for current changes | 2026-03-25 | af7a932 | [260325-1c6-check-and-update-docs-for-current-change](./quick/260325-1c6-check-and-update-docs-for-current-change/) |
 | 260325-1um | Make payload fields private, add new() constructors and getters for all 7 user payload structs | 2026-03-25 | 191a1ea | [260325-1um-make-payload-fields-private-determine-fr](./quick/260325-1um-make-payload-fields-private-determine-fr/) |
+| 260325-33f | Refactor From<DbErr> for RepositoryError: replace string matching with type-based DbErr::sql_err() matching | 2026-03-25 | 218899c | [260325-33f-refactor-from-dberr-for-repositoryerror-](./quick/260325-33f-refactor-from-dberr-for-repositoryerror-/) |
 
 ## Session Continuity
 
 Last session: 2026-03-25
-Last activity: Doc sync (260325-1c6), payload encapsulation (260325-1um, private fields + new() + into_parts), Attribute Style rule, take_* → into_parts simplification
+Last activity: Quick task 260325-33f — From<DbErr> string matching → DbErr::sql_err() type-based matching
 Stopped at: All user service refactoring complete. Phase 3A ready for planning
 Resume file: .planning/phases/03a-authentication-core/03a-CONTEXT.md
 Next action: /gsd:plan-phase 3a

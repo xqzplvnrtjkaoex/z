@@ -18,7 +18,7 @@ Is the code self-explanatory?
           NO  → Does it explain WHY (non-obvious business logic)?
                   YES → Keep. Plain English, no external references.
                   NO  → Is it a WORKAROUND or GOTCHA?
-                          YES → Keep. e.g. "// Workaround: sea-orm wraps..."
+                          YES → Keep. e.g. "// Workaround: library X lacks..."
                           NO  → No comment
 ```
 
@@ -44,9 +44,6 @@ if !user.is_active && !is_admin_or_owner {
 if !caller_role.can_manage(&target.role) {
     return Err(UserError::InsufficientRole);
 }
-
-// Workaround: sea-orm wraps sqlx errors without a stable unique-violation variant
-if err_msg.contains("duplicate key") || err_msg.contains("23505") { ... }
 ```
 
 ## Rustdoc (`///`)
