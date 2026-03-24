@@ -56,7 +56,7 @@ if err_msg.contains("duplicate key") || err_msg.contains("23505") { ... }
 | Layer | `///` rustdoc | Guideline |
 |-------|--------------|-----------|
 | **domain ports** (traits) | YES | Contract boundary. Include `# Errors` section |
-| **domain input** (`HandleInput`) | YES | State validation rules (constraints are business logic) |
+| **payload** (`CreateUserPayload`) | Selective | Only when validation rules or normalization logic is non-obvious |
 | **domain types** (`User`, `UserRole`) | Selective | Only non-obvious semantics (e.g. `can_manage` hierarchy rule) |
 | **domain errors** | NO | `#[error("...")]` is sufficient |
 | **usecase functions** | Selective | Only when behavior is surprising or combines non-obvious rules |
@@ -71,8 +71,8 @@ if err_msg.contains("duplicate key") || err_msg.contains("23505") { ... }
 First line = rustdoc summary. Third person singular present indicative:
 
 ```rust
-/// Validates a user handle: 4-15 alphanumeric/underscore chars, not reserved.
-pub struct HandleInput { ... }
+/// Lists users with cursor-based pagination and optional inactive filter.
+pub struct ListUsersPayload { ... }
 
 /// Persists a new user. Returns the saved user with server-generated fields.
 ///
@@ -104,7 +104,7 @@ Skip `//!` for modules that only re-export sub-modules.
 
 ## SSOT (Single Source of Truth)
 
-1. **Document at the definition, link elsewhere** — use intra-doc links: [`HandleInput`], [`UserError::SelfModification`]
+1. **Document at the definition, link elsewhere** — use intra-doc links: [`CreateUserPayload`], [`UserError::SelfModification`]
 2. **Never duplicate error documentation** — `#[error("...")]` is the single source
 3. **Never duplicate architecture docs in code** — the explanation lives in `.planning/PROJECT.md`
 4. **Cross-crate links work within workspace** — [`madome_core::error::AppError`] resolves with `cargo doc --workspace`
