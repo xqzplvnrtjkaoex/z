@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: domain/input refactor complete, discussed AppError design (keep as-is)
-last_updated: "2026-03-24T03:00:00.000Z"
+stopped_at: /case skill redesign complete, ready for Phase 03
+last_updated: "2026-03-24T15:00:00.000Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 6
@@ -119,7 +119,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-24
-Last activity: (1) Discussed gateway AppError design — concluded YAGNI, keep HTTP-status-based enum as-is. (2) Refactored domain/types/validation.rs → domain/input/{handle_input,name_input}.rs for per-type file isolation and test separation. Updated rust-documentation.md rule.
-Stopped at: Input refactor committed (1ff014e). Ready for Phase 03 authentication.
+Last activity: (1) Completed /case skill redesign — case.md orchestrator, case-briefer.md, case-validator.md refined for technology-neutral consistency, requirement mapping, and error handling. (2) Updated WORKFLOW.md with corrected return-path diagram and dual-role explanation. (3) Updated CLAUDE.md case ID format to OperationName.S1. (4) Added .claude/docs/case.md README documenting 3-agent architecture. (5) Full 4th-round verification passed (all cross-file consistency checks clean).
+Stopped at: /case skill complete and committed (a7b45ce, 07727b1). Ready for Phase 03 authentication.
 Resume file: .planning/STATE.md
-Next action: /gsd:plan-phase 3 (authentication)
+Next action: /gsd:discuss-phase 3 or /gsd:plan-phase 3 (authentication)
