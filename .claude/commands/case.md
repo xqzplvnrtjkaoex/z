@@ -5,7 +5,7 @@ description: >
   Surfaces success, failure, and edge cases for each operation BEFORE writing tests.
   Use when: starting a new phase, before plan-phase, behavioral specification, case discussion,
   test case discovery, acceptance criteria, what could go wrong.
-argument-hint: "[phase-number | operation-description] [--resume]"
+argument-hint: "[phase-number]"
 allowed-tools:
   - Read
   - Write
@@ -19,13 +19,13 @@ allowed-tools:
 ---
 
 <objective>
-Surface behavioral cases (success, failure, edge) for each operation in a phase through structured conversation with the developer. Produce XX-CASES.md that downstream agents (planner, executor) use to write tests.
+Surface behavioral cases (success, failure, edge) for each operation in a phase through structured conversation with the developer. Produce XX-CASES.md that downstream agents (planner, test-gen, executor) consume.
 
 **How it works:**
 1. Init: load phase context via gsd-tools, dispatch case-briefer to analyze operations
 2. Select: developer picks which operations to discuss
 3. Discuss: per-operation depth-first case discovery conversation (save each to CASE-SCRATCH.md)
-4. Validate: dispatch case-validator to cross-check discovered cases against codebase
+4. Validate: dispatch case-validator to cross-check discovered cases against planning artifacts
 5. Write: produce XX-CASES.md with structured case tables
 
 **Output:** `{padded_phase}-CASES.md` in the phase directory
@@ -46,7 +46,7 @@ Your role is the Tester from Three Amigos -- systematic doubt, boundary awarenes
 <scope_guardrail>
 Case discovery specifies WHAT should happen, never HOW to implement it.
 
-**Allowed:** "What status code should this return?" "What if the token is expired?"
+**Allowed:** "What error should the caller observe?" "What if the token is expired?"
 **Not allowed:** "Should we use a middleware for this?" "What database query pattern?"
 
 When discussion drifts to implementation:
@@ -102,7 +102,7 @@ If `phase_found` is false: exit with error.
 Read these files for locked decisions and phase scope:
 - `${phase_dir}/*-CONTEXT.md` -- locked decisions, discretion areas
 - `${phase_dir}/*-RESEARCH.md` -- technical patterns if available
-- `.planning/ROADMAP.md` -- phase description and requirements
+- `.planning/ROADMAP.md` -- phase description and requirements; extract phase requirement IDs (REQ-XX) for use in Step 5 validator dispatch
 
 ### 1c: Resume check
 
@@ -154,6 +154,8 @@ Write to: {phase_dir}/CASE-BRIEFING.md
 ```
 
 Read the produced `CASE-BRIEFING.md` to prepare for Step 2.
+
+If the briefer returns `BRIEFING FAILED` or `CASE-BRIEFING.md` is not produced, report the error and ask the developer whether to retry, manually define operations, or abort.
 </step>
 
 <step name="select">
@@ -180,7 +182,7 @@ After selection, reorder for logical discussion flow:
 - Simple before complex
 - Auth/validation before business logic
 
-If resuming, show already-documented operations as greyed out / marked.
+If resuming, show already-documented operations marked as `(documented)`.
 </step>
 
 <step name="discuss" priority="critical">
@@ -220,6 +222,8 @@ Apply ZOMBIES Zero -> One:
 **One:** "What does the simplest successful case look like? Minimal valid input?"
 
 **One (variants):** "Are there variant success cases? Full input with all optional fields?"
+
+**Many:** "What about bulk or multiple-item scenarios? What does a list with many results look like? Any batch operations? Partial failure in bulk?"
 
 Propose success cases as a batch:
 ```
@@ -388,9 +392,9 @@ Append format per operation:
 | F1 | ... | ... | ... | ... | must |
 
 ### Open Questions
-| ID | Question | Impact |
-|----|----------|--------|
-| Q1 | ... | ... |
+| ID | Question | Impact | Default Recommendation |
+|----|----------|--------|------------------------|
+| Q1 | ... | ... | ... |
 ```
 
 The Side Effects sub-section serves as a quick-reference inventory of what the Expected Outcome column must include. It is not a case category -- cases remain S/F/E only.
@@ -424,7 +428,7 @@ Keep this brief. Only raise concerns where inconsistency was actually detected. 
 
 After discussion is complete, dispatch the `case-validator` agent to cross-check discovered cases against planning artifacts.
 
-**Skip validation when:** operation count <= 2 AND no CONTEXT.md exists. Note: "Validation skipped (small phase, no locked decisions)."
+**Skip validation when:** operation count <= 2 AND no CONTEXT.md exists (e.g., /case run without prior discuss-phase). Note: "Validation skipped (small phase, no locked decisions)."
 
 ```
 Agent(
@@ -449,6 +453,8 @@ Requirements path: .planning/REQUIREMENTS.md
   run_in_background: false
 )
 ```
+
+If the validator returns `VALIDATION FAILED`, report the error and ask the developer whether to retry, skip validation and proceed to writing, or abort.
 
 Present findings to the developer:
 ```
@@ -582,14 +588,17 @@ CASES.md written. Next steps:
 
 AI auto-assigns priority based on: data loss potential, security impact, user-facing frequency, blast radius, irreversibility. Developer overrides as needed.
 
+**Case ID scope:**
+- IDs (S1, F1, E1) restart per operation. When referencing from outside (e.g., PLAN.md acceptance criteria), use `OperationName.S1` format to disambiguate.
+
 **Case annotations:**
 - **Section-level blockquote** (above table): shared context for the group -- validation strategy, design decisions affecting multiple cases. Optional.
 - **Per-case footnote** (below table, `- **ID:** explanation`): why a specific case matters, non-obvious reasoning, or design decisions. Only for cases that need context -- most cases are self-explanatory from the table alone.
 
 **Expected Outcome column guidance:**
 - Include ALL observable effects: return value/status, state changes, AND side effects.
-- Success cases: assert side effects OCCURRED (e.g., "201 Created; 'book.created' event emitted").
-- Failure cases: assert side effects DID NOT occur where relevant (e.g., "400 Bad Request; no event emitted").
+- Success cases: assert side effects OCCURRED (e.g., "Success; 'entity.created' event emitted").
+- Failure cases: assert side effects DID NOT occur where relevant (e.g., "Validation error; no event emitted").
 - For complex side effects, use per-case footnotes to detail parameters and atomicity requirements.
 </output_format>
 

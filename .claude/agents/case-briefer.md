@@ -23,15 +23,15 @@ Follow these steps in order. Be thorough but selective -- include only what is r
 
 ### Step 1: Understand phase scope
 
-Read the files provided in `<phase_context>` and `<files_to_read>` to understand:
+Parse `<phase_context>` for phase orientation (number, name, description, key decisions). Then read the files listed in `<files_to_read>` to understand:
 - What this phase implements
 - Locked design decisions from CONTEXT.md
-- Phase requirements from ROADMAP.md
+- Phase requirements and REQ-IDs from ROADMAP.md
 - Architecture reference from PROJECT.md
 
 ### Step 2: Discover operations
 
-Scan CONTEXT.md decisions for all callable interfaces this phase defines. Operations may appear as:
+Scan CONTEXT.md decisions as the primary source, supplemented by ROADMAP.md success criteria and REQUIREMENTS.md, for all callable interfaces this phase defines. Operations may appear as:
 - Interface definition tables (API routes, commands, event handlers, etc.)
 - Service contract definitions (RPC methods, message handlers, etc.)
 - Workflow step descriptions
@@ -55,11 +55,15 @@ From decision details, extract input and output fields for each operation. Class
 
 From decisions, extract business rules, validation rules, and constraints. Attach each constraint to the operation(s) it governs. Reference decision IDs (D-XX).
 
-### Step 5: Identify open decisions
+### Step 5: Map requirements to operations
+
+From ROADMAP.md phase description and success criteria, extract requirement IDs (REQ-XX). Map each REQ-ID to the operation(s) that satisfy it. An operation may map to multiple requirements; a requirement may span multiple operations. Record unmapped requirements in Observations.
+
+### Step 6: Identify open decisions
 
 Scan CONTEXT.md for "Claude's Discretion" sections or items marked as flexible/deferred. These tell the Protester which areas are still open for discussion.
 
-### Step 6: Group and write
+### Step 7: Group and write
 
 Group operations by natural category (CONTEXT.md sections, interface prefixes, domain clusters). Write the briefing to the path specified in `<output>`.
 
@@ -77,8 +81,8 @@ The dispatch prompt will contain these XML tags:
 | Tag | Required | Contents |
 |-----|----------|----------|
 | `<objective>` | Yes | Mission statement with phase number and name |
-| `<phase_context>` | Yes | Phase metadata, locked decisions |
-| `<files_to_read>` | Yes | Planning document paths to analyze |
+| `<phase_context>` | Yes | Inline phase summary (number, name, description, key decisions) -- orientation, not source of truth |
+| `<files_to_read>` | Yes | Planning document paths to analyze -- the authoritative sources |
 | `<output>` | Yes | File path to write CASE-BRIEFING.md |
 
 **Note:** `<files_to_read>` contains planning document paths only (CONTEXT.md, ROADMAP.md, REQUIREMENTS.md, PROJECT.md). Never source code paths.
@@ -126,7 +130,10 @@ The dispatch prompt will contain these XML tags:
 ## Observations
 
 [Cross-cutting patterns, shared constraints, common access control policies,
- anything the Protester should know that does not fit per-operation.]
+ anything the Protester should know that does not fit per-operation.
+ e.g., "All mutation operations require authentication (D-03). Error response
+ format is standardized across operations (D-07). REQ-04 spans multiple
+ operations and may need cross-operation testing."]
 ```
 
 ### Downstream Consumer
@@ -154,7 +161,7 @@ Reason: [what went wrong]
 
 ## Quality Gate
 
-Before returning, verify:
+Before returning, verify each item. If an item fails, fix the briefing and re-check. If an item cannot be satisfied (e.g., no ROADMAP criteria exist), note the exception in Observations.
 
 - [ ] All interface definitions from CONTEXT.md captured as operations
 - [ ] All service contracts accounted for (as operations or noted as infrastructure-skip)
@@ -163,6 +170,7 @@ Before returning, verify:
 - [ ] Open decisions reference Claude's Discretion items
 - [ ] Inferred fields marked as `[Inferred: ...]`
 - [ ] Unknown fields marked as `[Not specified]`
+- [ ] Each operation's Requirements field lists applicable REQ-IDs from ROADMAP.md
 - [ ] No operations invented beyond what CONTEXT.md describes
 - [ ] No implementation recommendations
 - [ ] Extraction confidence table included

@@ -162,7 +162,7 @@ discuss -> /case -> (ui) -> plan -> /test-gen -> execute -> verify -> ship
 When `{phase_dir}/*-CASES.md` exists, the planner should:
 - Read it as additional input alongside CONTEXT.md
 - Map must-priority cases to required test tasks in PLAN.md
-- Reference case IDs (S1, F3, E2) in task `acceptance_criteria`
+- Reference case IDs as `OperationName.S1` in task `acceptance_criteria` (IDs restart per operation)
 - Flag open questions (Q1-QN) as items requiring resolution
 
 When CASES.md does not exist, plan-phase works normally from CONTEXT.md + REQUIREMENTS.md alone.

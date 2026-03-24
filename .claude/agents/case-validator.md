@@ -21,7 +21,7 @@ Perform exactly 5 checks, ordered from highest-value to lowest.
 
 ### Check A: Requirement Coverage
 
-Cross-reference ROADMAP.md requirements for this phase against CASE-SCRATCH.md.
+Cross-reference ROADMAP.md requirements for this phase against CASE-SCRATCH.md. Read REQUIREMENTS.md for full requirement descriptions when REQ-IDs need interpretation.
 
 Find: Requirements with no covering operation or no success case.
 
@@ -41,18 +41,7 @@ Find: Behavioral decisions with no exercising case.
 
 **Decision grouping:** Related decisions (e.g., D-21 through D-23 all about recovery codes) are checked as a cluster, not individually. Coverage at the cluster level suffices.
 
-### Check C: Completeness
-
-Check CASE-SCRATCH.md internal consistency.
-
-Find:
-- Operations missing success (S) cases
-- Operations missing failure (F) cases
-- Protected/verified/admin endpoints missing auth failure cases
-- Rules listed but not exercised by any case
-- Side effects listed but not reflected in Expected Outcome
-
-### Check D: Consistency
+### Check C: Consistency
 
 Check CASE-SCRATCH.md operations against each other.
 
@@ -60,9 +49,20 @@ Find:
 - Inconsistent error response formats across operations
 - Inconsistent auth enforcement patterns
 - Inconsistent pagination behavior
-- Inconsistent not-found behavior (404 vs silent empty)
+- Inconsistent not-found behavior (not-found error vs silent empty result)
 - Inconsistent event emission patterns
 - Inconsistent cascade behavior on deletion
+
+### Check D: Completeness
+
+Check CASE-SCRATCH.md internal consistency.
+
+Find:
+- Operations missing success (S) cases
+- Operations missing failure (F) cases
+- Access-controlled operations missing auth failure cases
+- Rules listed but not exercised by any case
+- Side effects listed but not reflected in Expected Outcome
 
 ### Check E: Briefing Coverage
 
@@ -102,7 +102,7 @@ Return structured findings directly in your response (no file written). Use this
    Source: CONTEXT.md
    Quote: "[relevant text from decision]"
    No case exercises this behavioral decision.
-   Suggested case: [S/F/E][N] [case description] -> [expected outcome]
+   Suggested case: F3 [case description] -> [expected outcome]
 
 ## Consistency Issues (cross-cutting concerns handled differently)
 
@@ -115,7 +115,7 @@ Return structured findings directly in your response (no file written). Use this
 
 1. **[OperationName]: [brief description]**
    [Operation has no failure cases / Rule R3 is not exercised / etc.]
-   Suggested case: [S/F/E][N] [case description] -> [expected outcome]
+   Suggested case: F3 [case description] -> [expected outcome]
 
 ## Briefing Gaps (briefed operation not discussed)
 
@@ -133,7 +133,7 @@ If a category has no findings, include the heading with "None found."
 | Category | Default Severity |
 |----------|-----------------|
 | Requirement Gaps | High |
-| Decision Gaps | High (behavioral) / Medium (boundary) |
+| Decision Gaps | High (error behavior, auth, state transitions) / Medium (limits, format constraints) |
 | Consistency Issues | Medium |
 | Completeness Gaps | Low / Medium |
 | Briefing Gaps | Medium |
@@ -158,7 +158,7 @@ Reason: [what went wrong]
 
 ## Quality Gate
 
-Before returning, verify:
+Before returning, verify each item. If an item fails, fix the findings and re-check. If an item cannot be satisfied (e.g., no REQUIREMENTS.md exists), note the exception in the return summary.
 
 - [ ] All five gap checks executed
 - [ ] Each finding references specific artifact location (D-XX, REQ-ID, operation name)

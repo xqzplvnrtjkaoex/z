@@ -7,9 +7,9 @@ Extended GSD workflow with custom skills (/case, /test-gen) inserted into the of
 ```
          ┌──────────────────────┐
          v                      |
-    gsd:discuss <───────────────┤
-         |                      |
-       /case <──────────┐       |
+    gsd:discuss <───────────┐───┤
+         |                  |   |
+       /case <──────────┐───┘   |
          |              |       |
     (gsd:ui) <- optional|       |
          |              |       |
