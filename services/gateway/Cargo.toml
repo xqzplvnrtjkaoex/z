@@ -37,7 +37,7 @@ tokio = { workspace = true, features = [
     "test-util",
     "time",
 ] }
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.13", features = ["json"] }
 serde_json = { workspace = true }
 madome-proto = { workspace = true }
 tonic = { workspace = true }
