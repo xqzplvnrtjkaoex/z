@@ -123,7 +123,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-25
-Last activity: Quick task 260325-1um — payload encapsulation refactor (private fields, new() constructors, getters/take methods)
-Stopped at: All pending changes committed. Phase 3A ready for planning
+Last activity: Doc sync (260325-1c6), payload encapsulation (260325-1um, private fields + new() + into_parts), Attribute Style rule, take_* → into_parts simplification
+Stopped at: All user service refactoring complete. Phase 3A ready for planning
 Resume file: .planning/phases/03a-authentication-core/03a-CONTEXT.md
 Next action: /gsd:plan-phase 3a
