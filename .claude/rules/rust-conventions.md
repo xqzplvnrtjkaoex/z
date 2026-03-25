@@ -13,7 +13,7 @@ Prefer typed constants, enums, and structured APIs over raw string literals or `
 
 ## Import Style
 
-Do not alias modules when the original name is clear. Merge into grouped `use` statements.
+Do not alias modules when the original name is clear.
 
 ```rust
 // Good

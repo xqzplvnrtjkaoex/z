@@ -45,6 +45,8 @@ pub async fn update_user(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
     use uuid::Uuid;
 
@@ -145,7 +147,7 @@ mod tests {
         let payload = UpdateUserPayload::new(id, Some("samehandle".to_string()), None);
 
         let result = update_user(&ctx, payload).await;
-        assert!(result.is_ok());
+        result.unwrap();
     }
 
     #[tokio::test]

@@ -3,6 +3,9 @@ name = "user"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [lib]
 name = "user"
 path = "src/lib.rs"
@@ -30,8 +33,16 @@ itertools = { workspace = true }
 madome-proto = { workspace = true }
 madome-common = { workspace = true }
 
+
 [dev-dependencies]
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "test-util", "time"] }
+tokio = { workspace = true, features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "signal",
+    "test-util",
+    "time",
+] }
 mockall = { workspace = true }
 testcontainers = { workspace = true }
 testcontainers-modules = { workspace = true }

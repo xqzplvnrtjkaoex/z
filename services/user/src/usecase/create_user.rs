@@ -48,6 +48,8 @@ pub async fn create_user(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use super::*;
     use crate::domain::{
         error::repository_error::RepositoryError,

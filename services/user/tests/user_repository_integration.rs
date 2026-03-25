@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)]
+
 use chrono::Utc;
 use sea_orm::{Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;

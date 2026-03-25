@@ -3,6 +3,9 @@ name = "gateway"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [lib]
 name = "gateway"
 path = "src/lib.rs"

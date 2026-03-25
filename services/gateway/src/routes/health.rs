@@ -57,9 +57,10 @@ async fn call_auth_health(
     request_id: &str,
 ) -> &'static str {
     let mut request = tonic::Request::new(());
-    request
-        .metadata_mut()
-        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
+    request.metadata_mut().insert(
+        headers::X_REQUEST_ID,
+        request_id.parse().expect("UUID is valid ASCII"),
+    );
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",
@@ -73,9 +74,10 @@ async fn call_catalog_health(
     request_id: &str,
 ) -> &'static str {
     let mut request = tonic::Request::new(());
-    request
-        .metadata_mut()
-        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
+    request.metadata_mut().insert(
+        headers::X_REQUEST_ID,
+        request_id.parse().expect("UUID is valid ASCII"),
+    );
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",
@@ -89,9 +91,10 @@ async fn call_user_health(
     request_id: &str,
 ) -> &'static str {
     let mut request = tonic::Request::new(());
-    request
-        .metadata_mut()
-        .insert(headers::X_REQUEST_ID, request_id.parse().unwrap());
+    request.metadata_mut().insert(
+        headers::X_REQUEST_ID,
+        request_id.parse().expect("UUID is valid ASCII"),
+    );
     match client.health(request).await {
         Ok(_) => "ok",
         Err(_) => "unavailable",

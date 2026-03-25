@@ -76,6 +76,8 @@ impl std::str::FromStr for UserRole {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use super::*;
 
     #[test]

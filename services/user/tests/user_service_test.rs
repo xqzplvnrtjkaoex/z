@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)]
+
 use std::{net::SocketAddr, time::Duration};
 
 use madome_common::caller::{CallerIdentity, CallerRole};

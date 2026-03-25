@@ -101,3 +101,7 @@ testcontainers-modules = { version = "0.15", features = ["postgres"] }
 # Internal crates
 madome-proto = { path = "crates/madome-proto" }
 madome-common = { path = "crates/madome-common" }
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+assertions_on_result_states = "warn"

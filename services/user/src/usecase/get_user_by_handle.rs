@@ -27,6 +27,8 @@ pub async fn get_user_by_handle(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
     use uuid::Uuid;
 
@@ -73,7 +75,7 @@ mod tests {
         let payload = GetUserByHandlePayload::new("testuser".to_string(), UserRole::User);
 
         let result = get_user_by_handle(&ctx, payload).await;
-        assert!(result.is_ok());
+        result.unwrap();
     }
 
     #[tokio::test]
@@ -119,6 +121,6 @@ mod tests {
         let payload = GetUserByHandlePayload::new("inactive_user".to_string(), UserRole::Admin);
 
         let result = get_user_by_handle(&ctx, payload).await;
-        assert!(result.is_ok());
+        result.unwrap();
     }
 }

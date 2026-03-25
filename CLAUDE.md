@@ -128,7 +128,7 @@ For tasks with `tdd="true"`, the executor follows a Stub-Red-Green-Refactor cycl
 
 - Writing implementation before tests for `tdd="true"` tasks (recovery: revert implementation, write tests from scratch)
 - Writing test and implementation in the same edit (must see Red before Green)
-- `assert!(result.is_ok())` without inspecting the value — unwrap and verify fields
+- Asserting success without inspecting the value — unwrap and verify fields
 - Testing mock configuration (`times()`, `withf()`) instead of behavior — use `returning()` for setup, `assert!()` for output
 - Over-implementation beyond test scope — every code path must be exercised by at least one test
 - Adding case IDs to test function names — test names describe behavior, not planning artifacts

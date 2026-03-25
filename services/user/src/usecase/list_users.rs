@@ -27,7 +27,7 @@ pub async fn list_users(
 
     let next_cursor = if users.len() > limit as usize {
         users.pop(); // remove the extra item
-        let last = users.last().unwrap();
+        let last = users.last().expect("non-empty after length check");
         let cursor_str = format!("{},{}", last.created_at.to_rfc3339(), last.id);
         Some(BASE64.encode(cursor_str.as_bytes()))
     } else {
@@ -39,6 +39,8 @@ pub async fn list_users(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
     use uuid::Uuid;
 
@@ -126,7 +128,7 @@ mod tests {
         let payload = ListUsersPayload::new(0, None, false);
 
         let result = list_users(&ctx, payload).await;
-        assert!(result.is_ok());
+        result.unwrap();
     }
 
     #[tokio::test]

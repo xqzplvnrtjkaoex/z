@@ -54,6 +54,8 @@ pub async fn activate_user(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
     use uuid::Uuid;
 

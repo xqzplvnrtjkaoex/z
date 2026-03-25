@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)]
+
 use std::net::SocketAddr;
 
 use gateway::{routes::create_router, state::AppState};

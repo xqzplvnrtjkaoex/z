@@ -7,6 +7,9 @@ edition.workspace = true
 name = "auth"
 path = "src/main.rs"
 
+[lints]
+workspace = true
+
 [dependencies]
 tokio = { workspace = true }
 tonic = { workspace = true }

@@ -16,6 +16,8 @@ pub async fn get_user(ctx: &(impl UserPorts + ?Sized), id: Uuid) -> Result<User,
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
 
     use super::*;

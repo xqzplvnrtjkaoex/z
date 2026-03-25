@@ -69,6 +69,8 @@ use crate::domain::types::role::UserRole;
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use chrono::Utc;
     use uuid::Uuid;
 

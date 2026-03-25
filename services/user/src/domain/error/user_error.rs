@@ -82,6 +82,8 @@ impl From<UserError> for tonic::Status {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use tonic::Code;
 
     use super::*;

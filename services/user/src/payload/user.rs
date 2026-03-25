@@ -285,6 +285,8 @@ impl GetUserByHandlePayload {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
+
     use validator::Validate;
 
     use super::*;
@@ -367,7 +369,7 @@ mod tests {
     #[test]
     fn should_skip_handle_validation_when_none() {
         let payload = UpdateUserPayload::new(Uuid::new_v4(), None, None);
-        assert!(payload.validate().is_ok());
+        payload.validate().unwrap();
     }
 
     #[test]
