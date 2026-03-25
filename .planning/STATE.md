@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Phase 3A case discovery — 6/10 operations done, resume from ValidateSession
-last_updated: "2026-03-25T14:16:50.376Z"
-last_activity: Phase 3A /case — 6/10 operations completed (CreateInvite, RegisterBegin/Finish, LoginBegin/Finish, VerifyJwt)
+stopped_at: Phase 3A case discovery — 10/10 operations discussed, pending validator dispatch and CASES.md writing
+last_updated: "2026-03-25T16:18:58.913Z"
+last_activity: Phase 3A /case — completed remaining 4 operations (ValidateSession, RefreshToken, Logout, GetCurrentUser), error specificity pass, cross-operation consistency check
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T14:16:40.763Z
-Last activity: Phase 3A /case — completed remaining 4 operations (ValidateSession, RefreshToken, Logout, GetCurrentUser), error specificity pass, cross-operation consistency check
-Stopped at: Phase 3A case discovery — 10/10 operations discussed, pending validator dispatch and CASES.md writing
+Last session: 2026-03-25T16:18:44.083Z
+Last activity: Phase 3A /case — completed 4 remaining ops, error specificity pass, cross-op consistency, case skill improved (5 changes: Interface section, design intent, specific errors, cross-phase check, error table)
+Stopped at: Phase 3A case discovery — 10/10 ops done, case skill improved, pending validator+CASES.md
 Resume file: .planning/phases/03a-authentication-core/CASE-SCRATCH.md
 Next action: /case 3a (resume — dispatch case-validator, review findings, write 03A-CASES.md)
