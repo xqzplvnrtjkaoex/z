@@ -631,3 +631,82 @@ Code_context section updated based on actual codebase scan. Key corrections: mad
 ### Area 6: Write Updated CONTEXT.md (2026-03-25)
 
 CONTEXT.md updated with 12 new decisions (D-127 through D-138), corrected code_context, added .claude/rules/ to canonical_refs.
+
+---
+
+## Context Update Session (2026-03-25, session 2)
+
+> Advisor mode active. 3 gray areas researched in parallel.
+
+### Area 7: Partial Registration Failure Recovery
+
+**Question:** What if auth DB/Redis fails after User.CreateUser succeeds (orphan user)?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Accept orphans + error log | No compensating logic, just log for manual cleanup | |
+| Compensating delete | Call User.DeleteUser to clean up | |
+| Compensating delete + double failure log | Attempt delete, log orphan if delete also fails | Y |
+| Idempotent registration (invite-keyed) | Conflicts with D-03 single-use semantics | |
+
+**Follow-up: DeleteUser RPC timing?**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 3A internal-only DeleteUser | user.proto RPC, auth compensation only, no gateway REST | Y |
+| 3A log only, 3B upgrade | Defer DeleteUser to 3B | |
+| Add DeleteUser to 3B scope | 3B admin operations + compensation | |
+
+**Decisions added:** D-139, D-140
+
+### Area 8: Invite API Contract
+
+**Question:** What are the invite creation request/response bodies?
+
+**Request body:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Role only | `{ "role": "..." }` | |
+| Empty (role hardcoded to user) | No fields -- 3A always creates user-role invites | Y |
+| Role + optional label | For future invite management UI | |
+| Role + custom expiry | Conflicts with D-03 30-min fixed policy | |
+
+**Response body:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Token + expires_at | `{ "token": "...", "expires_at": "..." }` | Y |
+| Token only | `{ "token": "..." }` | |
+| Full invite object | Token + id + role + all timestamps | |
+
+**Route fix:** `/v1/user/@me` corrected to `/v1/users/@me` (Phase 2 D-42 plural-only convention)
+
+**Decisions added:** D-141, D-142. D-02 updated.
+
+### Area 9: Auth Service Startup & Connection
+
+**Redis crate:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| redis + ConnectionManager | Minimal dep, auto-reconnect, cheaply cloneable | Y |
+| deadpool-redis | Explicit pooling, bounded connections | |
+| fred | Built-in backoff, Cluster/PubSub | |
+
+**Startup strategy:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Fail-fast | Consistent with user/catalog. docker-compose healthcheck | Y |
+| Manual retry loop | Application-level retry | |
+| tokio-retry crate | Async retry DSL | |
+
+**Graceful shutdown:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| serve_with_shutdown + tokio::signal | tonic built-in, no new deps | Y |
+| CancellationToken | tokio-util, for multiple tasks | Upgrade path |
+
+**Decisions added:** D-143, D-144, D-145

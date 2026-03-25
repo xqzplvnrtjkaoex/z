@@ -1,7 +1,7 @@
 # Phase: Authentication Core - Context
 
 **Gathered:** 2026-03-21
-**Updated:** 2026-03-25 (context update session: middleware, dev env, error handling, testing)
+**Updated:** 2026-03-25 (context update session: registration failure recovery, invite API contract, auth startup/connection, route fix)
 **Status:** Ready for planning
 
 > **Phase split:** Original Phase 3 (Authentication, ~126 decisions) split into 3A (Core) and 3B (Operations). 3A establishes the authentication foundation; 3B builds operational features on top.
@@ -28,7 +28,7 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - **D-06:** Profile info: name (display name, non-unique) and handle (unique identifier). No email
 
 ### Invite Creation (3A Scope)
-- **D-02:** *(3A SCOPE)* Invite table has `role` column determining the registered user's role. In 3A, owner creates invites via a protected endpoint (handler-level role check). Full role-based invite hierarchy and admin invite management deferred to 3B
+- **D-02:** *(3A SCOPE)* Invite table has `role` column determining the registered user's role. In 3A, invite role is always `user` (hardcoded) -- owner creates invites via a protected endpoint (handler-level role check), but cannot specify role. Role-selectable invite creation and admin invite management deferred to 3B
 - **D-09:** *(3A SCOPE)* Invite history recorded in DB. Admin query/cancel endpoints deferred to 3B
 
 ### Passkey Configuration
@@ -91,7 +91,7 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - **D-58:** Indexes: matching query patterns (credentials.user_id, sessions.user_id, api_keys.key_hash UNIQUE, invitations.token_hash UNIQUE, recovery_codes.user_id)
 
 ### Proto Definition
-- **D-59:** *(3A SCOPE)* Auth gRPC RPCs: RegisterBegin/Finish, LoginBegin/Finish, ValidateSession, RefreshToken, InvalidateSession (logout), CreateInvite. Additional RPCs added in 3B
+- **D-59:** *(3A SCOPE)* Auth gRPC RPCs: RegisterBegin/Finish, LoginBegin/Finish, ValidateSession, RefreshToken, InvalidateSession (logout), CreateInvite. User gRPC: CreateUser, GetUser, DeleteUser (compensation only, D-140). Additional RPCs added in 3B
 - **D-60:** Gateway is REST-to-gRPC translator for auth operations
 
 ### Infrastructure
@@ -101,6 +101,9 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - **D-130:** JWT key provisioning: `just dev-keys` recipe generates ES256 PEM key pair via openssl, writes to `.env` (gitignored). Zero committed secrets
 - **D-131:** Docker-compose additions: auth-db (postgres:18-alpine, port 5434) + redis (redis:8-alpine, port 6379). Extends existing user-db pattern from Phase 2
 - **D-132:** Seed invite: fixed well-known dev token (SHA-256 hash stored in migration). Deterministic for dev/test automation. **Prod seed MUST use a separate, non-committed mechanism**
+- **D-143:** Redis crate: `redis` crate with `ConnectionManager` (auto-reconnect, cheaply cloneable). No connection pool needed for low-concurrency session/ceremony KV
+- **D-144:** Auth service startup: fail-fast (consistent with user/catalog services). Docker-compose `depends_on` + `healthcheck` handles service ordering. No application-level retry
+- **D-145:** Graceful shutdown: tonic `serve_with_shutdown` + `tokio::signal` (ctrl_c + SIGTERM). No new deps. Upgrade to `CancellationToken` when background tasks are added
 
 ### REST API Endpoints
 
@@ -119,10 +122,12 @@ Users can register a passkey via invite token, authenticate via username-less pa
 
 | Tier | Method | Path | Description |
 |------|--------|------|-------------|
-| protected | GET | /v1/user/@me | Current user profile (DB query, latest info) |
+| protected | GET | /v1/users/@me | Current user profile (DB query, latest info) |
 
 - **D-111:** Login success response: 204 No Content (empty body). JWT delivered via HttpOnly cookie only
 - **D-112:** Registration success response: 201 Created with `{ "user_id", "handle", "name", "role", "recovery_codes" }`. Recovery codes are raw strings shown this once only
+- **D-141:** Invite creation request body: empty (no fields). Role is always `user` in 3A (see D-02). Role-selectable requests deferred to 3B
+- **D-142:** Invite creation response body: `{ "token": "...", "expires_at": "..." }`. Token is the one-time secret for sharing; expires_at confirms the 30-minute window
 
 ### Owner Bootstrapping
 - **D-115:** Owner is DB seed only. Exactly 1 owner. Cannot create or change owner role via API
@@ -130,13 +135,15 @@ Users can register a passkey via invite token, authenticate via username-less pa
 
 ### Cross-Service Communication
 - **D-117:** Service-to-service direct gRPC calls allowed (project-wide architecture decision)
-- **D-118:** Auth -> User service calls: CreateUser (registration finish, passes name + handle + role from invite), GetUser (by ID, login finish, for JWT claims including handle). Auth service requires `USER_GRPC_ADDR` environment variable
+- **D-118:** Auth -> User service calls: CreateUser (registration finish, passes name + handle + role from invite), GetUser (by ID, login finish, for JWT claims including handle), DeleteUser (registration failure compensation only, D-139). Auth service requires `USER_GRPC_ADDR` environment variable
 
 ### Cross-Service Error Handling
 - **D-133:** Fail-fast strategy for Auth -> User gRPC calls. User service call executes first; auth DB writes only after User service succeeds. No compensating transactions, no saga
 - **D-134:** Registration flow ordering: User.CreateUser -> credential save -> session create -> JWT issue. Login flow: User.GetUser -> session create -> JWT issue. User service failure at any point = entire auth operation fails cleanly
 - **D-135:** Per-endpoint gRPC timeout: 5 seconds via `tonic::Request::set_timeout`. Applies to all Auth -> User calls
 - **D-136:** User service unavailable = auth operation failure. Acceptable for this service scale. No partial recovery or retry logic
+- **D-139:** Registration failure recovery: if auth DB/Redis fails after User.CreateUser succeeds, attempt compensating `User.DeleteUser` call. If compensating delete also fails (double failure), log structured orphan event (`user_id + handle + request_id`) for manual cleanup
+- **D-140:** Internal `DeleteUser` RPC added to user.proto in 3A. Auth service compensation only -- not exposed via gateway REST endpoint. Admin user deletion deferred to 3B or later
 
 ### Pagination (Project-Wide)
 - **D-121:** All list endpoints use cursor-based pagination. Opaque URL-safe cursor value
@@ -295,6 +302,8 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - Owner bootstrap via invite token -- owner uses same registration flow as everyone else
 - Ceremony state in Redis with HttpOnly cookie transport -- stateless auth service between begin/finish
 - Fail-fast on cross-service calls -- complexity not justified at this scale; User service down = auth down
+- Compensating delete on registration failure -- accept orphan risk only on double failure (auth + user service both down)
+- Redis via `redis` crate with `ConnectionManager` -- minimal dep, auto-reconnect, sufficient for low-concurrency KV
 
 </specifics>
 
