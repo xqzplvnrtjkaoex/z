@@ -36,7 +36,7 @@ case-briefer (sonnet)        /case orchestrator (opus)        case-validator (so
 
 2. **Select** — Present discovered operations grouped by category. Developer picks which to discuss.
 
-3. **Discuss** — Depth-first per operation: anchor shared understanding, propose success cases, then systematically probe failures (input validation, auth, resource state, boundaries, concurrency, side effects, infrastructure). Each completed operation is saved to CASE-SCRATCH.md to survive context compression.
+3. **Discuss** — Depth-first per operation: anchor shared understanding, propose success cases, then systematically probe failures (input validation, auth, resource state, boundaries, concurrency, side effects, infrastructure). Each operation review is presented as an ASCII flow diagram showing decision paths with S/F/E cases at their logical positions. Each completed operation is saved to CASE-SCRATCH.md (table format) to survive context compression.
 
 4. **Cross-Operation** — Check consistency across operations: error formats, auth patterns, event emission, cascade behavior.
 

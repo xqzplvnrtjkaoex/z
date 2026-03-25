@@ -56,6 +56,76 @@ For now: what should the caller observe when this happens?"
 ```
 </scope_guardrail>
 
+<formatting>
+**Developer-facing messages (AskUserQuestion, inline prompts):**
+- Use line breaks for structure — never pack lists or options into a single line
+- Minimize bold — highlight only key terms, not entire sentences
+- Group related items visually with spacing
+
+**Per-operation review (Step 3d) uses ASCII flow diagram:**
+- `[Brackets]` for decision points (not box borders ┌─┐)
+- Branch labels (`YES/NO`, `OK/FAIL`, `FOUND/NOT FOUND`) placed horizontally after the decision
+- Success path flows downward with `▼`
+- Failure branches go right with `├──►` / `└──►`
+- `└──` for last branch (no continuation implied)
+- `•` bullet lists for side effects inside `[Success]` block
+- Edge cases as `├──` / `└──` branches at relevant flow positions (usually after success outcome)
+- Number cases (S1, F1, E1) in top-down flow order
+- Flat `Cases:` list below the flow, grouped by Success/Failure/Edge with `[priority]`
+- `Total: N success, N failure, N edge, N questions` (fully spelled out)
+
+Canonical example (LoginFinish from Phase 3A):
+```
+[OperationName]: interface description
+
+  Caller invokes operation
+       │
+       ▼
+  [Decision point?]
+    YES               NO
+     │                ├──► F1: failure case → outcome
+     │                └──► F2: another failure → outcome
+     │
+     ▼
+  [Next decision?]
+    OK              FAIL
+     │               └──► F3: failure → outcome
+     │
+     ▼
+  [Success]
+     • main action
+     • side effect 1
+     • side effect 2
+     │
+     ▼
+  S1: result description
+     │
+     ├── E1: edge case → outcome
+     └── E2: edge case → outcome
+
+Cases:
+  Success:
+    • S1: description                                [must]
+
+  Failure:
+    • F1: description                                [must]
+    • F2: description                                [must]
+    • F3: description                                [should]
+
+  Edge:
+    • E1: description                                [should]
+    • E2: description                                [could]
+
+Open questions:
+    • Q1: what is uncertain
+    • Q2: what is uncertain
+
+Total: 1 success, 3 failure, 2 edge, 2 questions
+```
+
+Omit the `Open questions:` section when there are none.
+</formatting>
+
 <technique_layers>
 Five layers work together. You don't need to mention technique names to the developer -- just use them internally to guide your questions.
 
@@ -345,17 +415,10 @@ These are usually the same across operations. Confirm or adjust.
 
 ### 3d: Review and Close
 
+Present an ASCII flow diagram summarizing all discovered cases for this operation, following the format defined in `<formatting>`. The diagram shows the operation's decision flow with S/F/E cases at their logical positions.
+
+After the diagram, ask:
 ```
-Here is what we have for [OperationName]:
-
-Rules: N confirmed
-Success cases: M
-Failure cases: K
-Edge cases: J
-Side effects identified: N (all reflected in Expected Outcome column)
-Open questions: P
-  Q1: [question]
-
 Anything else that could go wrong that we haven't covered?
 Any domain-specific risk my systematic probes wouldn't catch?
 ```
@@ -485,7 +548,7 @@ Ready to write CASES.md:
 [Operation 1]: S:[n] F:[n] E:[n] Q:[n] -- [ready/needs-answers]
 [Operation 2]: S:[n] F:[n] E:[n] Q:[n] -- [ready/needs-answers]
 
-Total: [N] cases across [M] operations, [P] open questions.
+Total: [N] success, [M] failure, [K] edge, [P] questions across [Q] operations.
 
 Shall I write it?
 ```
