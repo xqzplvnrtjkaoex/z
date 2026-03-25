@@ -57,12 +57,17 @@ For now: what should the caller observe when this happens?"
 </scope_guardrail>
 
 <formatting>
-**Developer-facing messages (AskUserQuestion, inline prompts):**
-- Use line breaks for structure — never pack lists or options into a single line
-- Minimize bold — highlight only key terms, not entire sentences
-- Group related items visually with spacing
+**Developer-facing questions MUST use AskUserQuestion tool:**
+- All confirmation, decision, and review questions → AskUserQuestion
+- Never ask inline ("Is this correct? Anything to add?") — always route through the tool
+- Question text: one-liner only (e.g., "Logout cases review. Missing anything?"). Detailed content goes in the conversation text above, not in the question. AskUserQuestion UI renders text bright and bold — long text is hard to read
 
-**Per-operation review (Step 3d) uses ASCII flow diagram:**
+**Flow diagram is the primary case visualization during discussion:**
+- Steps 3a-3d text proposals are internal reasoning aids — the developer sees the flow diagram
+- Present flow diagram AS the proposal, not as a separate review step after text discussion
+- The Cases: list below the diagram serves as the flat reference
+
+**ASCII flow diagram format:**
 - `[Brackets]` for decision points (not box borders ┌─┐)
 - Branch labels (`YES/NO`, `OK/FAIL`, `FOUND/NOT FOUND`) placed horizontally after the decision
 - Success path flows downward with `▼`
