@@ -54,6 +54,8 @@ When discussion drifts to implementation:
 "That's an implementation detail -- the planner will figure that out.
 For now: what should the caller observe when this happens?"
 ```
+
+**Exception: Developer-proposed design intent.** When the developer volunteers a specific implementation approach (e.g., "use a parameterized function for two middleware variants"), record it in Rules with a "Design intent:" sub-note. This preserves the developer's architectural decisions for the planner without the AI initiating implementation discussion. Do NOT dismiss these as "implementation details."
 </scope_guardrail>
 
 <formatting>
@@ -79,22 +81,34 @@ For now: what should the caller observe when this happens?"
 - Flat `Cases:` list below the flow, grouped by Success/Failure/Edge with `[priority]`
 - `Total: N success, N failure, N edge, N questions` (fully spelled out)
 
-Canonical example (LoginFinish from Phase 3A):
+**Per-operation presentation structure (in order):**
+1. `[OperationName]: one-line description` -- header
+2. `Interface:` -- compact context (Inputs, Output, Auth/Caller, and any other relevant fields like Precondition). Replaces verbose anchor text.
+3. Flow diagram -- primary visualization with decision points and S/F/E cases
+4. `Rules:` -- constraints not expressed in the diagram
+5. `Cases:` -- flat reference list grouped by S/F/E with `[priority]`
+
+Canonical example:
 ```
 [OperationName]: interface description
+
+Interface:
+  - Inputs: field_a (Type), field_b (Type)
+  - Output: result description
+  - Auth: any authenticated role (standard middleware)
 
   Caller invokes operation
        │
        ▼
   [Decision point?]
     YES               NO
-     │                ├──► F1: failure case → outcome
-     │                └──► F2: another failure → outcome
+     │                ├──► F1: failure case → 400 bad request
+     │                └──► F2: another failure → 401 unauthorized
      │
      ▼
   [Next decision?]
     OK              FAIL
-     │               └──► F3: failure → outcome
+     │               └──► F3: failure → 500 internal error
      │
      ▼
   [Success]
@@ -107,6 +121,10 @@ Canonical example (LoginFinish from Phase 3A):
      │
      ├── E1: edge case → outcome
      └── E2: edge case → outcome
+
+Rules:
+  - R1: constraint not in diagram
+  - R2: another constraint. Design intent: developer's proposed approach
 
 Cases:
   Success:
@@ -265,28 +283,13 @@ If resuming, show already-documented operations marked as `(documented)`.
 
 For each selected operation, run this sequence. Complete one operation fully before moving to the next.
 
-### 3a: Anchor (brief)
+### 3a: Anchor via flow diagram
 
-Establish shared understanding. Propose, let developer confirm or correct.
+Present the operation as an integrated flow diagram following the structure in `<formatting>`: Interface section + flow diagram + Rules + Cases. The AI reads context and forms understanding internally, then presents the compact Interface section as context verification -- not a separate verbose text block.
 
-```
-Let's discuss [OperationName] ([interface]).
+The Interface section replaces verbose anchor text. It provides the same context verification (inputs, output, auth, preconditions) in compact form. Add any additional fields relevant to the operation (e.g., `Precondition:`, `Caller:`).
 
-From the context, I understand this operation:
-- [purpose]
-- [key inputs and their types]
-- [key outputs]
-- [auth requirement]
-
-Is this accurate? Anything to add or correct?
-
-I see these rules governing this operation:
-- R1: [constraint from context/code/briefing]
-- R2: [validation rule]
-- R3: [authorization rule]
-
-Any rules I'm missing?
-```
+After presenting, ask the developer to confirm or correct via AskUserQuestion.
 
 ### 3b: Success Cases (brief)
 
@@ -411,12 +414,14 @@ Omit categories that clearly do not apply (e.g., skip "Notifications" for an int
 
 ```
 Standard infrastructure probes:
-- Database unavailable -> error?
-- Downstream service timeout -> error?
-- What error does the caller see?
+- Database unavailable -> [specific status, e.g., 500 internal error]
+- Downstream service timeout -> [specific status]
+- What specific error does the caller see?
 
 These are usually the same across operations. Confirm or adjust.
 ```
+
+Always specify concrete error type/status in Expected Outcome, not generic "error". Each failure case must make the observable outcome unambiguous -- this is what tests will assert against.
 
 ### 3d: Review and Close
 
@@ -473,22 +478,33 @@ The Side Effects sub-section serves as a quick-reference inventory of what the E
 <step name="cross_operation">
 ## Step 4: Cross-Operation Concerns
 
-After all individual operations are discussed:
+After all individual operations are discussed, check consistency one category at a time. Present each category's findings before moving to the next.
+
+### 4a: Error response consistency
+
+Build a comparison table categorizing each operation's errors by type. Column headers are not fixed -- derive error categories from the actual cases discussed (e.g., Auth, Validation, Infra, Ceremony, Conflict, NotFound, etc.):
 
 ```
-Let me check cross-operation consistency:
-- Are error response formats consistent across all operations?
-- In [operation A], we said [constraint]. Does [operation B] also enforce this?
-- If [operation C] deletes a resource, how does [operation D] handle that?
-
-Side effect consistency:
-- Do all mutation operations emit domain events? [list which do, which don't]
-- Do all deletions cascade to related entities consistently?
-- Are audit log entries written for the same categories of operations?
-- On failure, do all operations consistently suppress side effects?
+| Operation | [Category A] | [Category B] | ... | Infra |
+|-----------|-------------|-------------|-----|-------|
+| OpA       | 400         | 401         | ... | 500   |
+| OpB       | —           | 401         | ... | 500   |
 ```
 
-Keep this brief. Only raise concerns where inconsistency was actually detected. For side effects, flag operations that break the pattern (e.g., "CreateBook emits an event but UpdateBook does not -- intentional?").
+Flag rows where the same error category has different status codes across operations. Present inconsistencies to developer for resolution.
+
+### 4b: Cross-phase consistency
+
+Compare discovered cases against existing operations from previous phases (read existing code/cases if available). Flag divergences in error formats, auth patterns, or response conventions between new and existing operations.
+
+### 4c: Additional concerns
+
+Context-dependent checks -- apply based on what was discovered:
+- Side effect consistency (do all mutations emit events? do failures suppress side effects?)
+- Naming and response format consistency
+- Resource lifecycle interactions (if one operation deletes, how do others handle that?)
+
+Keep each category brief. Only raise concerns where inconsistency was actually detected.
 </step>
 
 <step name="validate">
@@ -666,7 +682,7 @@ AI auto-assigns priority based on: data loss potential, security impact, user-fa
 **Expected Outcome column guidance:**
 - Include ALL observable effects: return value/status, state changes, AND side effects.
 - Success cases: assert side effects OCCURRED (e.g., "Success; 'entity.created' event emitted").
-- Failure cases: assert side effects DID NOT occur where relevant (e.g., "Validation error; no event emitted").
+- Failure cases: specify concrete error type/status (e.g., "400 bad request", "401 unauthorized", "500 internal error"), not generic "error". Assert side effects DID NOT occur where relevant.
 - For complex side effects, use per-case footnotes to detail parameters and atomicity requirements.
 </output_format>
 
