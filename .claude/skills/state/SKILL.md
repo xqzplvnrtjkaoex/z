@@ -6,7 +6,7 @@ description: Lightweight STATE.md update and commit without HANDOFF/continue-her
 
 # Save State
 
-Lightweight session state save. Updates STATE.md and commits changed planning files.
+Lightweight session state save. Updates STATE.md via gsd-tools and commits changed planning files.
 
 ## When to Use
 
@@ -15,21 +15,32 @@ Lightweight session state save. Updates STATE.md and commits changed planning fi
 
 ## Process
 
-1. **Read** `.planning/STATE.md`
-2. **Update Session Continuity section:**
-   - `Last session:` current date
-   - `Last activity:` summary of what was done this session
-   - `Stopped at:` current position description
+1. **Read** `.planning/STATE.md` to understand current state
+2. **Get timestamp** via gsd-tools:
+   ```bash
+   TIMESTAMP=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" current-timestamp --pick timestamp)
+   ```
+3. **Update frontmatter** via gsd-tools (these commands update STATE.md directly):
+   ```bash
+   node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state update stopped_at "<brief description>"
+   node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state update last_activity "<summary of session>"
+   node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state update last_updated "$TIMESTAMP"
+   ```
+   - Only update `progress` fields (total_plans, completed_plans, etc.) if phase/plan progress actually changed
+4. **Update Session Continuity section** (manual edit — gsd-tools does not manage this section):
+   - `Last session:` ISO timestamp from step 2 (e.g., `2026-03-25T11:48:52.678Z`)
+   - `Last activity:` same as frontmatter `last_activity`
+   - `Stopped at:` same as frontmatter `stopped_at`
    - `Resume file:` most relevant file for next session
    - `Next action:` specific next step
-3. **Update frontmatter** if phase/plan progress changed:
-   - `stopped_at:` brief description
-   - `last_updated:` current ISO timestamp
-4. **Update Pending Todos** if any were completed or added
-5. **Commit** all changed `.planning/` files with message: `docs(planning): update state — {brief description}`
+5. **Update Pending Todos** if any were completed or added
+6. **Commit** all changed `.planning/` files with message: `docs(state): {brief description}`
 
 ## Rules
 
+- Use `gsd-tools state update` for frontmatter — never edit frontmatter YAML manually
+- Use `gsd-tools current-timestamp` for all timestamps — never hardcode or approximate
+- Session Continuity `Last session:` must use full ISO timestamp (not date-only)
 - Only update STATE.md and commit planning files
 - Do NOT create HANDOFF.json or .continue-here.md
 - Do NOT create WIP commits — use proper conventional commit
