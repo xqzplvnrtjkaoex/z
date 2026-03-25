@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Phase 3A context updated — D-139~D-145 added (registration recovery, invite contract, auth startup). Ready for planning
-last_updated: "2026-03-25T07:47:00.342Z"
-last_activity: "Quick task 260325-33f — From<DbErr> string matching → DbErr::sql_err() type-based matching"
+stopped_at: Phase 3A case discovery — 6/10 operations done, resume from ValidateSession
+last_updated: "2026-03-25T14:30:00.000Z"
+last_activity: "Phase 3A /case — 6/10 operations completed (CreateInvite, RegisterBegin/Finish, LoginBegin/Finish, VerifyJwt)"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T07:47:00.339Z
-Last activity: Quick task 260325-33f — From<DbErr> string matching → DbErr::sql_err() type-based matching
-Stopped at: Phase 3A context updated — D-139~D-145 added (registration recovery, invite contract, auth startup). Ready for planning
-Resume file: .planning/phases/03a-authentication-core/03a-CONTEXT.md
-Next action: /gsd:plan-phase 3a
+Last session: 2026-03-25
+Last activity: Phase 3A /case — 6/10 operations completed with key design decisions (403 authz, token consume at begin, ceremony reuse for 3B)
+Stopped at: Phase 3A case discovery — 6/10 operations done (CreateInvite, RegisterBegin/Finish, LoginBegin/Finish, VerifyJwt)
+Resume file: .planning/phases/03a-authentication-core/CASE-SCRATCH.md
+Next action: /case 3a (resume — ValidateSession, RefreshToken, Logout, GetCurrentUser remaining)
