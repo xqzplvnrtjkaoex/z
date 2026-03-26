@@ -16,7 +16,7 @@
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
-| S1 | Owner creates invite | Authenticated as owner | POST /v1/auth/invites (empty body) | 200; { token, expires_at }; invite record in DB | must |
+| S1 | Owner creates invite | Authenticated as owner | POST /v1/auth/invites (empty body) | 200; { token, expires_at }; invite record in DB with created_by=owner user_id | must |
 | S2 | Owner creates multiple invites | Authenticated as owner | POST /v1/auth/invites x N | Each returns unique token; N invite records in DB | should |
 | F1 | Unauthenticated request | No JWT cookie | POST /v1/auth/invites | 401 unauthorized | must |
 | F2 | User role requests | Authenticated as user | POST /v1/auth/invites | 403 forbidden | must |
@@ -42,12 +42,15 @@
 - R6: Ceremony ID delivered via HttpOnly cookie (D-100)
 - R7: Discoverable Credential required (D-13)
 - R8: User Verification required (D-12)
-- R9: Processing order — input validation → token verify+consume → ceremony start. Validation failure does NOT consume token
+- R9: Processing order — input validation → token verify+consume → handle reserve → ceremony start. Validation failure does NOT consume token. Token consume-first is fail-safe ordering: losing a token (recoverable — owner creates new invite) is safer than allowing token reuse (security violation)
 - R10: Token consumed at begin step. If finish fails, new invite needed
+- R12: Ceremony state content MUST NOT appear in any response body or error detail (D-98)
+- R11: Handle reserved at begin step to prevent race conditions between Begin and Finish. Design intent: reserve handle (e.g., Redis key with ceremony TTL) so another RegisterBegin with the same handle fails immediately. Reservation expires naturally with ceremony state (5min TTL)
 
 ### Side Effects
 - DB: invite token marked as consumed
 - Redis: ceremony state stored (ceremony:reg:{random_id}, 5min TTL)
+- Redis: handle reservation stored (5min TTL, expires with ceremony)
 - Cookie: ceremony_id HttpOnly cookie set
 
 ### Cases
@@ -61,10 +64,10 @@
 | F4 | Token already used | Previously consumed token | POST /v1/auth/register/begin | invite_invalid | must |
 | F5 | Handle empty | Valid token; empty handle | POST /v1/auth/register/begin | Validation error; token NOT consumed | must |
 | F6 | Handle URL-unsafe chars | Valid token; handle with special chars | POST /v1/auth/register/begin | Validation error; token NOT consumed | must |
-| F7 | Handle already taken | Valid token; handle exists (case-insensitive) | POST /v1/auth/register/begin | 409 conflict; token NOT consumed | must |
+| F7 | Handle already taken | Valid token; handle exists or reserved (case-insensitive) | POST /v1/auth/register/begin | 409 conflict; token NOT consumed | must |
 | F8 | Name empty | Valid token; empty name | POST /v1/auth/register/begin | Validation error; token NOT consumed | must |
 | F9 | Database unavailable | Valid inputs; DB down | POST /v1/auth/register/begin | 500 internal error; token not consumed (can't write) | should |
-| F10 | Redis unavailable | Valid inputs; Redis down | POST /v1/auth/register/begin | 500 internal error; token may be consumed but ceremony not stored | should |
+| F10 | Redis unavailable | Valid inputs; Redis down | POST /v1/auth/register/begin | 500 internal error; token may be consumed but ceremony not stored (accepted trade-off per R9 fail-safe ordering — new invite needed) | should |
 | E1 | Handle case-insensitive collision | Existing handle 'foo'; request with 'Foo' | POST /v1/auth/register/begin | 409 conflict; treated as same handle | should |
 | E2 | Handle with unicode | Valid token; handle with unicode chars | POST /v1/auth/register/begin | Validation error (URL-safe only) | should |
 | E3 | Name with emoji/special chars | Valid token; name with emoji | POST /v1/auth/register/begin | Success; emoji allowed in display name | should |
@@ -89,6 +92,8 @@
 - R7: Role inherited from invite record (always user in 3A) (D-02)
 - R8: User service call timeout: 5 seconds (D-135)
 - R9: Ceremony state carries name/handle from Begin; Finish retrieves them for user creation
+- R10: Ceremony state content MUST NOT appear in any response body or error detail (D-98)
+- R11: WebAuthn credential verification failure → 400 ceremony_invalid (registration is not authentication; 401 is semantically incorrect for non-auth operations)
 
 ### Side Effects
 
@@ -107,11 +112,11 @@ On failure after CreateUser:
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
-| S1 | Successful registration | Valid ceremony state + valid credential | POST /v1/auth/register/finish | 201; { user_id, handle, name, role, recovery_codes }; JWT cookie; all side effects | must |
-| F1 | Ceremony cookie missing | No ceremony_id cookie | POST /v1/auth/register/finish | 400 bad request; no user created | must |
-| F2 | Ceremony state expired | ceremony_id refers to expired Redis key (5min TTL) | POST /v1/auth/register/finish | 400 bad request; no user created | must |
-| F3 | Ceremony state not found | ceremony_id refers to non-existent Redis key | POST /v1/auth/register/finish | 400 bad request; no user created | must |
-| F4 | Invalid WebAuthn credential | Credential verification fails | POST /v1/auth/register/finish | 400 bad request; no user created | must |
+| S1 | Successful registration | Valid ceremony state + valid credential | POST /v1/auth/register/finish | 201; { user_id, handle, name, role, recovery_codes }; handle and name match values from RegisterBegin; JWT cookie; all side effects | must |
+| F1 | Ceremony cookie missing | No ceremony_id cookie | POST /v1/auth/register/finish | 400 ceremony_invalid; no user created | must |
+| F2 | Ceremony state expired | ceremony_id refers to expired Redis key (5min TTL) | POST /v1/auth/register/finish | 400 ceremony_invalid; no user created | must |
+| F3 | Ceremony state not found | ceremony_id refers to non-existent Redis key | POST /v1/auth/register/finish | 400 ceremony_invalid; no user created | must |
+| F4 | Invalid WebAuthn credential | Credential verification fails | POST /v1/auth/register/finish | 400 ceremony_invalid; no user created | must |
 | F5 | User service unavailable | Valid ceremony; user service down | POST /v1/auth/register/finish | 500 internal error; no credential/session/JWT created | must |
 | F6 | User service timeout | Valid ceremony; user service >5s | POST /v1/auth/register/finish | 500 internal error; same as F5 | should |
 | F7 | Credential save fails after CreateUser | User created but auth DB write fails | POST /v1/auth/register/finish | 500 internal error; compensating DeleteUser attempted; no session/JWT | must |
@@ -131,6 +136,7 @@ On failure after CreateUser:
 - R2: Ceremony state stored in Redis with 5-minute TTL (D-97)
 - R3: No concurrent ceremony limits — TTL natural expiry only (D-102)
 - R4: Ceremony ID delivered via HttpOnly cookie (D-100)
+- R5: Ceremony state content MUST NOT appear in any response body or error detail (D-98)
 
 ### Side Effects
 - Redis: ceremony state stored (ceremony:auth:{random_id}, 5min TTL)
@@ -159,6 +165,8 @@ On failure after CreateUser:
 - R5: User service timeout: 5 seconds (D-135)
 - R6: All auth failures return generic `unauthorized` (D-50)
 - R7: Credential last_used_at updated on successful login (D-101)
+- R8: Ceremony state content MUST NOT appear in any response body or error detail (D-98)
+- R9: WebAuthn credential verification failure → 401 unauthorized (D-50: authentication attempt, all auth failures generic)
 
 ### Side Effects
 
@@ -172,14 +180,15 @@ On success:
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
 | S1 | Successful login | Valid ceremony state + valid credential | POST /v1/auth/login/finish | 204 No Content; JWT cookie set; session created; last_used_at updated; ceremony deleted | must |
-| F1 | Ceremony cookie missing | No ceremony_id cookie | POST /v1/auth/login/finish | 400 bad request | must |
-| F2 | Ceremony state expired | ceremony_id refers to expired Redis key (5min TTL) | POST /v1/auth/login/finish | 400 bad request | must |
-| F3 | Ceremony state not found | ceremony_id refers to non-existent Redis key | POST /v1/auth/login/finish | 400 bad request | must |
+| F1 | Ceremony cookie missing | No ceremony_id cookie | POST /v1/auth/login/finish | 400 ceremony_invalid | must |
+| F2 | Ceremony state expired | ceremony_id refers to expired Redis key (5min TTL) | POST /v1/auth/login/finish | 400 ceremony_invalid | must |
+| F3 | Ceremony state not found | ceremony_id refers to non-existent Redis key | POST /v1/auth/login/finish | 400 ceremony_invalid | must |
 | F4 | Invalid WebAuthn credential | Credential verification fails | POST /v1/auth/login/finish | 401 unauthorized | must |
 | F5 | No matching credential in DB | credential_id from assertion not found | POST /v1/auth/login/finish | 401 unauthorized | must |
 | F6 | User service unavailable | Valid ceremony; user service down | POST /v1/auth/login/finish | 500 internal error | must |
 | F7 | User service timeout | Valid ceremony; user service >5s | POST /v1/auth/login/finish | 500 internal error | should |
 | F8 | User deactivated | Valid credential but user is_active=false | POST /v1/auth/login/finish | 401 unauthorized (deactivation hidden, D-53) | must |
+| F9 | Redis fails during session creation | Credential verified; User.GetUser succeeded; Redis down | POST /v1/auth/login/finish | 500 internal error; no session/JWT created | should |
 | E1 | Finish called twice with same ceremony_id | First call succeeds | POST /v1/auth/login/finish (2nd call) | 400 bad request; ceremony state already consumed | should |
 | E2 | Concurrent logins same user | Same user from different devices | POST /v1/auth/login/finish x 2 | Both succeed; unlimited concurrent sessions (D-35) | should |
 
@@ -218,6 +227,7 @@ On success:
 | F4 | Expired JWT, refresh fails (infra) | JWT expired; session valid but RefreshToken fails due to infra | Request to protected route | 500 internal error | should |
 | F5 | Wrong iss/aud claims | JWT signed correctly but iss or aud mismatch | Request to protected route | 401 unauthorized (D-42) | must |
 | F6 | Auth service unavailable during refresh | JWT expired; auth service down | Request to protected route | 500 internal error | should |
+| F7 | Grace-period JWT reissue fails | JWT expired <1min; signing error | Request to protected route | 500 internal error | could |
 | E1 | Valid JWT on non-existent route | Valid JWT; route does not exist | Request to /v1/nonexistent | 404 not found (not 401); route_layer prevents bleed (D-127) | must |
 | E2 | Concurrent requests with expiring JWT | Multiple requests near JWT expiry | Parallel requests | Same cached JWT reissued within ~10sec window (D-37) | should |
 
@@ -235,6 +245,9 @@ On success:
 - R4: Pure validation — no sliding window extension (RefreshToken's responsibility)
 - R5: Returns session data alongside validity to avoid redundant lookups
 
+### Side Effects
+None (read-only)
+
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
@@ -242,6 +255,8 @@ On success:
 | F1 | Session not found in Redis | Session deleted, evicted, or never existed | ValidateSession(session_id, user_id) | Invalid | must |
 | F2 | Session past 30-day absolute limit | Session exists but created >30d ago | ValidateSession(session_id, user_id) | Invalid | must |
 | F3 | Session past 7-day sliding window | Session exists but last activity >7d ago | ValidateSession(session_id, user_id) | Invalid | must |
+| F4 | Session user_id mismatch | Session exists; stored user_id ≠ request user_id | ValidateSession(session_id, user_id) | Invalid | must |
+| F5 | gRPC timeout | Auth service responds >5s | ValidateSession(session_id, user_id) | Internal error (Gateway returns 500 internal error) | should |
 | E1 | Redis unavailable during validation | Redis down | ValidateSession(session_id, user_id) | Internal error (Gateway returns 500 internal error) | should |
 
 ### Open Questions
@@ -258,11 +273,16 @@ On success:
 - R4: JWT claims from session data — freshness maintained by update operations, not RefreshToken. Design intent: when user info changes, the update operation writes to session data in Redis; RefreshToken trusts session data as-is.
 - R5: gRPC timeout 5 seconds (D-135)
 
+### Side Effects
+- Redis: session sliding TTL reset to 7 days from now
+- In-memory (or Redis): JWT cache entry written with ~10 sec TTL
+
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
 | S1 | Session data available | ValidateSession confirmed validity | RefreshToken(session_id, user_id, session_data) | New JWT (ES256, 15min) + sliding window extended | must |
 | F1 | Redis unavailable | Redis down for lock/extend/cache | RefreshToken(session_id, user_id, session_data) | Internal error (Gateway returns 500 internal error) | should |
+| F2 | gRPC timeout | Auth service responds >5s | RefreshToken(session_id, user_id, session_data) | Internal error (Gateway returns 500 internal error) | should |
 | E1 | Concurrent refresh same session | Multiple requests trigger refresh simultaneously | RefreshToken for same session_id | One executes; others wait for lock, receive cached JWT | must |
 
 ### Open Questions
@@ -288,7 +308,7 @@ On success:
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
 |----|------|---------------|--------|------------------|----------|
-| S1 | Authenticated user logs out | Valid or expired (signature-valid) JWT | POST /v1/auth/logout | Session deleted; JWT cookie cleared | must |
+| S1 | Authenticated user logs out | Valid or expired (signature-valid) JWT | POST /v1/auth/logout | 204 No Content; session deleted; JWT cookie cleared | must |
 | F1 | Invalid/forged JWT | No JWT or invalid signature | POST /v1/auth/logout | 401 unauthorized | must |
 | F2 | Redis unavailable | JWT valid; Redis down | POST /v1/auth/logout | 500 internal error | should |
 | E1 | Already-logged-out session | Session already deleted | POST /v1/auth/logout | Success (idempotent) | should |
@@ -306,6 +326,9 @@ On success:
 - R2: Response fields: user_id, handle, name, role, created_at, updated_at
 - R3: Gateway calls User.GetUser gRPC (D-59, D-118)
 - R4: gRPC timeout 5 seconds (D-135)
+
+### Side Effects
+None (read-only)
 
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |
