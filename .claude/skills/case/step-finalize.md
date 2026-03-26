@@ -64,17 +64,23 @@ Requirements path: .planning/REQUIREMENTS.md
 
 If the validator returns `VALIDATION FAILED`, report the error and ask the developer whether to retry, skip validation and proceed to writing, or abort.
 
-Present findings to the developer:
+Present findings to the developer, distinguishing Decision Gaps from Constraint Forwarding Gaps:
 ```
 The validation found [N] items to review:
 
-[1] [Category]: [finding]
-    Source: [D-XX / REQ-XX]
-    Suggested case: [case description]
+[1] Decision Gap: D-XX in [OperationName]
+    "[decision text]" — no failure case for [scenario]
+    Suggested case: F_ [description] -> [expected outcome]
+    -> Add this case?
 
-[2] ...
+[2] Constraint Forwarding: D-XX (Phase-wide)
+    "[constraint text]" — not documented as Phase Rule or operation Rule
+    Suggested action: Add as PR[N] in Phase Rules
+    -> Add this rule?
 
-Want to add any of these to the case list?
+[3] ...
+
+Want to add any of these?
 ```
 
 Incorporate confirmed findings into the case tables before writing.
@@ -123,6 +129,21 @@ CASES.md written. Next steps:
 
 ---
 
+## Phase Rules
+
+> Constraints that apply to ALL operations in this phase.
+> Referenced by ID (PR1, PR2...) in operation Rules sections.
+
+- PR1: [constraint description] (D-XX)
+- PR2: [constraint description] (D-XX, D-YY)
+- PR3: [constraint description]. Per SR-01: [system rule it derives from]
+
+**System Rules (from PROJECT.md) applicable to this phase:**
+- SR-01: [brief description] — [which operations]
+- SR-02: [brief description] — [which operations]
+
+---
+
 ## Operation: [OperationName]
 
 **Description:** [what it does, from the caller's perspective]
@@ -134,6 +155,7 @@ CASES.md written. Next steps:
 - R1: [business rule or constraint]
 - R2: [validation rule]
 - R3: [authorization rule]
+- Inherits: PR1, PR2, SR-01
 
 ### Side Effects
 
@@ -176,6 +198,16 @@ CASES.md written. Next steps:
 | ID | Question | Impact | Default Recommendation |
 |----|----------|--------|------------------------|
 | Q1 | [what is uncertain] | [what it affects] | [suggested default] |
+
+---
+
+## SR Candidates
+
+> Constraints discovered during discussion that may warrant PROJECT.md promotion.
+
+| Constraint | Source | Rationale |
+|-----------|--------|-----------|
+| (none for this phase) | | |
 
 ---
 

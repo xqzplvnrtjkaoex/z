@@ -427,6 +427,19 @@ Discovers and uploads new books.
 - **Observability**: OpenTelemetry + tracing
 - **ID Strategy**: UUIDv7 (predictable OK) / UUIDv4 (must be unpredictable)
 
+## System-Wide Rules
+
+Rules that apply to ALL services and ALL phases. Phase Rules (PR) and
+operation Rules (R) may reference these. Override requires explicit
+justification in the phase's CASES.md Phase Rules section.
+
+| ID | Rule | Scope | Source |
+|----|------|-------|--------|
+| SR-01 | All inter-service gRPC calls use 5-second timeout via `tonic::Request::set_timeout` | All gRPC callers | D-135 (3A) |
+| SR-02 | Service unavailability in synchronous call chain = operation failure; no retry, no partial recovery | All cross-service calls | D-136 (3A) |
+| SR-03 | Detailed error info logged server-side with request_id correlation; generic errors to clients | All services | D-54 (3A) |
+| SR-04 | UUIDv4 for security-sensitive entities; UUIDv7 for time-sortable entities | All services | ID Design |
+
 ## Key Decisions
 
 | Decision | Rationale | Outcome |

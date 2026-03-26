@@ -1,4 +1,48 @@
-# Step: Per-Operation Discussion
+# Step: Phase Rules + Per-Operation Discussion
+
+## 2.5: Phase Rules Confirmation
+
+Before starting per-operation discussion, present Phase Rules and System Rules from the briefing's Cross-Cutting Constraints section. This happens once, before the first operation.
+
+```
+From the briefing, I identified these phase-wide constraints:
+
+Phase Rules (apply to all operations below):
+  - PR1: [constraint description] (D-XX)
+  - PR2: [constraint description] (D-XX)
+
+System Rules (from PROJECT.md, apply to this phase):
+  - SR-01: [brief description] — applies to: [Op1, Op2, ...]
+  - SR-02: [brief description] — applies to: [Op1, Op2]
+
+Confirm these phase rules? Any to add, remove, or adjust?
+```
+
+The developer can:
+- Confirm all
+- Demote a PR to R ("that only applies to one operation")
+- Promote an R to PR ("that applies to all ops")
+- Add new PRs the briefer missed
+
+After confirmation, save Phase Rules to CASE-SCRATCH.md's `## Phase Rules` section (replacing the placeholder from step-init).
+
+If the briefing has no Cross-Cutting Constraints section (older briefing format), scan CONTEXT.md directly for cross-cutting architectural constraints and propose them.
+
+**Mid-discussion PR promotion:** During per-operation discussion, if a constraint discovered for one operation applies to multiple operations, propose promoting it to PR:
+```
+That sounds like a phase-wide rule. I'll add it as PR[N]: [description].
+It will apply to the remaining operations too. Confirm?
+```
+
+**SR-candidate discovery:** When the developer uses "project policy" or "same everywhere" language, flag as SR-candidate:
+```
+That sounds like a system-wide rule (all services, all phases).
+I'll flag it as SR-candidate for PROJECT.md promotion.
+For now, I'll treat it as Phase Rule PR[N].
+```
+Record SR-candidates in the `## SR Candidates` section of CASES.md (written during finalize). Do not modify PROJECT.md.
+
+---
 
 For each selected operation, run this sequence. Complete one operation fully before moving to the next.
 
@@ -7,6 +51,15 @@ For each selected operation, run this sequence. Complete one operation fully bef
 Present the operation as an integrated flow diagram following the structure in SKILL.md `<formatting>`: Interface section + flow diagram + Rules + Cases. The AI reads context and forms understanding internally, then presents the compact Interface section as context verification -- not a separate verbose text block.
 
 The Interface section replaces verbose anchor text. It provides the same context verification (inputs, output, auth, preconditions) in compact form. Add any additional fields relevant to the operation (e.g., `Precondition:`, `Caller:`).
+
+In the Rules section of the flow diagram, reference confirmed Phase Rules by ID instead of repeating their text:
+```
+Rules:
+  - R1: [operation-specific rule]
+  - Inherits: PR1, PR2, SR-01
+```
+
+Only list operation-specific rules (R) in full. Phase Rules and System Rules are referenced by ID — their content is already established in Step 2.5.
 
 After presenting, ask the developer to confirm or correct via AskUserQuestion.
 
@@ -182,6 +235,7 @@ Append format per operation:
 
 ### Rules
 - R1: [rule]
+- Inherits: PR1, PR2, SR-01
 
 ### Side Effects
 - Domain event: "[entity].[action]" with [key fields]

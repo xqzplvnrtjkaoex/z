@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: 3A cases re-validated, 8 items fixed, finalize pending
-last_updated: "2026-03-26T09:10:57.419Z"
-last_activity: Re-ran case-validator on 3A, reviewed BLOCK-1/2/3 + FLAG-1~5, applied 8 fixes to CASE-SCRATCH.md including handle reservation design intent
+stopped_at: 3A case re-validation round 2 complete, SCRATCH updated, CASES.md writing deferred
+last_updated: "2026-03-26T10:20:08.580Z"
+last_activity: "Re-validated 3A cases (round 2): 8 validator findings discussed, SCRATCH updated. Identified 3 workflow gaps saved to memory."
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T09:10:46.848Z
-Last activity: Re-validated 3A cases (round 2): 8 validator findings discussed, SCRATCH updated. Identified 3 workflow gaps saved to memory.
-Stopped at: 3A case re-validation round 2 complete, SCRATCH updated, CASES.md writing deferred
-Resume file: .planning/phases/03a-authentication-core/CASE-SCRATCH.md
-Next action: Optional re-validate round 3 OR finalize (write 03a-CASES.md). Then improve case skill (constraint forwarding, cross-phase forwarding, 3-tier rules).
+Last session: 2026-03-26T10:19:48.302Z
+Last activity: Implemented constraint forwarding for /case skill: PROJECT.md SR section, case-briefer Step 4.5, step-discuss Step 2.5, case-validator Check B extension, output format Phase Rules + SR Candidates
+Stopped at: Constraint forwarding implemented and code-reviewed; 3A CASES.md writing still pending
+Resume file: .claude/skills/case/SKILL.md
+Next action: Finalize 3A (write 03a-CASES.md) OR start cross-phase forwarding research (separate concern, deferred)

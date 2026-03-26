@@ -117,6 +117,7 @@ Interface:
 Rules:
   - R1: constraint not in diagram
   - R2: another constraint. Design intent: developer's proposed approach
+  - Inherits: PR1, PR2, SR-01
 
 Cases:
   Success:
@@ -139,6 +140,14 @@ Total: 1 success, 3 failure, 2 edge, 2 questions
 ```
 
 Omit the `Open questions:` section when there are none.
+
+**Rule tier conventions:**
+- `R1, R2, R3` — operation-specific rules (no dash, no padding)
+- `PR1, PR2, PR3` — phase-wide rules (same style as R, prefixed with P)
+- `SR-01, SR-02` — system-wide rules in PROJECT.md (dash, zero-padded, formal)
+- Operation Rules reference Phase/System Rules via `Inherits: PR1, PR2, SR-01` line
+- Override format: `Overrides SR-XX: [what changes] ([justification])`
+- `Per SR-XX` prefix when a Phase Rule derives from a System Rule
 </formatting>
 
 <available_agent_types>

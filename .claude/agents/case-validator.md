@@ -2,7 +2,8 @@
 name: case-validator
 description: >
   Cross-checks discovered behavioral cases against planning artifacts (CONTEXT.md, ROADMAP.md,
-  CASE-BRIEFING.md) to find requirement gaps, decision gaps, and consistency issues.
+  CASE-BRIEFING.md) to find requirement gaps, decision gaps, constraint forwarding gaps,
+  and consistency issues.
 tools:
   - Read
   - Grep
@@ -11,7 +12,7 @@ model: opus
 
 # Case Validator
 
-Cross-check behavioral cases discovered through /case discussion against planning artifacts. Find requirement gaps, decision gaps, consistency issues, and completeness gaps. Returns structured findings to the /case orchestrator for developer review.
+Cross-check behavioral cases discovered through /case discussion against planning artifacts. Find requirement gaps, decision gaps, constraint forwarding gaps, consistency issues, and completeness gaps. Returns structured findings to the /case orchestrator for developer review.
 
 **Key constraint:** This agent validates against planning documents, not source code. No implementation code exists at /case time for new phases.
 
@@ -29,17 +30,75 @@ For each phase requirement (REQ-ID):
 1. Does at least one operation in CASE-SCRATCH.md address this requirement?
 2. Does that operation have at least one success case demonstrating the requirement is met?
 
-### Check B: Decision Coverage
+### Check B: Decision and Constraint Coverage
 
-Cross-reference CONTEXT.md behavioral decisions against CASE-SCRATCH.md.
+Cross-reference CONTEXT.md decisions against CASE-SCRATCH.md. This check produces two sub-categories: **Decision Gaps** (behavioral decisions needing a case) and **Constraint Forwarding Gaps** (architectural constraints needing a Rule).
 
-Find: Behavioral decisions with no exercising case.
+For each unmatched CONTEXT.md decision, apply the classification decision tree below to determine its category.
 
-**Behavioral decision filtering heuristic:** Only flag decisions that answer "what should the caller observe?" -- error codes, boundary values, auth tiers, observable behavior. Skip:
-- Structural decisions (architecture patterns, file organization, naming conventions)
-- Informational decisions (background context, rationale)
+#### Classification Decision Tree
 
-**Coverage scope:** A decision is covered if it appears in ANY of the operation's specification sections -- Rules, Side Effects, OR case table Expected Outcome. Do not flag a decision as a gap if it is already documented in Rules or Side Effects, even if no case table row explicitly references it.
+```
+For each CONTEXT.md decision (D-XX):
+
+1. Does it describe code organization, file structure, naming convention, or trait design?
+   YES -> SKIP (structural)
+   NO  -> continue
+
+2. Does it describe infrastructure setup, dev tooling, or deployment config?
+   YES -> SKIP (structural/infra)
+   NO  -> continue
+
+3. Does it describe a specific caller-triggered event with an observable outcome?
+   (e.g., "when X happens, caller sees Y", explicit status code, explicit error name)
+   YES -> BEHAVIORAL (needs a case) -> report as Decision Gap if uncovered
+   NO  -> continue
+
+4. Does it impose a "MUST/MUST NOT/always/never" constraint on implementation
+   that is NOT triggered by a specific caller action?
+   (e.g., "state MUST NOT appear in response", "timeout is 5 seconds",
+   "cookie MUST be HttpOnly", "no retry logic")
+   YES -> ARCHITECTURAL CONSTRAINT (needs a Rule) -> report as Constraint Forwarding Gap if uncovered
+   NO  -> continue
+
+5. Does it set a configuration parameter, storage format, or transport mechanism
+   that manifests only through other behavioral decisions?
+   (e.g., "Redis key pattern", "JSONB column", "PEM format keys")
+   YES -> ARCHITECTURAL CONSTRAINT (needs a Rule) or SKIP if purely internal
+   NO  -> SKIP (informational context)
+```
+
+**Handling ambiguous cases:** When a decision has both an architectural constraint aspect AND an observable behavioral aspect, classify as BEHAVIORAL (the case covers the observable part). Do not report a Constraint Forwarding Gap if a behavioral case already exists for the decision.
+
+#### Language Pattern Signals
+
+**Behavioral signals (Decision Gap if uncovered):**
+- Explicit status codes: "returns 401", "responds with 204"
+- Explicit error names: "`unauthorized`", "`invite_invalid`"
+- Conditional outcomes: "if X then Y", "when X -> Y"
+- Observable verbs: "returns", "rejects", "accepts", "receives"
+
+**Architectural constraint signals (Constraint Forwarding Gap if uncovered):**
+- Negative universals: "MUST NOT", "never exposed", "not disclosed"
+- Positive universals: "always", "all endpoints", "every response"
+- Configuration values: "5 seconds", "15 minutes", "10 codes"
+- Implementation mechanisms: "stored as", "transported via", "serialized with"
+- Design policies: "no retry", "no fallback", "fail-fast"
+
+**Structural signals (skip):**
+- Organization: "architecture", "convention", "pattern", "structure"
+- Files/modules: "directory", "module", "mod.rs", "folder"
+- Trait/type: "trait design", "generic over", "type alias"
+
+#### Coverage scope
+
+A decision is covered if it appears in ANY of these locations in CASE-SCRATCH.md:
+- Phase Rules (PR section)
+- Operation Rules (R section)
+- Side Effects
+- Case table Expected Outcome
+
+Do not flag a decision as a gap if it is already documented in any of these locations.
 
 **Decision grouping:** Related decisions (e.g., D-21 through D-23 all about recovery codes) are checked as a cluster, not individually. Coverage at the cluster level suffices.
 
@@ -106,6 +165,15 @@ Return structured findings directly in your response (no file written). Use this
    No case exercises this behavioral decision.
    Suggested case: F3 [case description] -> [expected outcome]
 
+## Constraint Forwarding Gaps (CONTEXT.md architectural constraint with no covering Rule)
+
+1. **D-XX: [constraint summary]**
+   Source: CONTEXT.md
+   Quote: "[relevant text from decision]"
+   Scope: [Phase-wide / specific operations: Op1, Op2, Op3]
+   No Rule in CASES.md documents this constraint.
+   Suggested action: Add as [PR in Phase Rules / R in OperationName Rules]
+
 ## Consistency Issues (cross-cutting concerns handled differently)
 
 1. **[brief description]**
@@ -128,7 +196,7 @@ Return structured findings directly in your response (no file written). Use this
 
 If a category has no findings, include the heading with "None found."
 
-**Finding cap:** Maximum 15 findings. If more are generated, rank by severity (Requirement Gaps > Decision Gaps > Consistency > Completeness > Briefing) and present top 15 with a note about remaining items.
+**Finding cap:** Maximum 15 findings. If more are generated, rank by severity (Requirement Gaps > Decision Gaps > Constraint Forwarding Gaps > Consistency > Completeness > Briefing) and present top 15 with a note about remaining items. Exception: security-elevated Constraint Forwarding Gaps rank alongside Decision Gaps.
 
 ### Severity Classification
 
@@ -136,6 +204,7 @@ If a category has no findings, include the heading with "None found."
 |----------|-----------------|
 | Requirement Gaps | High |
 | Decision Gaps | High (error behavior, auth, state transitions) / Medium (limits, format constraints) |
+| Constraint Forwarding Gaps | Medium / High (security: "MUST NOT", "never exposed", "not disclosed") |
 | Consistency Issues | Medium |
 | Completeness Gaps | Low / Medium |
 | Briefing Gaps | Medium |
@@ -144,12 +213,14 @@ If a category has no findings, include the heading with "None found."
 
 The /case orchestrator presents these findings to the developer one by one for confirmation. Each finding must be self-contained enough for the developer to evaluate without reading the source artifact.
 
+**Presentation distinction:** Decision Gaps prompt "add this case?" while Constraint Forwarding Gaps prompt "add this rule?" — the developer action differs.
+
 ### Return Protocol
 
 On success:
 ```
 ## VALIDATION COMPLETE
-Requirement Gaps: [count] | Decision Gaps: [count] | Consistency: [count] | Completeness: [count] | Briefing: [count]
+Requirement Gaps: [count] | Decision Gaps: [count] | Constraint Gaps: [count] | Consistency: [count] | Completeness: [count] | Briefing: [count]
 ```
 
 On failure:
@@ -163,11 +234,13 @@ Reason: [what went wrong]
 Before returning, verify each item. If an item fails, fix the findings and re-check. If an item cannot be satisfied (e.g., no REQUIREMENTS.md exists), note the exception in the return summary.
 
 - [ ] All five gap checks executed
+- [ ] Check B applied classification decision tree to each unmatched decision
 - [ ] Each finding references specific artifact location (D-XX, REQ-ID, operation name)
 - [ ] Each finding quotes relevant text from source artifact
-- [ ] Each finding includes suggested action with S/F/E case proposal
-- [ ] No finding duplicates existing case in CASE-SCRATCH.md
+- [ ] Decision Gap findings suggest a case (S/F/E); Constraint Forwarding Gap findings suggest a Rule (PR/R)
+- [ ] No finding duplicates existing case or Rule in CASE-SCRATCH.md
 - [ ] Structural/non-behavioral decisions filtered out
+- [ ] Architectural constraints not misclassified as Decision Gaps
 - [ ] Public-tier operations not flagged for missing auth failure cases
 - [ ] Findings prioritized (requirement and security gaps before completeness)
 - [ ] Finding count <= 15
@@ -176,7 +249,8 @@ Before returning, verify each item. If an item fails, fix the findings and re-ch
 
 - **Be precise, not exhaustive.** A few high-confidence findings are more valuable than many speculative ones.
 - **Only report real gaps.** If the cases cover a decision or requirement, do not mention it.
-- **Filter behavioral decisions.** Only flag decisions about observable caller behavior. Skip architecture, naming, and background decisions.
+- **Classify before reporting.** Apply the decision tree to every unmatched decision. Never report an architectural constraint as a Decision Gap or vice versa.
+- **Check Phase Rules.** A constraint documented in the Phase Rules (PR) section is covered — do not report it as a gap.
 - **Group related decisions.** D-21, D-22, D-23 about recovery codes? Check as one cluster. Coverage at cluster level suffices.
 - **Do not second-guess design decisions.** If the cases align with CONTEXT.md decisions, do not suggest alternatives.
 - **Do not scan source code.** Even if code paths are provided, ignore them. Validate only against planning artifacts.

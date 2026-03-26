@@ -55,6 +55,16 @@ From decision details, extract input and output fields for each operation. Class
 
 From decisions, extract business rules, validation rules, and constraints. Attach each constraint to the operation(s) it governs. Reference decision IDs (D-XX).
 
+### Step 4.5: Classify cross-cutting constraints
+
+After extracting per-operation constraints, scan ALL decisions for constraints that span multiple operations or the entire phase. Classify each as SR-candidate, PR-candidate, or operation-specific:
+
+- **SR-candidate:** Uses "all services/phases" language, or matches an existing System Rule in PROJECT.md's `## System-Wide Rules` section. Note in the "Existing SR?" column if already in PROJECT.md.
+- **PR-candidate:** Applies to 2+ operations in this phase but is not universal across all phases. Typically: security invariants, shared error policies, session/ceremony constraints.
+- **Operation-specific (R):** Default. Unique to one operation's flow. No change needed — these stay in per-operation "Decided constraints."
+
+Check PROJECT.md for an existing `## System-Wide Rules` section. For each existing SR, note which operations in this phase it applies to.
+
 ### Step 5: Map requirements to operations
 
 From ROADMAP.md phase description and success criteria, extract requirement IDs (REQ-XX). Map each REQ-ID to the operation(s) that satisfy it. An operation may map to multiple requirements; a requirement may span multiple operations. Record unmapped requirements in Observations.
@@ -127,13 +137,23 @@ The dispatch prompt will contain these XML tags:
 | [name] | INFERRED | Inputs derived from D-XX decisions |
 | [name] | PARTIAL | Only in ROADMAP success criterion |
 
-## Observations
+## Cross-Cutting Constraints
 
-[Cross-cutting patterns, shared constraints, common access control policies,
- anything the Protester should know that does not fit per-operation.
- e.g., "All mutation operations require authentication (D-03). Error response
- format is standardized across operations (D-07). REQ-04 spans multiple
- operations and may need cross-operation testing."]
+### System-Wide Candidates (may belong in PROJECT.md SR)
+
+| Constraint | Scope | Source | Existing SR? |
+|-----------|-------|--------|--------------|
+| [constraint text] | [All gRPC callers / All services / ...] | D-XX | SR-XX (yes) or New |
+
+### Phase-Wide Constraints (PR candidates)
+
+| Constraint | Applies To | Source | Behavioral? |
+|-----------|------------|--------|-------------|
+| [constraint text] | [Op1, Op2, Op3] | D-XX | No (invariant) / Yes (produces cases) |
+
+### Observations
+
+[Remaining cross-cutting patterns that do not fit the above categories.]
 ```
 
 ### Downstream Consumer
@@ -175,7 +195,8 @@ Before returning, verify each item. If an item fails, fix the briefing and re-ch
 - [ ] No implementation recommendations
 - [ ] Extraction confidence table included
 - [ ] Operations grouped by natural category, not listed flat
-- [ ] Observations section captures cross-cutting patterns
+- [ ] Cross-Cutting Constraints section included with SR/PR classification
+- [ ] Observations section captures remaining cross-cutting patterns
 
 ## Guidelines
 

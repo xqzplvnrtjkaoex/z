@@ -73,6 +73,21 @@ Read the produced `CASE-BRIEFING.md` to prepare for Step 2.
 
 If the briefer returns `BRIEFING FAILED` or `CASE-BRIEFING.md` is not produced, report the error and ask the developer whether to retry, manually define operations, or abort.
 
+### 1e: Initialize CASE-SCRATCH.md with Phase Rules header
+
+If CASE-SCRATCH.md does not already exist (fresh start), create it with a Phase Rules placeholder:
+
+```markdown
+# Case Scratch: Phase [XX] - [Name]
+
+## Phase Rules
+(populated after briefing review in Step 2.5)
+
+---
+```
+
+This ensures Phase Rules have a home from the start. The placeholder is populated during Step 2.5 in step-discuss.md.
+
 ---
 
 ## Step 2: Select Operations
