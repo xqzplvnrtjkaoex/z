@@ -29,6 +29,15 @@ Parse `<phase_context>` for phase orientation (number, name, description, key de
 - Phase requirements and REQ-IDs from ROADMAP.md
 - Architecture reference from PROJECT.md
 
+**PROJECT.md deep extraction:** Beyond general architecture reference, extract and retain these specific elements for use in later steps:
+- **Service topology** -- which services exist, their roles, communication patterns (REST, gRPC, CLI, event-driven, etc.)
+- **Authentication policy** -- e.g., "all endpoints require authentication" applies to any phase with user-facing operations
+- **System-Wide Rules** (`## System-Wide Rules` section) -- these are authoritative constraints that apply across all phases
+- **Cross-service interaction patterns** -- gateway compose patterns, service-to-service contracts, orchestration flows
+- **API conventions** -- URL structure, naming patterns, error handling conventions
+
+Summarize these as an `## Architectural Context` section in the output briefing so the Protester has project-wide context when discussing cases.
+
 ### Step 2: Discover operations
 
 Scan CONTEXT.md decisions as the primary source, supplemented by ROADMAP.md success criteria and REQUIREMENTS.md, for all callable interfaces this phase defines. Operations may appear as:
@@ -65,11 +74,30 @@ After extracting per-operation constraints, scan ALL decisions for constraints t
 
 Check PROJECT.md for an existing `## System-Wide Rules` section. For each existing SR, note which operations in this phase it applies to.
 
+### Step 4.6: Cross-reference operations from other phases
+
+Scan CONTEXT.md for references to operations defined in other phases. These appear as `{Service}.{OperationName}` patterns (e.g., "User.CreateUser", "Auth.ValidateSession") or plain-text mentions of operations from other services.
+
+1. **Extract references:** Find all mentions of external operations in CONTEXT.md decisions and descriptions.
+
+2. **Search all phase CASES.md:** For each referenced operation, grep across ALL phase directories (not just ROADMAP dependencies) for matching operation headings or definitions. This catches implicit dependencies that `Depends on` misses.
+
+3. **Extract relevant constraints:** From each matched operation's spec, extract:
+   - Decided constraints and rules that affect this phase's behavior
+   - Input/output contracts the current phase must respect
+   - Failure modes the current phase should be aware of
+
+4. **Include as Referenced Operations** in the output briefing. Each entry should note the source phase and the specific constraints relevant to the current phase.
+
+This step prevents knowledge gaps where constraints were already decided in earlier phases but are not surfaced because the dependency is implicit.
+
 ### Step 4.7: Scan dependency phase CASES.md (cross-phase forwarding)
 
 After classifying cross-cutting constraints, scan dependency phases for forwarded concerns. This step enables intra-milestone concern propagation.
 
 1. **Resolve dependencies:** Read ROADMAP.md and extract the `Depends on` field for this phase. Parse phase references (e.g., "Phase 1, Phase 2" -> [1, 2]). Use direct dependencies only -- do not resolve transitive chains.
+
+   **Auto-detect implicit dependencies:** If PROJECT.md states a system-wide policy that applies to this phase (e.g., "all endpoints require authentication"), and a completed phase implements that policy, include it as an implicit dependency even if not listed in `Depends on`. To identify policy-implementing phases, check ROADMAP.md phase descriptions and names for keyword matches (e.g., "authentication" policy → phase with "authentication" in its name or description). This ensures policy-implementing phases are always consulted.
 
 2. **Find dependency CASES.md:** For each dependency phase, look for `{dep_phase_dir}/*-CASES.md`. Skip phases with no CASES.md (not yet completed or skipped /case).
 
@@ -127,6 +155,27 @@ The dispatch prompt will contain these XML tags:
 **Generated:** [date]
 **Operations found:** [count]
 **Categories:** [count]
+
+---
+
+## Architectural Context
+
+> Extracted from PROJECT.md. Provides project-wide context for case discussion.
+
+- **Service topology:** [summary of services and their roles]
+- **Authentication policy:** [system-wide auth requirements, if any]
+- **System-Wide Rules:** [list of SR-XX rules that apply to this phase's operations]
+- **Cross-service patterns:** [relevant interaction patterns]
+- **API conventions:** [naming, error handling conventions]
+
+## Referenced Operations (from other phases)
+
+> Operations referenced in CONTEXT.md that are defined in other phases' CASES.md.
+> Empty section if no cross-references found or referenced phases have no CASES.md.
+
+| Operation | Source Phase | Relevant Constraints | Impact on This Phase |
+|-----------|-------------|---------------------|---------------------|
+| [Service.Operation] | Phase XX | [constraint from source spec] | [how it affects current phase] |
 
 ---
 
@@ -235,6 +284,9 @@ Before returning, verify each item. If an item fails, fix the briefing and re-ch
 - [ ] Inherited Concerns section included (empty if no dependency CASES.md exists)
 - [ ] Each inherited concern classified as behavioral/constraint/informational
 - [ ] Heuristic matches noted as `heuristic` type (vs `explicit` for structured tags)
+- [ ] Architectural Context section included with PROJECT.md extractions
+- [ ] Referenced Operations section included (empty if no cross-references found)
+- [ ] If PROJECT.md contains system-wide policies applicable to this phase, policy-implementing phases included in Inherited Concerns as implicit dependencies
 
 ## Guidelines
 

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Cross-phase concern forwarding implemented and verified; 3A CASES.md finalize pending
-last_updated: "2026-03-26T14:22:25.068Z"
-last_activity: "Researched (4 parallel agents) and implemented cross-phase concern forwarding: briefer Step 4.7, OQ Forward column, Forward Concerns section, CLAUDE.md discuss pre-flight, docs update"
+stopped_at: "3A case re-validate complete: Signup/Register separation, 12 operations restructured, CONTEXT.md updated"
+last_updated: "2026-03-26T15:40:47.987Z"
+last_activity: "Case re-validate: 9 validation findings, Signup/Register operation separation (D-146), ceremony cleanup (D-147), PROJECT.md + CONTEXT.md updated, spec-driven workflow idea discussed"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T14:20:20.265Z
-Last activity: Case re-validate: 9 validation findings, Signup/Register operation separation (D-146), ceremony cleanup (D-147), PROJECT.md + CONTEXT.md updated, spec-driven workflow idea discussed
-Stopped at: 3A case re-validate complete: Signup/Register separation, 12 operations restructured, CONTEXT.md updated
+Last session: 2026-03-26T15:40:37.319Z
+Last activity: Spec-driven workflow research (4 parallel researchers + synthesizer), Option C decided and implemented: case-briefer enhanced with 3 new capabilities, CLAUDE.md updated, specs/INDEX.md created
+Stopped at: Option C implemented: briefer Tier 1 (PROJECT.md extraction, operation cross-ref, auto-auth) + Tier 2 skeleton (specs/INDEX.md)
 Resume file: .planning/phases/03a-authentication-core/CASE-SCRATCH.md
 Next action: /case 3a re-validate — verify restructured 12 operations, then write 03a-CASES.md

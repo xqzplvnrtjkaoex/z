@@ -196,7 +196,10 @@ When CASES.md does not exist, plan-phase works normally from CONTEXT.md + REQUIR
 
 When a phase has dependencies (`Depends on` in ROADMAP.md), the /case pipeline automatically surfaces concerns from dependency phases:
 
-- **case-briefer** scans dependency CASES.md for: Open Questions with `Forward` tags targeting this phase, Forward Concerns section entries, Phase Rules referencing this phase, and heuristic text matches (fallback for legacy CASES.md without structured tags).
+- **case-briefer dependency scan** scans dependency CASES.md for: Open Questions with `Forward` tags targeting this phase, Forward Concerns section entries, Phase Rules referencing this phase, and heuristic text matches (fallback for legacy CASES.md without structured tags).
+- **case-briefer operation cross-referencing:** Scans CONTEXT.md for `{Service}.{Operation}` references and greps ALL phase CASES.md (not just ROADMAP dependencies) for matching operation specs. Extracts constraints and rules the current phase must respect. Catches implicit dependencies that `Depends on` misses.
+- **case-briefer implicit dependency detection:** If PROJECT.md states a system-wide policy (e.g., "all endpoints require authentication") and a completed phase implements it, that phase is included as an implicit dependency even without explicit `Depends on`.
+- **case-briefer PROJECT.md deep extraction:** Extracts service topology, authentication policy, System-Wide Rules, cross-service patterns, and API conventions into an Architectural Context section in the briefing.
 - **discuss-phase (advisory):** When running `gsd:discuss-phase` for a phase with dependencies, scan dependency CASES.md for design-level concerns (deferred architectural decisions, constraint implications) and include them as discussion topics in CONTEXT.md. This ensures forwarded concerns are resolved into decisions before /case runs.
 - **Priority resets** at phase boundaries -- the receiving phase's developer re-evaluates each inherited concern in their own context.
 - **Direct dependencies only** -- concerns spanning 3+ phases should be promoted to PROJECT.md System-Wide Rules (SR).
