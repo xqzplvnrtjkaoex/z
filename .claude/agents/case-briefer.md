@@ -65,6 +65,26 @@ After extracting per-operation constraints, scan ALL decisions for constraints t
 
 Check PROJECT.md for an existing `## System-Wide Rules` section. For each existing SR, note which operations in this phase it applies to.
 
+### Step 4.7: Scan dependency phase CASES.md (cross-phase forwarding)
+
+After classifying cross-cutting constraints, scan dependency phases for forwarded concerns. This step enables intra-milestone concern propagation.
+
+1. **Resolve dependencies:** Read ROADMAP.md and extract the `Depends on` field for this phase. Parse phase references (e.g., "Phase 1, Phase 2" -> [1, 2]). Use direct dependencies only -- do not resolve transitive chains.
+
+2. **Find dependency CASES.md:** For each dependency phase, look for `{dep_phase_dir}/*-CASES.md`. Skip phases with no CASES.md (not yet completed or skipped /case).
+
+3. **Extract forwarded concerns** from each dependency CASES.md:
+   - **Open Questions with `Forward` column** matching this phase (e.g., `->3B`, `->3B:OpName`). These are explicitly tagged by the upstream developer.
+   - **Forward Concerns section** entries targeting this phase. These include both explicit (developer-authored) and inferred (AI cross-operation analysis) items.
+   - **Phase Rules (PR)** that reference this phase by number or name in their description.
+   - **Operation Rules with "Design intent:" notes** that mention this phase or its operations.
+   - **Heuristic scan (fallback for legacy CASES.md):** If no `Forward` column or `Forward Concerns` section exists, scan Open Questions and Rules text for references to this phase's number, name, or known operations (e.g., "3B", "deferred to Phase 3B", operation names from ROADMAP).
+
+4. **Classify each concern:**
+   - **Behavioral** (needs a case or Open Question in the receiving phase) -- e.g., "verify JWT claims freshness when user info changes"
+   - **Constraint** (needs a Rule in the receiving phase) -- e.g., "ceremony logic should be reusable"
+   - **Informational** (context for the Protester, not directly actionable) -- e.g., "rate limiting deferred"
+
 ### Step 5: Map requirements to operations
 
 From ROADMAP.md phase description and success criteria, extract requirement IDs (REQ-XX). Map each REQ-ID to the operation(s) that satisfy it. An operation may map to multiple requirements; a requirement may span multiple operations. Record unmapped requirements in Observations.
@@ -154,14 +174,29 @@ The dispatch prompt will contain these XML tags:
 ### Observations
 
 [Remaining cross-cutting patterns that do not fit the above categories.]
+
+## Inherited Concerns (from dependency phases)
+
+> Concerns forwarded from dependency phases' CASES.md via ROADMAP `Depends on`.
+> Empty section if no dependencies have CASES.md or no concerns target this phase.
+
+| ID | Concern | Source Phase | Source Ref | Type | Classification |
+|----|---------|-------------|------------|------|----------------|
+| IC1 | [concern description] | Phase 3A | Q2 (Forward: ->3B) | explicit | behavioral |
+| IC2 | [concern description] | Phase 3A | FC1 (Forward Concerns) | inferred | constraint |
+| IC3 | [concern description] | Phase 3A | RefreshToken R4 (heuristic) | heuristic | behavioral |
+
+**Type:** `explicit` (structured Forward tag/section), `heuristic` (text-matched from legacy CASES.md)
+**Classification:** `behavioral` (needs case/OQ), `constraint` (needs Rule), `informational` (context only)
 ```
 
 ### Downstream Consumer
 
 The /case orchestrator (the Protester) reads this briefing to:
 1. Present operations to the developer for selection (Step 2)
-2. Anchor each operation discussion with accurate context (Step 3a)
-3. Know which areas are locked vs. flexible for discussion
+2. Present inherited concerns for developer review (Step 2.5)
+3. Anchor each operation discussion with accurate context (Step 3a)
+4. Know which areas are locked vs. flexible for discussion
 
 The briefing must be **accurate about what decisions exist** and **silent about what should exist** -- the Protester's job is to discover missing behavioral specifications through discussion.
 
@@ -197,6 +232,9 @@ Before returning, verify each item. If an item fails, fix the briefing and re-ch
 - [ ] Operations grouped by natural category, not listed flat
 - [ ] Cross-Cutting Constraints section included with SR/PR classification
 - [ ] Observations section captures remaining cross-cutting patterns
+- [ ] Inherited Concerns section included (empty if no dependency CASES.md exists)
+- [ ] Each inherited concern classified as behavioral/constraint/informational
+- [ ] Heuristic matches noted as `heuristic` type (vs `explicit` for structured tags)
 
 ## Guidelines
 

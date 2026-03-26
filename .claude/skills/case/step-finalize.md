@@ -30,6 +30,30 @@ Context-dependent checks -- apply based on what was discovered:
 
 Keep each category brief. Only raise concerns where inconsistency was actually detected.
 
+### 4d: Forward concerns (cross-phase implications)
+
+Review all discovered Rules, Edge Cases, and side effects for implications that affect downstream phases. Check ROADMAP.md to identify which phases depend on the current one.
+
+For each potential forward concern:
+1. Does this Rule/Case/side effect affect a downstream phase's operations?
+2. Is this something the downstream phase's /case session needs to know?
+3. Would the downstream briefer catch this from CONTEXT.md alone, or does it need explicit forwarding?
+
+Propose forward concerns as a batch:
+```
+I identified these cross-phase implications:
+
+| Concern | Source | Target Phase | Type |
+|---------|--------|-------------|------|
+| [description] | [OpName R4] | 3B | inferred |
+| [description] | [OpName E1] | 3B | inferred |
+
+Any to add, remove, or adjust?
+Developer: you can also add explicit forward concerns for anything I missed.
+```
+
+After developer confirmation, these populate the `## Forward Concerns` section in CASES.md. Also check Open Questions — for any with `Forward` tags, confirm the target is correct.
+
 ---
 
 ## Step 5: Validate with case-validator
@@ -195,9 +219,28 @@ CASES.md written. Next steps:
 
 ### Open Questions
 
-| ID | Question | Impact | Default Recommendation |
-|----|----------|--------|------------------------|
-| Q1 | [what is uncertain] | [what it affects] | [suggested default] |
+| ID | Question | Impact | Default Recommendation | Forward |
+|----|----------|--------|------------------------|---------|
+| Q1 | [what is uncertain] | [what it affects] | [suggested default] | -- |
+| Q2 | [targets downstream phase] | [what it affects] | [suggested default] | ->3B |
+
+**Forward column:** `--` = resolve in this phase. `->XX` or `->XX:OpName` = forward to Phase XX (optionally targeting a specific operation).
+
+---
+
+## Forward Concerns
+
+> Concerns that downstream phases should be aware of when running /case.
+> Populated from cross-operation analysis (Step 4) and developer input.
+
+| ID | Concern | Source | Target | Type |
+|----|---------|--------|--------|------|
+| FC1 | [concern description] | [OpName R/E/Q ref] | [Phase XX] | explicit |
+| FC2 | [concern description] | [cross-op analysis] | [Phase XX] | inferred |
+
+**Type:** `explicit` (developer-identified during discussion or finalize), `inferred` (AI cross-operation analysis in Step 4)
+
+Omit this section if no forward concerns were identified.
 
 ---
 

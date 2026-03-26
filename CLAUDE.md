@@ -192,6 +192,15 @@ When `{phase_dir}/*-CASES.md` exists, the planner should:
 
 When CASES.md does not exist, plan-phase works normally from CONTEXT.md + REQUIREMENTS.md alone.
 
+### Cross-Phase Concern Forwarding
+
+When a phase has dependencies (`Depends on` in ROADMAP.md), the /case pipeline automatically surfaces concerns from dependency phases:
+
+- **case-briefer** scans dependency CASES.md for: Open Questions with `Forward` tags targeting this phase, Forward Concerns section entries, Phase Rules referencing this phase, and heuristic text matches (fallback for legacy CASES.md without structured tags).
+- **discuss-phase (advisory):** When running `gsd:discuss-phase` for a phase with dependencies, scan dependency CASES.md for design-level concerns (deferred architectural decisions, constraint implications) and include them as discussion topics in CONTEXT.md. This ensures forwarded concerns are resolved into decisions before /case runs.
+- **Priority resets** at phase boundaries -- the receiving phase's developer re-evaluates each inherited concern in their own context.
+- **Direct dependencies only** -- concerns spanning 3+ phases should be promoted to PROJECT.md System-Wide Rules (SR).
+
 ### CASES.md Integration with Validate-Phase
 
 When `{phase_dir}/*-CASES.md` exists, validate-phase should:

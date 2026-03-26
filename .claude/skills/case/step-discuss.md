@@ -28,6 +28,28 @@ After confirmation, save Phase Rules to CASE-SCRATCH.md's `## Phase Rules` secti
 
 If the briefing has no Cross-Cutting Constraints section (older briefing format), scan CONTEXT.md directly for cross-cutting architectural constraints and propose them.
 
+**Inherited concerns (cross-phase forwarding):** If the briefing has an `## Inherited Concerns` section with entries, present them after Phase Rules confirmation:
+
+```
+From dependency phases, I found these inherited concerns:
+
+Behavioral (may need cases or Open Questions):
+  - IC1: [concern] (from Phase 3A, Q2 ->3B)
+  - IC3: [concern] (from Phase 3A, RefreshToken R4, heuristic match)
+
+Constraints (may need Rules):
+  - IC2: [concern] (from Phase 3A, FC1)
+
+Informational (context only):
+  - IC4: [concern] (from Phase 1)
+
+Review each: confirm, dismiss with reason, or defer.
+Confirmed behavioral concerns will be probed during relevant operation discussion.
+Confirmed constraints will be added as Phase Rules (PR) or operation Rules (R).
+```
+
+Track confirmed inherited concerns and raise them at the relevant operation during Steps 3a-3d. Dismissed concerns are noted in CASE-SCRATCH.md's `## Inherited Concerns Resolution` section with the developer's reasoning.
+
 **Mid-discussion PR promotion:** During per-operation discussion, if a constraint discovered for one operation applies to multiple operations, propose promoting it to PR:
 ```
 That sounds like a phase-wide rule. I'll add it as PR[N]: [description].
@@ -219,6 +241,8 @@ Any domain-specific risk my systematic probes wouldn't catch?
 
 Before closing, verify: every side effect identified in 3c-vi is represented in at least one case's Expected Outcome. Success cases should assert side effects OCCURRED; relevant failure cases should assert side effects DID NOT occur.
 
+**Cross-phase implication check:** Before wrapping up each operation, consider whether any discovered Rule, Edge Case, or side effect has implications for downstream phases (check ROADMAP `Depends on` reverse — which phases depend on this one?). If so, note it internally for inclusion in the Forward Concerns section during finalize (Step 4). Do NOT ask the developer about forwarding during per-operation discussion — batch it at finalize.
+
 **Termination signals:**
 - Per rule: 4-5 examples typical; beyond 6, consider splitting the rule
 - Per operation: 10-15 cases for simple CRUD, 20-30 for complex operations
@@ -249,10 +273,17 @@ Append format per operation:
 | F1 | ... | ... | ... | ... | must |
 
 ### Open Questions
-| ID | Question | Impact | Default Recommendation |
-|----|----------|--------|------------------------|
-| Q1 | ... | ... | ... |
+| ID | Question | Impact | Default Recommendation | Forward |
+|----|----------|--------|------------------------|---------|
+| Q1 | ... | ... | ... | -- |
 ```
+
+**Forward column values:**
+- `--` — resolve in this phase (default)
+- `->XX` — forward to Phase XX (e.g., `->3B`)
+- `->XX:OpName` — forward to specific operation in Phase XX (e.g., `->3B:AddPasskey`)
+
+Tag a question for forwarding when: it cannot be answered until a downstream phase introduces the relevant operation or feature. The developer confirms the tag during review.
 
 The Side Effects sub-section serves as a quick-reference inventory of what the Expected Outcome column must include. It is not a case category -- cases remain S/F/E only.
 

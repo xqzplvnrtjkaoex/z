@@ -27,22 +27,24 @@ case-briefer (sonnet)        /case orchestrator (opus)        case-validator (so
 | File | Role |
 |------|------|
 | `.claude/commands/case.md` | Orchestrator — the main skill that runs the conversation |
-| `.claude/agents/case-briefer.md` | Subagent — reads CONTEXT.md/ROADMAP.md, extracts operations |
+| `.claude/agents/case-briefer.md` | Subagent — reads CONTEXT.md/ROADMAP.md, extracts operations, scans dependency CASES.md for inherited concerns |
 | `.claude/agents/case-validator.md` | Subagent — finds requirement gaps, decision gaps, consistency issues |
 
 ## Flow
 
-1. **Init** — Load phase context via gsd-tools. Dispatch case-briefer to extract operations from planning documents. Check for existing CASES.md or CASE-SCRATCH.md (resume support).
+1. **Init** — Load phase context via gsd-tools. Dispatch case-briefer to extract operations from planning documents and scan dependency phases' CASES.md for inherited concerns. Check for existing CASES.md or CASE-SCRATCH.md (resume support).
 
 2. **Select** — Present discovered operations grouped by category. Developer picks which to discuss.
 
-3. **Discuss** — Depth-first per operation: anchor shared understanding, propose success cases, then systematically probe failures (input validation, auth, resource state, boundaries, concurrency, side effects, infrastructure). Each operation review is presented as an ASCII flow diagram showing decision paths with S/F/E cases at their logical positions. Each completed operation is saved to CASE-SCRATCH.md (table format) to survive context compression.
+3. **Phase Rules + Inherited Concerns** — Present Phase Rules (PR) and System Rules (SR) for confirmation. If dependency phases forwarded concerns, present them grouped by classification (behavioral, constraint, informational). Developer confirms, dismisses, or defers each.
 
-4. **Cross-Operation** — Check consistency across operations: error formats, auth patterns, event emission, cascade behavior.
+4. **Discuss** — Depth-first per operation: anchor shared understanding, propose success cases, then systematically probe failures (input validation, auth, resource state, boundaries, concurrency, side effects, infrastructure). Confirmed inherited concerns are raised at the relevant operation. Each operation review is presented as an ASCII flow diagram. Each completed operation is saved to CASE-SCRATCH.md (table format) to survive context compression.
 
-5. **Validate** — Dispatch case-validator to cross-check discovered cases against CONTEXT.md decisions, ROADMAP.md requirements, and the briefing. Developer reviews findings and incorporates confirmed gaps.
+5. **Cross-Operation** — Check consistency across operations: error formats, auth patterns, event emission, cascade behavior. Identify cross-phase implications for downstream phases.
 
-6. **Write** — Produce `{padded_phase}-CASES.md` with structured case tables, priority levels, and open questions.
+6. **Validate** — Dispatch case-validator to cross-check discovered cases against CONTEXT.md decisions, ROADMAP.md requirements, and the briefing. Developer reviews findings and incorporates confirmed gaps.
+
+7. **Write** — Produce `{padded_phase}-CASES.md` with structured case tables, priority levels, open questions (with Forward column), and Forward Concerns section for downstream phases.
 
 ## Artifacts
 
@@ -70,7 +72,9 @@ All artifacts live in `.planning/phases/{padded_phase}-{name}/`:
 gsd:discuss → /case → (gsd:ui) → gsd:plan → /test-gen → gsd:execute
 ```
 
-/case reads CONTEXT.md and ROADMAP.md. No implementation code, proto files, or tests exist at this point. The planner reads CASES.md downstream and maps must-priority cases to task acceptance criteria using `OperationName.S1` format.
+/case reads CONTEXT.md, ROADMAP.md, and dependency phases' CASES.md (for cross-phase forwarding). No implementation code, proto files, or tests exist at this point. The planner reads CASES.md downstream and maps must-priority cases to task acceptance criteria using `OperationName.S1` format.
+
+**Cross-phase forwarding:** When a phase has dependencies (ROADMAP `Depends on`), the case-briefer automatically scans dependency CASES.md for forwarded concerns (Open Questions with `->XX` tags, Forward Concerns section entries, heuristic text matches). These surface as Inherited Concerns for developer review before discussion begins. Priority resets at phase boundaries. Direct dependencies only.
 
 Not every phase needs /case. Infrastructure phases, simple refactors, or time-constrained phases can skip it — the planner works from CONTEXT.md alone in that case.
 
