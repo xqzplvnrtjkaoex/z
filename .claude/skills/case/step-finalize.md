@@ -136,10 +136,10 @@ CASES.md written. Next steps:
 - R3: [authorization rule]
 
 ### Side Effects
-> Optional. Include only when the operation has side effects beyond the primary response.
 
 - Domain event: "[entity].[action]" emitted on success
 - [category]: [description]
+> If the operation has no side effects, write: `None (read-only)` or `None (query operation)`.
 
 ### Success Cases
 
@@ -207,7 +207,7 @@ AI auto-assigns priority based on: data loss potential, security impact, user-fa
 **Expected Outcome column guidance:**
 - Include ALL observable effects: return value/status, state changes, AND side effects.
 - Success cases: assert side effects OCCURRED (e.g., "Success; 'entity.created' event emitted").
-- Failure cases: specify concrete error type/status (e.g., "400 bad request", "401 unauthorized", "500 internal error"), not generic "error". Assert side effects DID NOT occur where relevant.
+- Failure cases: specify concrete error type/status with domain error name in parentheses (e.g., "400 bad request (ValidationError)", "401 unauthorized (TokenExpired)", "500 internal error (DatabaseUnavailable)"), not generic "error". Omit the parenthetical only when the error is intentionally opaque by design. Assert side effects DID NOT occur where relevant.
 - For complex side effects, use per-case footnotes to detail parameters and atomicity requirements.
 </output_format>
 

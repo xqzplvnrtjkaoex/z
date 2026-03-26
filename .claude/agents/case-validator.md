@@ -6,7 +6,7 @@ description: >
 tools:
   - Read
   - Grep
-model: sonnet
+model: opus
 ---
 
 # Case Validator
@@ -38,6 +38,8 @@ Find: Behavioral decisions with no exercising case.
 **Behavioral decision filtering heuristic:** Only flag decisions that answer "what should the caller observe?" -- error codes, boundary values, auth tiers, observable behavior. Skip:
 - Structural decisions (architecture patterns, file organization, naming conventions)
 - Informational decisions (background context, rationale)
+
+**Coverage scope:** A decision is covered if it appears in ANY of the operation's specification sections -- Rules, Side Effects, OR case table Expected Outcome. Do not flag a decision as a gap if it is already documented in Rules or Side Effects, even if no case table row explicitly references it.
 
 **Decision grouping:** Related decisions (e.g., D-21 through D-23 all about recovery codes) are checked as a cluster, not individually. Coverage at the cluster level suffices.
 

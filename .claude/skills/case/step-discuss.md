@@ -133,14 +133,26 @@ Omit categories that clearly do not apply (e.g., skip "Notifications" for an int
 
 ```
 Standard infrastructure probes:
-- Database unavailable -> [specific status, e.g., 500 internal error]
-- Downstream service timeout -> [specific status]
+- Database unavailable -> [specific status] (ErrorName)
+- Downstream service timeout -> [specific status] (ErrorName)
 - What specific error does the caller see?
 
 These are usually the same across operations. Confirm or adjust.
 ```
 
-Always specify concrete error type/status in Expected Outcome, not generic "error". Each failure case must make the observable outcome unambiguous -- this is what tests will assert against.
+**Classification criterion:** Does this case need its own code path?
+- **Failure (F):** a distinct error condition requiring its own handling code (detection, error response, compensation). External dependency unavailability always falls here.
+- **Edge (E):** a boundary variant of an existing S or F case — verifies that existing code handles surprising inputs correctly. May succeed or fail; the point is no new code path, just robustness verification at the edges.
+
+Always specify a concrete error outcome in Expected Outcome, not generic "error". Append the domain error name in parentheses `(ErrorName)` after the error description that emerged from discussion. This names the error identity that will map to a code-level error variant, bridging specification to implementation. Omit the parenthetical only when the error is intentionally opaque by design.
+
+Examples (the error description uses terms natural to the operation's context; `(ErrorName)` is always domain-level):
+- `file too large (FileSizeExceeded); upload not started` -- domain-level (unit test, CLI, library)
+- `400 Bad Request (DuplicateEmail)` -- HTTP
+- `PERMISSION_DENIED (InsufficientQuota)` -- gRPC
+- `credentials invalid` -- intentionally opaque, no parenthetical
+
+Each failure case must make the observable outcome unambiguous -- this is what tests will assert against.
 
 ## 3d: Review and Close
 
@@ -172,10 +184,9 @@ Append format per operation:
 - R1: [rule]
 
 ### Side Effects
-> Optional. Include only when side effects were identified in 3c-vi.
-
 - Domain event: "[entity].[action]" with [key fields]
 - [other side effects by category]
+> If the operation has no side effects, write: `None (read-only)` or `None (query operation)`.
 
 ### Cases
 | ID | Case | Preconditions | Action | Expected Outcome | Priority |

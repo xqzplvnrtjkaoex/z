@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Case skill refactored, pending case-validate for phase 3A
-last_updated: "2026-03-25T17:31:16.275Z"
-last_activity: Fix zsh glob bug in case skill, migrate commands/ to skills/, split into 4 files with routing table
+stopped_at: Case skill migrated to skills/case/ multi-file, XML tags refactored
+last_updated: "2026-03-26T07:24:40.179Z"
+last_activity: "Refactored case skill XML tags: objective->purpose, technique_layers->techniques, added available_agent_types, removed step wrapper tags, verified against original"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T17:31:03.218Z
-Last activity: Refactored case skill XML tags: objective->purpose, technique_layers->techniques, added available_agent_types, removed step wrapper tags, verified against original
-Stopped at: Case skill migrated to skills/case/ multi-file, XML tags refactored
+Last session: 2026-03-26T07:24:31.428Z
+Last activity: Cross-op analysis + validator review for 3A cases, then skill improvements: error identifiers, S/F/E classification, Side Effects always-present, validator coverage scope
+Stopped at: Case skill improved (4 feedbacks), CASES.md writing pending
 Resume file: .planning/phases/03a-authentication-core/CASE-SCRATCH.md
-Next action: /case 3a (resume — dispatch case-validator, review findings, write 03A-CASES.md)
+Next action: Write 03a-CASES.md (findings [1][3][4][5][6][8] accepted, [2][7] skipped, skill improvements done)
