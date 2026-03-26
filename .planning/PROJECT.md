@@ -21,7 +21,7 @@ Cargo workspace monorepo with 6 binaries and 2 shared crates:
 
 | Binary | Role | Communication |
 |--------|------|---------------|
-| **gateway** | REST entry point, JWT verification, gRPC routing | REST (external) -> gRPC (internal) |
+| **gateway** | REST entry point, JWT verification, gRPC routing, multi-service orchestration | REST (external) -> gRPC (internal) |
 | **auth** | JWT issuance, session management, Passkey | gRPC |
 | **catalog** | Book CRUD, tag queries, publishing, renewal | gRPC |
 | **user** | user profiles, tastes (like/dislike), histories | gRPC |
@@ -292,6 +292,12 @@ Users table lives in the User service DB:
 3. JWT expired + past Grace Period -> verify session, issue new JWT
 4. Session invalid -> reject request
 
+**Registration flow (Signup vs Register):**
+
+- **SignupBegin/SignupFinish** (`/v1/auth/signup/*`): Full signup flow — invite validation, user creation (via User service), passkey ceremony, session/JWT issuance, recovery code generation
+- **RegisterBegin/RegisterFinish** (`/v1/auth/register/*`): Pure passkey ceremony — WebAuthn challenge/credential only, for authenticated users adding passkeys
+- Internal WebAuthn ceremony logic is shared between both flows; Signup wraps it with signup-specific orchestration
+
 **Duplicate JWT prevention:** Per-session JWT caching (reuse same JWT within N seconds)
 
 **Image request token refresh:** nginx `auth_request_set $auth_cookie $upstream_http_set_cookie` + `add_header Set-Cookie $auth_cookie` forwards Set-Cookie from auth subrequest to client
@@ -480,6 +486,8 @@ justification in the phase's CASES.md Phase Rules section.
 | Users table in User service | Auth service references user_id without FK; calls User service via gRPC | -- Pending |
 | CallerIdentity in madome-common | Shared caller identity type with own CallerRole enum (not proto Role); avoids invalid Unspecified state; exhaustive match on variant additions | Validated (Phase 02) |
 | Proto `bytes` for UUID fields | 16 bytes vs 36; no format ambiguity; Gateway uses `Path<Uuid>` for direct deserialization | Validated (Phase 02) |
+| Gateway multi-service orchestration | Not restricted to proxy/routing; compose multi-service flows when trade-offs favor it | -- Pending |
+| Signup/Register operation separation | Signup = full flow (invite+user+passkey+session); Register = pure passkey ceremony (reusable for adding passkeys) | -- Pending |
 
 ---
 *Last updated: 2026-03-22 — Phase 2 complete: User service fully operational with 8 gRPC RPCs, domain layer, PostgreSQL adapter, gateway REST routes, 73 tests (unit + integration + service)*

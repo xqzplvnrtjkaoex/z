@@ -1,7 +1,7 @@
 # Phase: Authentication Core - Context
 
 **Gathered:** 2026-03-21
-**Updated:** 2026-03-25 (context update session: registration failure recovery, invite API contract, auth startup/connection, route fix)
+**Updated:** 2026-03-26 (signup/register separation D-146, ceremony cleanup D-147, route table + D-47/D-59/D-134 updated)
 **Status:** Ready for planning
 
 > **Phase split:** Original Phase 3 (Authentication, ~126 decisions) split into 3A (Core) and 3B (Operations). 3A establishes the authentication foundation; 3B builds operational features on top.
@@ -41,7 +41,9 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - **D-67:** AAGUID stored at registration time. Extract from raw attestationObject CBOR (authData[37..53]) using minicbor, store as UUID column in credentials table. webauthn-rs does not expose AAGUID for attestation=none, so direct CBOR parsing required
 
 ### Passkey Flows
-- **D-16:** Registration: 2-step (begin + finish). Invite token verified in begin step
+- **D-16:** *(UPDATED)* Passkey ceremony: 2-step (begin + finish). Pure WebAuthn credential registration/verification -- separated from signup orchestration (see D-146)
+- **D-146:** Signup/Register operation separation. **SignupBegin/SignupFinish** (`/v1/auth/signup/*`): full signup flow -- invite validation, User.CreateUser, passkey ceremony, session/JWT/recovery codes. User created in SignupBegin; if SignupFinish never called, orphan user cleanup needed. **RegisterBegin/RegisterFinish** (`/v1/auth/register/*`): pure passkey ceremony -- WebAuthn challenge/credential only, JWT auth required (authenticated users adding passkeys). Internal WebAuthn ceremony logic shared between both flows. Both endpoint pairs implemented in 3A
+- **D-147:** Ceremony state deletion is best-effort. Failure logged as warning but does not fail the operation. Redis TTL (5min) is the failsafe cleanup. Applies to: SignupFinish, RegisterFinish, LoginFinish
 - **D-17:** Authentication: username-less (Discoverable Credential based). No identifier in login/begin request body
 - **D-18:** RP configuration: RP_ID, RP_ORIGIN environment variables
 
@@ -70,7 +72,7 @@ Users can register a passkey via invite token, authenticate via username-less pa
 
 ### Gateway Middleware
 - **D-46:** *(3A SCOPE)* 2-tier route authentication: public (no auth) and protected (JWT required). Additional tiers (verified, admin, scraper, recovery) added in Phase 3B
-- **D-47:** *(3A SCOPE)* Public routes: /v1/auth/register/\*, /v1/auth/login/\*, /health, /v1/health/\*
+- **D-47:** *(3A SCOPE, UPDATED)* Public routes: /v1/auth/signup/\*, /v1/auth/login/\*, /health, /v1/health/\*. Protected routes: /v1/auth/register/\* (JWT required, authenticated users adding passkeys)
 - **D-48:** JWT signature invalid (forged/corrupted): immediate 401 (no session fallback). Only expired JWT enters grace/session flow
 - **D-49:** User context propagation: user_id, role, handle, session_id extracted from JWT, passed as gRPC metadata (same pattern as request_id)
 - **D-127:** `verify_jwt` middleware replaces `extract_caller_identity` entirely. JWT is the sole identity source. Uses `route_layer` + `from_fn_with_state` for AppState access (JWT public key). `route_layer` prevents 404-to-401 bleed (middleware only runs on matched routes)
@@ -91,7 +93,7 @@ Users can register a passkey via invite token, authenticate via username-less pa
 - **D-58:** Indexes: matching query patterns (credentials.user_id, sessions.user_id, api_keys.key_hash UNIQUE, invitations.token_hash UNIQUE, recovery_codes.user_id)
 
 ### Proto Definition
-- **D-59:** *(3A SCOPE)* Auth gRPC RPCs: RegisterBegin/Finish, LoginBegin/Finish, ValidateSession, RefreshToken, InvalidateSession (logout), CreateInvite. User gRPC: CreateUser, GetUser, DeleteUser (compensation only, D-140). Additional RPCs added in 3B
+- **D-59:** *(3A SCOPE, UPDATED)* Auth gRPC RPCs: SignupBegin/Finish, RegisterBegin/Finish, LoginBegin/Finish, ValidateSession, RefreshToken, InvalidateSession (logout), CreateInvite. User gRPC: CreateUser, GetUser, DeleteUser (compensation only, D-140). Additional RPCs added in 3B
 - **D-60:** Gateway is REST-to-gRPC translator for auth operations
 
 ### Infrastructure
@@ -111,8 +113,10 @@ Users can register a passkey via invite token, authenticate via username-less pa
 
 | Tier | Method | Path | Description |
 |------|--------|------|-------------|
-| public | POST | /v1/auth/register/begin | Passkey registration start (invite token verified) |
-| public | POST | /v1/auth/register/finish | Passkey registration complete -> 201, recovery codes in body |
+| public | POST | /v1/auth/signup/begin | Signup start (invite + user creation + passkey ceremony) |
+| public | POST | /v1/auth/signup/finish | Signup complete -> 201, recovery codes in body |
+| protected | POST | /v1/auth/register/begin | Add passkey start (pure WebAuthn ceremony, JWT auth) |
+| protected | POST | /v1/auth/register/finish | Add passkey complete -> 201, credential saved |
 | public | POST | /v1/auth/login/begin | Login start (username-less) |
 | public | POST | /v1/auth/login/finish | Login complete -> 204 No Content, JWT in cookie |
 | protected | POST | /v1/auth/logout | Logout current session |
@@ -139,7 +143,7 @@ Users can register a passkey via invite token, authenticate via username-less pa
 
 ### Cross-Service Error Handling
 - **D-133:** Fail-fast strategy for Auth -> User gRPC calls. User service call executes first; auth DB writes only after User service succeeds. No compensating transactions, no saga
-- **D-134:** Registration flow ordering: User.CreateUser -> credential save -> session create -> JWT issue. Login flow: User.GetUser -> session create -> JWT issue. User service failure at any point = entire auth operation fails cleanly
+- **D-134:** *(UPDATED)* Signup flow ordering: SignupBegin (invite validate -> User.CreateUser -> ceremony start) -> SignupFinish (credential verify -> credential save -> recovery codes -> session create -> JWT issue). Login flow: User.GetUser -> session create -> JWT issue. User service failure at any point = entire auth operation fails cleanly
 - **D-135:** Per-endpoint gRPC timeout: 5 seconds via `tonic::Request::set_timeout`. Applies to all Auth -> User calls
 - **D-136:** User service unavailable = auth operation failure. Acceptable for this service scale. No partial recovery or retry logic
 - **D-139:** Registration failure recovery: if auth DB/Redis fails after User.CreateUser succeeds, attempt compensating `User.DeleteUser` call. If compensating delete also fails (double failure), log structured orphan event (`user_id + handle + request_id`) for manual cleanup
