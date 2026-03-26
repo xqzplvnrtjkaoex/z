@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: 3A case re-validation round 2 complete, SCRATCH updated, CASES.md writing deferred
-last_updated: "2026-03-26T10:20:08.580Z"
-last_activity: "Re-validated 3A cases (round 2): 8 validator findings discussed, SCRATCH updated. Identified 3 workflow gaps saved to memory."
+stopped_at: Constraint forwarding implemented and code-reviewed; 3A CASES.md writing still pending
+last_updated: "2026-03-26T11:27:04.063Z"
+last_activity: "Implemented constraint forwarding for /case skill: PROJECT.md SR section, case-briefer Step 4.5, step-discuss Step 2.5, case-validator Check B extension, output format Phase Rules + SR Candidates"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -123,8 +123,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T10:19:48.302Z
-Last activity: Implemented constraint forwarding for /case skill: PROJECT.md SR section, case-briefer Step 4.5, step-discuss Step 2.5, case-validator Check B extension, output format Phase Rules + SR Candidates
-Stopped at: Constraint forwarding implemented and code-reviewed; 3A CASES.md writing still pending
-Resume file: .claude/skills/case/SKILL.md
-Next action: Finalize 3A (write 03a-CASES.md) OR start cross-phase forwarding research (separate concern, deferred)
+Last session: 2026-03-26T11:26:56.186Z
+Last activity: Researched (4 parallel agents) and implemented cross-phase concern forwarding: briefer Step 4.7, OQ Forward column, Forward Concerns section, CLAUDE.md discuss pre-flight, docs update
+Stopped at: Cross-phase concern forwarding implemented and verified; 3A CASES.md finalize pending
+Resume file: .claude/skills/case/step-finalize.md
+Next action: Finalize 3A (write 03a-CASES.md with new Forward format) — first real test of cross-phase forwarding will be 3B /case
